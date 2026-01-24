@@ -1,0 +1,145 @@
+{
+  "metadata": {
+    "title": "SkillBank - AI 代理技能市场",
+    "description": "发现、安装和管理 AI 编程代理的技能。适用于 Claude、Codex 等的技能市场。"
+  },
+  "header": {
+    "browse": "浏览",
+    "docs": "文档",
+    "github": "GitHub"
+  },
+  "hero": {
+    "badge": "AI 代理技能市场",
+    "title1": "为你的",
+    "title2": "AI 编程代理赋能",
+    "subtitle": "发现、安装和管理 Claude Code、Codex 等 AI 代理的技能。一条命令解锁新能力。"
+  },
+  "stats": {
+    "skills": "可用技能",
+    "free": "免费",
+    "openSource": "开源",
+    "cli": "CLI",
+    "oneCommand": "一键安装"
+  },
+  "popular": {
+    "title": "热门技能",
+    "subtitle": "本周安装最多的技能",
+    "viewAll": "查看全部 →"
+  },
+  "features": {
+    "cliFirst": {
+      "title": "命令行优先",
+      "description": "直接从终端安装技能，无需图形界面，一条命令搞定。"
+    },
+    "openSecure": {
+      "title": "开源安全",
+      "description": "所有技能都是开源可审计的，你清楚地知道安装了什么。"
+    },
+    "universal": {
+      "title": "通用兼容",
+      "description": "适用于 Claude Code、Cursor、Windsurf、Codex 以及任何支持 SKILL.md 的代理。"
+    }
+  },
+  "footer": {
+    "copyright": "© 2025 SkillBank. MIT 开源协议。",
+    "api": "API"
+  },
+  "search": {
+    "title": "搜索技能",
+    "placeholder": "git, testing, api...",
+    "results": "\"{query}\" 的搜索结果：{count} 个",
+    "noResults": "未找到技能",
+    "noResultsHint": "尝试其他关键词或浏览所有技能",
+    "enterTerm": "输入搜索词",
+    "enterTermHint": "按名称、描述或标签搜索技能"
+  },
+  "skill": {
+    "backToSkills": "返回技能列表",
+    "install": "安装",
+    "terminal": "终端",
+    "statistics": "统计数据",
+    "installs": "安装次数",
+    "copies": "复制次数",
+    "viewSource": "查看源码",
+    "content": "SKILL.md 内容",
+    "noContent": "暂无内容",
+    "copy": "复制",
+    "copied": "已复制！"
+  },
+  "common": {
+    "by": "作者",
+    "private": "私密"
+  },
+  "skills": {
+    "title": "所有技能",
+    "subtitle": "浏览所有可用的 AI 编程代理技能",
+    "empty": "暂无可用技能",
+    "emptyHint": "请稍后再来查看新技能",
+    "tabs": {
+      "all": "全部技能",
+      "my": "我的技能",
+      "skillsmp": "SkillSMP"
+    },
+    "mySkills": {
+      "title": "我的技能",
+      "subtitle": "你发布的技能或有权访问的技能",
+      "empty": "你还没有发布任何技能",
+      "emptyHint": "使用 'skillbank publish' 发布你的第一个技能",
+      "owned": "你发布的",
+      "authorized": "授权访问"
+    }
+  },
+  "docs": {
+    "title": "文档",
+    "subtitle": "了解如何使用 SkillBank",
+    "gettingStarted": "快速开始",
+    "gettingStartedDesc": "安装 SkillBank CLI 并添加你的第一个技能",
+    "installation": "安装",
+    "installationDesc": "全局安装 CLI 或使用 npx",
+    "addSkill": "添加技能",
+    "addSkillDesc": "向项目添加技能",
+    "listSkills": "列出技能",
+    "listSkillsDesc": "查看所有已安装的技能",
+    "removeSkill": "移除技能",
+    "removeSkillDesc": "从项目中移除技能",
+    "skillFormat": "SKILL.md 格式",
+    "skillFormatDesc": "了解技能文件格式",
+    "skillFormatContent": "技能通过 SKILL.md 文件定义。这些文件包含 AI 编程代理的指令和上下文。",
+    "commands": "CLI 命令",
+    "api": "API 参考",
+    "apiDesc": "SkillBank 提供 REST API 供程序化访问",
+    "endpoints": "接口"
+  },
+  "notFound": {
+    "title": "页面未找到",
+    "description": "你访问的页面不存在或已被移动。",
+    "backHome": "返回首页"
+  },
+  "language": {
+    "switch": "语言",
+    "en": "English",
+    "zh": "中文"
+  },
+  "auth": {
+    "signIn": "登录",
+    "signUp": "注册",
+    "signOut": "退出登录",
+    "email": "邮箱",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "forgotPassword": "忘记密码？",
+    "noAccount": "没有账号？",
+    "hasAccount": "已有账号？",
+    "orContinueWith": "或使用以下方式继续",
+    "signingIn": "登录中...",
+    "signingUp": "注册中...",
+    "checkEmail": "检查你的邮箱",
+    "checkEmailDesc": "我们已向你发送了确认链接，请检查邮箱完成注册。",
+    "backToSignIn": "返回登录",
+    "passwordMismatch": "两次密码输入不一致",
+    "invalidEmail": "请输入有效的邮箱",
+    "passwordTooShort": "密码至少需要 6 个字符",
+    "profile": "个人资料",
+    "settings": "设置"
+  }
+}

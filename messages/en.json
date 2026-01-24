@@ -1,0 +1,145 @@
+{
+  "metadata": {
+    "title": "SkillBank - AI Agent Skills Marketplace",
+    "description": "Discover, install, and manage skills for your AI coding agents. The marketplace for Claude, Codex, and beyond."
+  },
+  "header": {
+    "browse": "Browse",
+    "docs": "Docs",
+    "github": "GitHub"
+  },
+  "hero": {
+    "badge": "AI Agent Skills Marketplace",
+    "title1": "Supercharge Your",
+    "title2": "AI Coding Agent",
+    "subtitle": "Discover, install, and manage skills for Claude Code, Codex, and beyond. One command to unlock new capabilities."
+  },
+  "stats": {
+    "skills": "Skills Available",
+    "free": "Free",
+    "openSource": "Open Source",
+    "cli": "CLI",
+    "oneCommand": "One Command Install"
+  },
+  "popular": {
+    "title": "Popular Skills",
+    "subtitle": "Most installed skills this week",
+    "viewAll": "View all →"
+  },
+  "features": {
+    "cliFirst": {
+      "title": "CLI First",
+      "description": "Install skills directly from your terminal. No UI needed, just one command."
+    },
+    "openSecure": {
+      "title": "Open & Secure",
+      "description": "All skills are open source and auditable. Know exactly what you're installing."
+    },
+    "universal": {
+      "title": "Universal",
+      "description": "Works with Claude Code, Cursor, Windsurf, Codex, and any agent that reads SKILL.md."
+    }
+  },
+  "footer": {
+    "copyright": "© 2025 SkillBank. Open source under MIT.",
+    "api": "API"
+  },
+  "search": {
+    "title": "Search Skills",
+    "placeholder": "git, testing, api...",
+    "results": "{count, plural, =0 {No results} =1 {1 result} other {# results}} for \"{query}\"",
+    "noResults": "No skills found",
+    "noResultsHint": "Try different keywords or browse all skills",
+    "enterTerm": "Enter a search term",
+    "enterTermHint": "Search for skills by name, description, or tags"
+  },
+  "skill": {
+    "backToSkills": "Back to skills",
+    "install": "Install",
+    "terminal": "Terminal",
+    "statistics": "Statistics",
+    "installs": "Installs",
+    "copies": "Copies",
+    "viewSource": "View Source",
+    "content": "SKILL.md Content",
+    "noContent": "No content available",
+    "copy": "Copy",
+    "copied": "Copied!"
+  },
+  "common": {
+    "by": "by",
+    "private": "Private"
+  },
+  "skills": {
+    "title": "All Skills",
+    "subtitle": "Browse all available skills for your AI coding agent",
+    "empty": "No skills available yet",
+    "emptyHint": "Check back soon for new skills",
+    "tabs": {
+      "all": "All Skills",
+      "my": "My Skills",
+      "skillsmp": "SkillSMP"
+    },
+    "mySkills": {
+      "title": "My Skills",
+      "subtitle": "Skills you've published or have access to",
+      "empty": "You haven't published any skills yet",
+      "emptyHint": "Use 'skillbank publish' to publish your first skill",
+      "owned": "Published by you",
+      "authorized": "Authorized access"
+    }
+  },
+  "docs": {
+    "title": "Documentation",
+    "subtitle": "Learn how to use SkillBank",
+    "gettingStarted": "Getting Started",
+    "gettingStartedDesc": "Install SkillBank CLI and add your first skill",
+    "installation": "Installation",
+    "installationDesc": "Install the CLI globally or use npx",
+    "addSkill": "Add a Skill",
+    "addSkillDesc": "Add a skill to your project",
+    "listSkills": "List Skills",
+    "listSkillsDesc": "See all installed skills",
+    "removeSkill": "Remove a Skill",
+    "removeSkillDesc": "Remove a skill from your project",
+    "skillFormat": "SKILL.md Format",
+    "skillFormatDesc": "Learn about the skill file format",
+    "skillFormatContent": "Skills are defined in SKILL.md files. These files contain instructions and context for AI coding agents.",
+    "commands": "CLI Commands",
+    "api": "API Reference",
+    "apiDesc": "SkillBank provides a REST API for programmatic access",
+    "endpoints": "Endpoints"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you're looking for doesn't exist or has been moved.",
+    "backHome": "Back to home"
+  },
+  "language": {
+    "switch": "Language",
+    "en": "English",
+    "zh": "中文"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signOut": "Sign Out",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "orContinueWith": "Or continue with",
+    "signingIn": "Signing in...",
+    "signingUp": "Signing up...",
+    "checkEmail": "Check your email",
+    "checkEmailDesc": "We sent you a confirmation link. Please check your email to complete sign up.",
+    "backToSignIn": "Back to sign in",
+    "passwordMismatch": "Passwords do not match",
+    "invalidEmail": "Please enter a valid email",
+    "passwordTooShort": "Password must be at least 6 characters",
+    "profile": "Profile",
+    "settings": "Settings"
+  }
+}
