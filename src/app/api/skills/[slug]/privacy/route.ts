@@ -7,9 +7,9 @@ type Props = {
 };
 
 /**
- * PATCH /api/skills/[slug]/visibility
- * Update skill visibility (public/private)
- * Only the skill owner can change visibility
+ * PATCH /api/skills/[slug]/privacy
+ * Update skill privacy (public/private)
+ * Only the skill owner can change privacy
  */
 export async function PATCH(request: NextRequest, { params }: Props) {
   try {
@@ -64,12 +64,12 @@ export async function PATCH(request: NextRequest, { params }: Props) {
 
     if (skill.user_id !== user.id) {
       return NextResponse.json(
-        { error: 'permission_denied', error_description: 'Only the skill owner can change visibility' },
+        { error: 'permission_denied', error_description: 'Only the skill owner can change privacy' },
         { status: 403 }
       );
     }
 
-    // Update visibility
+    // Update privacy
     const { error: updateError } = await supabase
       .from('skills')
       .update({ is_private, updated_at: new Date().toISOString() })
@@ -78,7 +78,7 @@ export async function PATCH(request: NextRequest, { params }: Props) {
     if (updateError) {
       console.error('Update error:', updateError);
       return NextResponse.json(
-        { error: 'server_error', error_description: 'Failed to update visibility' },
+        { error: 'server_error', error_description: 'Failed to update privacy' },
         { status: 500 }
       );
     }
