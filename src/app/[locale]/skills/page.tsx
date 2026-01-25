@@ -22,9 +22,10 @@ interface Skill {
   description: string;
   author: string;
   is_private?: boolean;
-  source: 'local' | 'skillsmp';
+  source: 'local' | 'skillsmp' | 'skills.sh';
   installs?: number;
   skill_stats?: { installs: number }[];
+  isFeatured?: boolean;
 }
 
 async function getSkills(source: string, userId?: string) {
@@ -33,17 +34,24 @@ async function getSkills(source: string, userId?: string) {
 
   const results: Skill[] = [];
 
-  // Get local skills
-  if (source !== 'skillsmp' && supabaseUrl && supabaseKey) {
-    const supabase = createClient(supabaseUrl, supabaseKey);
+  // For 'my' source, require authentication
+  if (source === 'my' && !userId) {
+    return { skills: [], needsAuth: true };
+  }
 
+  if (!supabaseUrl || !supabaseKey) {
+    return { skills: [], needsAuth: false };
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  // Get local skills for 'my' or 'local' source
+  if (source === 'my' || source === 'local') {
     let query = supabase.from('skills').select('*, skill_stats(installs)');
 
     if (source === 'my') {
-      if (!userId) return { skills: [], needsAuth: true };
       query = query.eq('user_id', userId);
     } else {
-      // Show public skills + user's own private skills
       if (userId) {
         query = query.or(`is_private.eq.false,user_id.eq.${userId}`);
       } else {
@@ -67,41 +75,32 @@ async function getSkills(source: string, userId?: string) {
         });
       }
     }
+
+    return { skills: results, needsAuth: false };
   }
 
-  // Get SkillSMP skills
-  if (source !== 'local' && source !== 'my') {
-    const apiKey = process.env.SKILLSMP_API_KEY;
-    if (apiKey) {
-      try {
-        const response = await fetch(`${SKILLSMP_API_URL}/skills/search`, {
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-          },
-        });
+  // For 'all' or default: show skills.sh featured list (sorted by installs)
+  const { data: featuredSkills } = await supabase
+    .from('skills_sh_cache')
+    .select('name, installs, top_source')
+    .order('installs', { ascending: false })
+    .limit(50);
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.data?.skills) {
-            for (const skill of data.data.skills) {
-              // Avoid duplicates
-              if (!results.find((r) => r.name === skill.name)) {
-                results.push({
-                  id: skill.id,
-                  name: skill.name,
-                  slug: skill.id,
-                  description: skill.description || '',
-                  author: skill.author || '',
-                  source: 'skillsmp',
-                });
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.error('SkillSMP fetch error:', error);
-      }
+  if (featuredSkills) {
+    for (const skill of featuredSkills) {
+      // Extract author from top_source (e.g., "vercel-labs/agent-skills" -> "vercel-labs")
+      const author = skill.top_source?.split('/')[0] || '';
+
+      results.push({
+        id: skill.name,
+        name: skill.name,
+        slug: skill.name,
+        description: '', // skills.sh doesn't have description
+        author,
+        source: 'skills.sh',
+        installs: skill.installs,
+        isFeatured: true,
+      });
     }
   }
 

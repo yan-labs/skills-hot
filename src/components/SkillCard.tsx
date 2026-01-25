@@ -13,7 +13,7 @@ type SkillCardProps = {
   tags: string[] | null;
   installs: number;
   isPrivate?: boolean;
-  source?: 'local' | 'skillsmp';
+  source?: 'local' | 'skillsmp' | 'skills.sh';
 };
 
 export function SkillCard({
@@ -57,6 +57,9 @@ export function SkillCard({
           </div>
           {source === 'skillsmp' && (
             <span className="rounded bg-muted px-1.5 py-0.5 text-[10px]">SkillSMP</span>
+          )}
+          {source === 'skills.sh' && (
+            <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] text-emerald-600 dark:text-emerald-400">Featured</span>
           )}
         </div>
         {author && (

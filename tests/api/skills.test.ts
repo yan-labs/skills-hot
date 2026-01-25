@@ -8,13 +8,15 @@ vi.mock('@/lib/auth-middleware', () => ({
 }));
 
 // Mock Supabase
+const mockIn = vi.fn();
 const mockSupabaseClient = {
   from: vi.fn().mockReturnThis(),
   select: vi.fn().mockReturnThis(),
   eq: vi.fn().mockReturnThis(),
   or: vi.fn().mockReturnThis(),
   order: vi.fn().mockReturnThis(),
-  limit: vi.fn().mockReturnThis(),
+  limit: vi.fn(),
+  in: mockIn,
 };
 
 vi.mock('@supabase/supabase-js', () => ({
@@ -31,11 +33,19 @@ describe('GET /api/skills', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
+    // Set environment variables
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-key';
+    process.env.SKILLSMP_API_KEY = 'test-api-key';
+
     // Default auth mock - not authenticated
     vi.mocked(verifyToken).mockResolvedValue({
       user: null,
       error: null,
     });
+
+    // Default mock for skills_sh_cache query - returns empty
+    mockIn.mockResolvedValue({ data: [], error: null });
   });
 
   it('should return public skills when not authenticated', async () => {

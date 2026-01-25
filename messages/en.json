@@ -64,7 +64,18 @@
     "content": "SKILL.md Content",
     "noContent": "No content available",
     "copy": "Copy",
-    "copied": "Copied!"
+    "copied": "Copied!",
+    "source": {
+      "local": "Platform",
+      "github": "GitHub",
+      "skillsmp": "SkillSMP"
+    },
+    "fromGitHub": "This skill is from GitHub and will be downloaded from the source repository",
+    "fromPlatform": "This skill is hosted on SkillBank platform",
+    "hasFiles": "This skill includes additional files that will be downloaded",
+    "viewOnGitHub": "View on GitHub",
+    "stars": "Stars",
+    "importToPlatform": "Import to Platform"
   },
   "common": {
     "by": "by",
@@ -141,5 +152,19 @@
     "passwordTooShort": "Password must be at least 6 characters",
     "profile": "Profile",
     "settings": "Settings"
+  },
+  "author": {
+    "title": "{name}'s Skills",
+    "skills": "Skills",
+    "totalInstalls": "Total Installs",
+    "githubSkills": "GitHub Skills",
+    "platformSkills": "Platform Skills",
+    "noSkills": "No skills yet",
+    "viewOnGitHub": "View on GitHub",
+    "tabs": {
+      "all": "All",
+      "github": "From GitHub",
+      "platform": "Platform"
+    }
   }
 }

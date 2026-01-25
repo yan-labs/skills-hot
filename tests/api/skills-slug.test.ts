@@ -20,15 +20,15 @@ vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn(() => mockSupabaseClient),
 }));
 
-// Mock fetch for SkillSMP
-const mockFetch = vi.fn();
-vi.stubGlobal('fetch', mockFetch);
-
 import { verifyToken } from '@/lib/auth-middleware';
 
 describe('GET /api/skills/[slug]', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Set environment variables
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-key';
 
     // Default auth mock - not authenticated
     vi.mocked(verifyToken).mockResolvedValue({
@@ -188,55 +188,21 @@ describe('GET /api/skills/[slug]', () => {
     expect(data.name).toBe('private-skill');
   });
 
-  it('should fallback to SkillSMP when not found locally', async () => {
-    mockSupabaseClient.single.mockResolvedValueOnce({
-      data: null,
-      error: { message: 'Not found' },
-    });
-
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          success: true,
-          data: {
-            skills: [
-              {
-                id: 'external-skill',
-                name: 'external-skill',
-                author: 'External',
-                description: 'From SkillSMP',
-                githubUrl: 'https://github.com/test',
-                skillUrl: 'https://skillsmp.com/skill/1',
-                stars: 50,
-              },
-            ],
-          },
-        }),
-    });
-
-    const request = new NextRequest('http://localhost/api/skills/external-skill');
-    const response = await GET(request, { params: Promise.resolve({ slug: 'external-skill' }) });
-    const data = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(data.source).toBe('skillsmp');
-    expect(data.stars).toBe(50);
-  });
-
   it('should return 404 when not found anywhere', async () => {
+    // Mock: local skills not found
     mockSupabaseClient.single.mockResolvedValueOnce({
       data: null,
       error: { message: 'Not found' },
     });
-
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          success: true,
-          data: { skills: [] },
-        }),
+    // Mock: external_skills not found
+    mockSupabaseClient.single.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'Not found' },
+    });
+    // Mock: external_skills by name not found
+    mockSupabaseClient.single.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'Not found' },
     });
 
     const request = new NextRequest('http://localhost/api/skills/nonexistent');
@@ -245,5 +211,86 @@ describe('GET /api/skills/[slug]', () => {
 
     expect(response.status).toBe(404);
     expect(data.error).toBe('Skill not found');
+  });
+
+  it('should return external skill from external_skills table', async () => {
+    // Mock: local skills not found
+    mockSupabaseClient.single.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'Not found' },
+    });
+    // Mock: external_skills found
+    mockSupabaseClient.single.mockResolvedValueOnce({
+      data: {
+        id: 'external-1',
+        name: 'github-skill',
+        slug: 'github-skill',
+        description: 'A skill from GitHub',
+        repo: 'owner/repo',
+        repo_path: 'skills/my-skill',
+        branch: 'main',
+        raw_url: 'https://raw.githubusercontent.com/owner/repo/main/skills/my-skill/SKILL.md',
+        github_owner: 'owner',
+        installs: 500,
+        stars: 25,
+        author: {
+          id: 'author-1',
+          github_login: 'owner',
+          name: 'Skill Owner',
+          avatar_url: 'https://avatars.githubusercontent.com/u/12345',
+        },
+        created_at: '2024-01-01',
+        updated_at: '2024-01-02',
+      },
+      error: null,
+    });
+
+    const request = new NextRequest('http://localhost/api/skills/github-skill');
+    const response = await GET(request, { params: Promise.resolve({ slug: 'github-skill' }) });
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data.source).toBe('github');
+    expect(data.contentSource).toBe('github');
+    expect(data.repo).toBe('owner/repo');
+    expect(data.installs).toBe(500);
+    expect(data.stars).toBe(25);
+  });
+
+  it('should find external skill by name if slug not found', async () => {
+    // Mock: local skills not found
+    mockSupabaseClient.single.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'Not found' },
+    });
+    // Mock: external_skills by slug not found
+    mockSupabaseClient.single.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'Not found' },
+    });
+    // Mock: external_skills by name found
+    mockSupabaseClient.single.mockResolvedValueOnce({
+      data: {
+        id: 'external-2',
+        name: 'my-skill-name',
+        slug: 'my-skill-name',
+        description: 'Found by name',
+        repo: 'owner/repo',
+        github_owner: 'owner',
+        installs: 100,
+        stars: 10,
+        created_at: '2024-01-01',
+        updated_at: '2024-01-02',
+      },
+      error: null,
+    });
+
+    const request = new NextRequest('http://localhost/api/skills/my-skill-name');
+    const response = await GET(request, { params: Promise.resolve({ slug: 'my-skill-name' }) });
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data.source).toBe('github');
+    expect(data.name).toBe('my-skill-name');
   });
 });

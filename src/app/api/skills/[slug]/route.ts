@@ -1,29 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { verifyToken } from '@/lib/auth-middleware';
-
-const SKILLSMP_API_URL = 'https://skillsmp.com/api/v1';
-const SKILLSMP_API_KEY = process.env.SKILLSMP_API_KEY;
+import type { SkillDetail } from '@/lib/supabase';
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
-interface SkillsmpSkill {
-  id: string;
-  name: string;
-  author: string;
-  description: string;
-  githubUrl: string;
-  skillUrl: string;
-  stars?: number;
-  updatedAt?: number;
-}
-
 /**
  * GET /api/skills/[slug]
  * Get skill details by slug
- * Checks local database first, then falls back to SkillSMP
+ * 查询顺序: 1. 本地 skills 表 → 2. external_skills 表 (by slug) → 3. external_skills 表 (by name)
  */
 export async function GET(request: NextRequest, { params }: Props) {
   try {
@@ -34,105 +21,135 @@ export async function GET(request: NextRequest, { params }: Props) {
     const authResult = await verifyToken(authHeader);
     const currentUser = authResult.user;
 
-    // 1. Try local database first
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    if (supabaseUrl && supabaseKey) {
-      const supabase = createClient(supabaseUrl, supabaseKey);
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json({ error: 'Database configuration missing' }, { status: 500 });
+    }
 
-      const { data: skill } = await supabase
-        .from('skills')
-        .select('*, skill_stats(installs, views)')
-        .eq('slug', slug)
-        .single();
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-      if (skill) {
-        // Check access for private skills
-        if (skill.is_private) {
-          if (!currentUser) {
-            return NextResponse.json({ error: 'Skill not found' }, { status: 404 });
-          }
+    // 1. Try local skills table first
+    const { data: localSkill } = await supabase
+      .from('skills')
+      .select('*, skill_stats(installs, views), author:authors(*)')
+      .eq('slug', slug)
+      .single();
 
-          // Check if user is owner
-          if (skill.user_id !== currentUser.id) {
-            // Check skill_access table
-            const { data: access } = await supabase
-              .from('skill_access')
-              .select('id')
-              .eq('skill_id', skill.id)
-              .eq('user_id', currentUser.id)
-              .or('expires_at.is.null,expires_at.gt.now()')
-              .single();
-
-            if (!access) {
-              return NextResponse.json({ error: 'Skill not found' }, { status: 404 });
-            }
-          }
+    if (localSkill) {
+      // Check access for private skills
+      if (localSkill.is_private) {
+        if (!currentUser) {
+          return NextResponse.json({ error: 'Skill not found' }, { status: 404 });
         }
 
-        return NextResponse.json({
-          id: skill.id,
-          name: skill.name,
-          slug: skill.slug,
-          description: skill.description,
-          author: skill.author,
-          category: skill.category,
-          tags: skill.tags,
-          version: skill.version,
-          has_files: skill.has_files,
-          is_private: skill.is_private,
-          source: 'local',
-          installs: skill.skill_stats?.installs || 0,
-          views: skill.skill_stats?.views || 0,
-          created_at: skill.created_at,
-          updated_at: skill.updated_at,
-        });
+        // Check if user is owner
+        if (localSkill.user_id !== currentUser.id) {
+          // Check skill_access table
+          const { data: access } = await supabase
+            .from('skill_access')
+            .select('id')
+            .eq('skill_id', localSkill.id)
+            .eq('user_id', currentUser.id)
+            .or('expires_at.is.null,expires_at.gt.now()')
+            .single();
+
+          if (!access) {
+            return NextResponse.json({ error: 'Skill not found' }, { status: 404 });
+          }
+        }
       }
+
+      const response: SkillDetail = {
+        id: localSkill.id,
+        name: localSkill.name,
+        slug: localSkill.slug,
+        description: localSkill.description,
+        author: localSkill.author,
+        category: localSkill.category,
+        tags: localSkill.tags,
+        source: 'local',
+        contentSource: 'database',
+        installs: localSkill.skill_stats?.installs || 0,
+        views: localSkill.skill_stats?.views || 0,
+        version: localSkill.version,
+        has_files: localSkill.has_files,
+        is_private: localSkill.is_private,
+        author_info: localSkill.author || null,
+        created_at: localSkill.created_at,
+        updated_at: localSkill.updated_at,
+      };
+
+      return NextResponse.json(response);
     }
 
-    // 2. Fall back to SkillSMP
-    if (!SKILLSMP_API_KEY) {
-      return NextResponse.json({ error: 'Skill not found' }, { status: 404 });
+    // 2. Try external_skills table
+    const { data: externalSkill } = await supabase
+      .from('external_skills')
+      .select('*, author:authors(*)')
+      .eq('slug', slug)
+      .single();
+
+    if (externalSkill) {
+      const response: SkillDetail = {
+        id: externalSkill.id,
+        name: externalSkill.name,
+        slug: externalSkill.slug,
+        description: externalSkill.description,
+        author: externalSkill.github_owner,
+        category: null,
+        tags: null,
+        source: 'github',
+        contentSource: 'github',
+        installs: externalSkill.installs,
+        stars: externalSkill.stars,
+        repo: externalSkill.repo,
+        repo_path: externalSkill.repo_path,
+        raw_url: externalSkill.raw_url,
+        github_owner: externalSkill.github_owner,
+        author_info: externalSkill.author || null,
+        created_at: externalSkill.created_at,
+        updated_at: externalSkill.updated_at,
+      };
+
+      return NextResponse.json(response);
     }
 
-    const searchUrl = new URL(`${SKILLSMP_API_URL}/skills/search`);
-    searchUrl.searchParams.set('q', slug);
+    // 3. Also try to match by name in external_skills
+    const { data: externalByName } = await supabase
+      .from('external_skills')
+      .select('*, author:authors(*)')
+      .eq('name', slug)
+      .single();
 
-    const response = await fetch(searchUrl.toString(), {
-      headers: {
-        Authorization: `Bearer ${SKILLSMP_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    if (externalByName) {
+      const response: SkillDetail = {
+        id: externalByName.id,
+        name: externalByName.name,
+        slug: externalByName.slug,
+        description: externalByName.description,
+        author: externalByName.github_owner,
+        category: null,
+        tags: null,
+        source: 'github',
+        contentSource: 'github',
+        installs: externalByName.installs,
+        stars: externalByName.stars,
+        repo: externalByName.repo,
+        repo_path: externalByName.repo_path,
+        raw_url: externalByName.raw_url,
+        github_owner: externalByName.github_owner,
+        author_info: externalByName.author || null,
+        created_at: externalByName.created_at,
+        updated_at: externalByName.updated_at,
+      };
 
-    if (!response.ok) {
-      return NextResponse.json({ error: 'Skill not found' }, { status: 404 });
+      return NextResponse.json(response);
     }
 
-    const data = await response.json();
-
-    if (!data.success || !data.data?.skills?.length) {
-      return NextResponse.json({ error: 'Skill not found' }, { status: 404 });
-    }
-
-    // Find matching skill
-    const skill =
-      data.data.skills.find((s: SkillsmpSkill) => s.id === slug || s.name === slug) ||
-      data.data.skills[0];
-
-    return NextResponse.json({
-      id: skill.id,
-      name: skill.name,
-      slug: skill.id,
-      description: skill.description,
-      author: skill.author,
-      source: 'skillsmp',
-      githubUrl: skill.githubUrl,
-      skillUrl: skill.skillUrl,
-      stars: skill.stars || 0,
-      updatedAt: skill.updatedAt,
-    });
+    // 4. Not found
+    return NextResponse.json({ error: 'Skill not found' }, { status: 404 });
   } catch (error) {
     console.error('Skill API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

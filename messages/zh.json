@@ -64,7 +64,18 @@
     "content": "SKILL.md 内容",
     "noContent": "暂无内容",
     "copy": "复制",
-    "copied": "已复制！"
+    "copied": "已复制！",
+    "source": {
+      "local": "平台",
+      "github": "GitHub",
+      "skillsmp": "SkillSMP"
+    },
+    "fromGitHub": "此技能来自 GitHub，将从源仓库下载",
+    "fromPlatform": "此技能托管在 SkillBank 平台",
+    "hasFiles": "此技能包含附属文件，将一并下载",
+    "viewOnGitHub": "在 GitHub 查看",
+    "stars": "星标",
+    "importToPlatform": "导入到平台"
   },
   "common": {
     "by": "作者",
@@ -141,5 +152,19 @@
     "passwordTooShort": "密码至少需要 6 个字符",
     "profile": "个人资料",
     "settings": "设置"
+  },
+  "author": {
+    "title": "{name} 的技能",
+    "skills": "技能",
+    "totalInstalls": "总安装数",
+    "githubSkills": "GitHub 技能",
+    "platformSkills": "平台技能",
+    "noSkills": "暂无技能",
+    "viewOnGitHub": "在 GitHub 查看",
+    "tabs": {
+      "all": "全部",
+      "github": "来自 GitHub",
+      "platform": "平台"
+    }
   }
 }

@@ -16,6 +16,12 @@ interface SkillsmpSkill {
   updatedAt?: number;
 }
 
+interface SkillsShCache {
+  name: string;
+  installs: number;
+  top_source: string | null;
+}
+
 interface LocalSkill {
   id: string;
   name: string;
@@ -68,6 +74,7 @@ export async function GET(request: NextRequest) {
       githubUrl?: string;
       skillUrl?: string;
       stars?: number;
+      isFeatured?: boolean;
     }> = [];
 
     // 1. Search local database (unless source is 'skillsmp')
@@ -170,7 +177,51 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Sort and limit
+    // 3. Enhance with skills.sh data (installs + isFeatured)
+    if (results.length > 0) {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+      if (supabaseUrl && supabaseKey) {
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        const names = results.map((r) => r.name);
+
+        const { data: skillsShData } = await supabase
+          .from('skills_sh_cache')
+          .select('name, installs, top_source')
+          .in('name', names);
+
+        if (skillsShData && skillsShData.length > 0) {
+          const skillsShMap = new Map(
+            (skillsShData as SkillsShCache[]).map((s) => [s.name, s])
+          );
+
+          // Enhance results with skills.sh data
+          for (const skill of results) {
+            const cached = skillsShMap.get(skill.name);
+            if (cached) {
+              // Use skills.sh installs if available (overrides local stats)
+              skill.installs = cached.installs;
+              skill.isFeatured = true;
+            } else {
+              skill.isFeatured = false;
+            }
+          }
+        }
+      }
+    }
+
+    // 4. Sort: featured first, then by installs descending
+    results.sort((a, b) => {
+      // Featured skills first
+      if (a.isFeatured !== b.isFeatured) {
+        return b.isFeatured ? 1 : -1;
+      }
+      // Then by installs descending
+      return (b.installs || 0) - (a.installs || 0);
+    });
+
+    // Apply limit
     const sortedResults = results.slice(0, limit);
 
     return NextResponse.json(sortedResults);
