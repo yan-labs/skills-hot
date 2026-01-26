@@ -258,7 +258,7 @@ export async function GET(request: NextRequest, { params }: Props) {
         return new NextResponse('Object not found', { status: 404 });
       }
 
-      return new NextResponse(objectData, {
+      return new NextResponse(Buffer.from(objectData), {
         headers: {
           'Content-Type': 'application/x-git-loose-object',
           'Cache-Control': 'max-age=31536000, immutable',
@@ -466,7 +466,7 @@ export async function POST(request: NextRequest, { params }: Props) {
 
       console.log('Sending shallow-only response (round 1)');
 
-      return new NextResponse(response, {
+      return new NextResponse(Buffer.from(response), {
         headers: {
           'Content-Type': 'application/x-git-upload-pack-result',
           'Cache-Control': 'no-cache',
@@ -477,7 +477,7 @@ export async function POST(request: NextRequest, { params }: Props) {
     // Round 2 or non-shallow: Generate full response with packfile
     const packResponse = await generateUploadPackResponse(pack, isShallow, parsed.done);
 
-    return new NextResponse(packResponse, {
+    return new NextResponse(Buffer.from(packResponse), {
       headers: {
         'Content-Type': 'application/x-git-upload-pack-result',
         'Cache-Control': 'no-cache',

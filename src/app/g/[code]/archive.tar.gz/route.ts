@@ -208,7 +208,7 @@ export async function GET(request: NextRequest, { params }: Props) {
 
     const tarGz = createTarGz(files);
 
-    return new NextResponse(tarGz, {
+    return new NextResponse(Buffer.from(tarGz), {
       headers: {
         'Content-Type': 'application/gzip',
         'Content-Disposition': `attachment; filename="${skill.slug}.tar.gz"`,

@@ -62,7 +62,9 @@ export async function GET(request: NextRequest, { params }: Props) {
     // 如果是浏览器访问（Accept: text/html），重定向到技能页面
     const acceptHeader = request.headers.get('Accept') || '';
     if (acceptHeader.includes('text/html')) {
-      const skill = token.skill as { slug: string; name: string } | null;
+      // Supabase 返回数组格式，取第一个元素
+      const skillData = token.skill as { slug: string; name: string }[] | null;
+      const skill = Array.isArray(skillData) ? skillData[0] : skillData;
       if (skill?.slug) {
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://skillbank.dev';
         return NextResponse.redirect(`${siteUrl}/skills/${skill.slug}`);

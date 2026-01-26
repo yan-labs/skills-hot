@@ -44,7 +44,10 @@ export interface GitPack {
  * Calculate SHA-1 hash of data
  */
 async function sha1(data: Uint8Array): Promise<string> {
-  const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+  // 创建新的 ArrayBuffer 以避免类型问题
+  const buffer = new ArrayBuffer(data.length);
+  new Uint8Array(buffer).set(data);
+  const hashBuffer = await crypto.subtle.digest('SHA-1', buffer);
   return Array.from(new Uint8Array(hashBuffer))
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
@@ -449,7 +452,9 @@ function encodePackSize(type: number, size: number): Uint8Array {
  * Calculate SHA-1 hash and return as bytes
  */
 async function sha1Raw(data: Uint8Array): Promise<Uint8Array> {
-  const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+  const buffer = new ArrayBuffer(data.length);
+  new Uint8Array(buffer).set(data);
+  const hashBuffer = await crypto.subtle.digest('SHA-1', buffer);
   return new Uint8Array(hashBuffer);
 }
 

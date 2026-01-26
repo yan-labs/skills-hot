@@ -95,7 +95,7 @@ export type TokenPurpose = 'git_clone' | 'tarball' | 'direct';
  */
 export interface CreateTokenParams {
   skillId: string;
-  userId: string;
+  userId: string | null;
   expiresIn?: number; // 秒
   maxUses?: number;
   purpose?: TokenPurpose;

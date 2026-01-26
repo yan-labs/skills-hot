@@ -241,7 +241,7 @@ export default async function AuthorPage({ params, searchParams }: Props) {
                   </div>
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
                     <Download className="h-3 w-3" />
-                    {skill.installs?.toLocaleString() || 0}
+                    {'installs' in skill ? skill.installs?.toLocaleString() : 0}
                   </div>
                 </div>
               </Link>
