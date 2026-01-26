@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { parseTopSource, getGitHubRawUrl, fetchGitHubUser, generateSlug } from '@/lib/github-content';
+import { parseTopSource, getGitHubRawUrl, fetchGitHubUser, fetchGitHubRepo, generateSlug } from '@/lib/github-content';
 
 const SKILLS_SH_API = 'https://skills.sh/api/skills?limit=50000';
 
@@ -134,7 +134,7 @@ export async function GET(request: Request) {
     if (newAuthors.length > 0) {
       const { data: insertedAuthors, error: authorsError } = await supabase
         .from('authors')
-        .upsert(newAuthors, { onConflict: 'github_login', ignoreDuplicates: false })
+        .upsert(newAuthors, { onConflict: 'github_id', ignoreDuplicates: false })
         .select('id, github_login');
 
       if (authorsError) {
@@ -146,8 +146,29 @@ export async function GET(request: Request) {
       }
     }
 
-    // 4. 批量 upsert external_skills
-    const externalSkillsBatch = 500;
+    // 4. 获取热门仓库的 stars（只获取 top 15 by installs 的仓库，避免 Cloudflare subrequest 限制）
+    // Cloudflare Workers 免费版限制 50 subrequests，付费版 1000
+    const sortedSkills = [...skillsWithParsedSource].sort((a, b) => (b.installs || 0) - (a.installs || 0));
+    const topRepoSet = new Set<string>();
+    for (const skill of sortedSkills) {
+      const { owner, repo } = skill.parsed;
+      if (owner && repo) {
+        topRepoSet.add(`${owner}/${repo}`);
+        if (topRepoSet.size >= 15) break; // 限制 15 个仓库，留出 subrequest 配额给 Supabase
+      }
+    }
+
+    const repoStarsMap = new Map<string, number>(); // "owner/repo" -> stars
+
+    // 获取仓库 stars（串行以减少并发 subrequest）
+    for (const repoFullName of topRepoSet) {
+      const [owner, repo] = repoFullName.split('/');
+      const repoInfo = await fetchGitHubRepo(owner, repo);
+      repoStarsMap.set(repoFullName, repoInfo?.stargazers_count || 0);
+    }
+
+    // 5. 批量 upsert external_skills
+    const externalSkillsBatch = 5000;
     let inserted = 0;
     let errors = 0;
 
@@ -157,6 +178,8 @@ export async function GET(request: Request) {
       const records = batch.map(skill => {
         const { owner, repo, path } = skill.parsed;
         const authorId = authorMap.get(owner) || null;
+        const repoFullName = `${owner}/${repo}`;
+        const stars = repoStarsMap.get(repoFullName) || 0;
 
         // 如果 topSource 没有 path，用 skill name 作为 path（monorepo 结构）
         const effectivePath = path || skill.name;
@@ -174,23 +197,24 @@ export async function GET(request: Request) {
           author_id: authorId,
           github_owner: owner,
           installs: skill.installs || 0,
+          stars,
           synced_at: new Date().toISOString(),
         };
       });
 
-      const { error } = await supabase
+      const { error, count } = await supabase
         .from('external_skills')
-        .upsert(records, { onConflict: 'source,source_id' });
+        .upsert(records, { onConflict: 'source,source_id', ignoreDuplicates: false, count: 'exact' });
 
       if (error) {
         console.error('External skills upsert error:', error);
         errors++;
       } else {
-        inserted += batch.length;
+        inserted += count || records.length;
       }
     }
 
-    // 5. 更新 skills_sh_cache 表（保持向后兼容）
+    // 6. 更新 skills_sh_cache 表（保持向后兼容）
     const cacheRecords = data.skills.map((s: SkillsShSkill) => ({
       name: s.name,
       installs: s.installs || 0,
@@ -206,7 +230,7 @@ export async function GET(request: Request) {
         .upsert(batch, { onConflict: 'name' });
     }
 
-    // 6. 更新作者统计
+    // 7. 更新作者统计
     const uniqueAuthorIds = Array.from(new Set(Array.from(authorMap.values())));
     for (const authorId of uniqueAuthorIds) {
       await supabase.rpc('update_author_stats', { p_author_id: authorId });

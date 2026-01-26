@@ -122,6 +122,54 @@ export async function fetchGitHubDirectory(
 }
 
 /**
+ * 获取 GitHub 仓库信息（包括 stars）
+ */
+export async function fetchGitHubRepo(owner: string, repo: string): Promise<{
+  id: number;
+  full_name: string;
+  description: string | null;
+  stargazers_count: number;
+  forks_count: number;
+  open_issues_count: number;
+  default_branch: string;
+} | null> {
+  const url = `https://api.github.com/repos/${owner}/${repo}`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'SkillBank/1.0',
+        Accept: 'application/vnd.github.v3+json',
+        ...(process.env.GITHUB_TOKEN && {
+          Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        }),
+      },
+    });
+
+    if (!response.ok) {
+      if (response.status !== 404) {
+        console.error(`GitHub repo fetch failed: ${response.status} for ${owner}/${repo}`);
+      }
+      return null;
+    }
+
+    const data = await response.json();
+    return {
+      id: data.id,
+      full_name: data.full_name,
+      description: data.description,
+      stargazers_count: data.stargazers_count,
+      forks_count: data.forks_count,
+      open_issues_count: data.open_issues_count,
+      default_branch: data.default_branch,
+    };
+  } catch (error) {
+    console.error('GitHub repo fetch error:', error);
+    return null;
+  }
+}
+
+/**
  * 获取 GitHub 用户信息
  */
 export async function fetchGitHubUser(username: string): Promise<{
