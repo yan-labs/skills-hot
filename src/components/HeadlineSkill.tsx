@@ -51,7 +51,7 @@ export function HeadlineSkill({ skill, author, rank, growthPercent }: HeadlineSk
       {/* Three-column layout */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[200px_1fr_200px] lg:gap-8">
         {/* Left: Author Card */}
-        <div className="order-2 lg:order-1">
+        <div className="order-3 lg:order-1">
           {author ? (
             <Link
               href={`/authors/${author.github_login}`}
@@ -142,7 +142,7 @@ export function HeadlineSkill({ skill, author, rank, growthPercent }: HeadlineSk
         </div>
 
         {/* Right: Stats Card */}
-        <div className="order-3">
+        <div className="order-2 lg:order-3">
           <div className="rounded-none border border-border bg-card p-4">
             <p className="section-label mb-4">{t('headline.statistics')}</p>
 
