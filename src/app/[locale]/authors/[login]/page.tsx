@@ -67,16 +67,57 @@ export async function generateMetadata({ params }: Props) {
   }
 
   const name = author.name || author.github_login;
+  const title = `${name} - SkillBank`;
+  const description = author.bio || `${author.external_skill_count + author.native_skill_count} skills by ${name} with ${author.total_installs.toLocaleString()} total installs`;
+  const url = `https://skillbank.dev/${locale}/authors/${login}`;
 
   return {
-    title: `${name} - SkillBank`,
-    description: author.bio || `Skills by ${name} on SkillBank`,
+    title,
+    description,
     alternates: {
-      canonical: `https://skillbank.dev/${locale}/authors/${login}`,
+      canonical: url,
       languages: {
         en: `/en/authors/${login}`,
         zh: `/zh/authors/${login}`,
       },
+    },
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: 'SkillBank',
+      type: 'profile',
+      locale: locale === 'zh' ? 'zh_CN' : 'en_US',
+      ...(author.avatar_url && {
+        images: [{ url: author.avatar_url, width: 200, height: 200, alt: name }],
+      }),
+    },
+    twitter: {
+      card: 'summary',
+      title,
+      description,
+      ...(author.avatar_url && { images: [author.avatar_url] }),
+    },
+  };
+}
+
+function generateAuthorJsonLd(author: AuthorWithSkills, locale: string) {
+  const name = author.name || author.github_login;
+  const url = `https://skillbank.dev/${locale}/authors/${author.github_login}`;
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name,
+    url,
+    ...(author.avatar_url && { image: author.avatar_url }),
+    ...(author.bio && { description: author.bio }),
+    sameAs: [`https://github.com/${author.github_login}`],
+    knowsAbout: ['AI', 'Software Development', 'Coding Agents'],
+    memberOf: {
+      '@type': 'Organization',
+      name: 'SkillBank',
+      url: 'https://skillbank.dev',
     },
   };
 }
@@ -106,9 +147,14 @@ export default async function AuthorPage({ params, searchParams }: Props) {
       : allSkills;
 
   const displayName = author.name || author.github_login;
+  const jsonLd = generateAuthorJsonLd(author, locale);
 
   return (
     <div className="min-h-screen bg-background">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Header />
 
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">

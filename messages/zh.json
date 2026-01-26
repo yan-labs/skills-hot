@@ -56,6 +56,7 @@
   },
   "skill": {
     "backToSkills": "返回技能列表",
+    "backToHome": "返回首页",
     "install": "安装",
     "terminal": "终端",
     "statistics": "统计数据",
@@ -179,6 +180,34 @@
       "github": "来自 GitHub",
       "platform": "平台"
     }
+  },
+  "headline": {
+    "badge": "今日头条",
+    "mostInstalled": "安装量第一",
+    "viewSkill": "查看技能",
+    "skills": "个技能",
+    "totalInstalls": "总安装量",
+    "unknownAuthor": "未知作者",
+    "statistics": "数据统计",
+    "installs": "安装量",
+    "stars": "星标数",
+    "growth": "本周增长",
+    "installHint": "一键安装："
+  },
+  "leaderboard": {
+    "badge": "技能排行榜",
+    "title": "热门技能",
+    "mostInstalled": "安装最多",
+    "mostStarred": "星标最多",
+    "installs": "安装量",
+    "stars": "星标",
+    "viewAll": "查看全部技能 →"
+  },
+  "statsBar": {
+    "skills": "个技能",
+    "installs": "次安装",
+    "authors": "位作者",
+    "updated": "更新于"
   },
   "authors": {
     "badge": "技能作者",

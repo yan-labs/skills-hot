@@ -56,6 +56,7 @@
   },
   "skill": {
     "backToSkills": "Back to skills",
+    "backToHome": "Back to home",
     "install": "Install",
     "terminal": "Terminal",
     "statistics": "Statistics",
@@ -179,6 +180,34 @@
       "github": "From GitHub",
       "platform": "Platform"
     }
+  },
+  "headline": {
+    "badge": "TODAY'S HEADLINE",
+    "mostInstalled": "MOST INSTALLED",
+    "viewSkill": "View Skill",
+    "skills": "skills",
+    "totalInstalls": "total installs",
+    "unknownAuthor": "Unknown author",
+    "statistics": "STATISTICS",
+    "installs": "Installs",
+    "stars": "Stars",
+    "growth": "This week",
+    "installHint": "Install with one command:"
+  },
+  "leaderboard": {
+    "badge": "SKILLS LEADERBOARD",
+    "title": "Top Skills",
+    "mostInstalled": "Most Installed",
+    "mostStarred": "Most Starred",
+    "installs": "INSTALLS",
+    "stars": "STARS",
+    "viewAll": "View all skills →"
+  },
+  "statsBar": {
+    "skills": "Skills",
+    "installs": "Installs",
+    "authors": "Authors",
+    "updated": "Updated"
   },
   "authors": {
     "badge": "Skill Authors",

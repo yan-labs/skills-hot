@@ -10,10 +10,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .select('slug, updated_at')
     .order('updated_at', { ascending: false });
 
+  // Get all authors for dynamic routes
+  const { data: authors } = await supabase
+    .from('authors')
+    .select('github_login, updated_at')
+    .order('total_installs', { ascending: false });
+
   const locales = ['en', 'zh'];
 
   // Static pages
-  const staticPages: MetadataRoute.Sitemap = ['', '/skills', '/search'].flatMap((route) =>
+  const staticPages: MetadataRoute.Sitemap = ['', '/authors', '/docs'].flatMap((route) =>
     locales.map((locale) => ({
       url: `${BASE_URL}/${locale}${route}`,
       lastModified: new Date(),
@@ -32,5 +38,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }))
   );
 
-  return [...staticPages, ...skillPages];
+  // Dynamic author pages
+  const authorPages: MetadataRoute.Sitemap = (authors || []).flatMap((author) =>
+    locales.map((locale) => ({
+      url: `${BASE_URL}/${locale}/authors/${author.github_login}`,
+      lastModified: author.updated_at ? new Date(author.updated_at) : new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.5,
+    }))
+  );
+
+  return [...staticPages, ...skillPages, ...authorPages];
 }

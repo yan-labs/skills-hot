@@ -149,16 +149,71 @@ export async function generateMetadata({ params }: Props) {
     return { title: 'Skill Not Found' };
   }
 
+  const title = `${skill.name} - SkillBank`;
+  const description = skill.description || `Install ${skill.name} skill for your AI coding agent`;
+  const url = `https://skillbank.dev/${locale}/skills/${slug}`;
+
   return {
-    title: `${skill.name} - SkillBank`,
-    description: skill.description || `Install ${skill.name} skill for your AI coding agent`,
+    title,
+    description,
     alternates: {
-      canonical: `https://skillbank.dev/${locale}/skills/${slug}`,
+      canonical: url,
       languages: {
         en: `/en/skills/${slug}`,
         zh: `/zh/skills/${slug}`,
       },
     },
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: 'SkillBank',
+      type: 'website',
+      locale: locale === 'zh' ? 'zh_CN' : 'en_US',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
+  };
+}
+
+function generateSkillJsonLd(skill: SkillDetail, locale: string) {
+  const url = `https://skillbank.dev/${locale}/skills/${skill.slug}`;
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: skill.name,
+    description: skill.description || `AI coding agent skill: ${skill.name}`,
+    url,
+    applicationCategory: 'DeveloperApplication',
+    operatingSystem: 'Cross-platform',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+    },
+    ...(skill.author && {
+      author: {
+        '@type': 'Person',
+        name: skill.author_info?.name || skill.author,
+        url: `https://skillbank.dev/${locale}/authors/${skill.author}`,
+      },
+    }),
+    ...(skill.installs && {
+      interactionStatistic: {
+        '@type': 'InteractionCounter',
+        interactionType: 'https://schema.org/DownloadAction',
+        userInteractionCount: skill.installs,
+      },
+    }),
+    dateCreated: skill.created_at,
+    dateModified: skill.updated_at || skill.created_at,
+    ...(skill.repo && {
+      codeRepository: `https://github.com/${skill.repo}`,
+    }),
   };
 }
 
@@ -176,19 +231,25 @@ export default async function SkillPage({ params }: Props) {
   const content = await getSkillContent(skill);
   const githubUrl = skill.repo ? `https://github.com/${skill.repo}${skill.repo_path ? `/tree/main/${skill.repo_path}` : ''}` : null;
 
+  const jsonLd = generateSkillJsonLd(skill, locale);
+
   return (
     <div className="min-h-screen bg-background">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <SkillTracker skillSlug={skill.slug} skillId={skill.id} />
       <Header />
 
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
         {/* Breadcrumb */}
         <Link
-          href="/skills"
+          href="/"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-3 w-3" />
-          Back to skills
+          {t('backToHome')}
         </Link>
 
         {/* Article layout */}

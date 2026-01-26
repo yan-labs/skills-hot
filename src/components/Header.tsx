@@ -87,12 +87,6 @@ export function Header() {
       <nav className="border-b border-border">
         <div className="mx-auto flex h-10 max-w-6xl items-center gap-6 px-4 sm:px-6">
           <Link
-            href="/skills"
-            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            {t('browse')}
-          </Link>
-          <Link
             href="/authors"
             className="text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
