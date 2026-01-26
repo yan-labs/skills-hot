@@ -120,7 +120,10 @@ function downloadFile(url, dest) {
 
 /**
  * Get latest version from GitHub
+ * Falls back to hardcoded version if API is rate-limited
  */
+const FALLBACK_VERSION = 'v0.1.0';
+
 async function getLatestVersion() {
   try {
     const release = await fetchJson(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`);
@@ -133,6 +136,11 @@ async function getLatestVersion() {
         'Please check https://github.com/yan-labs/skillbank/releases for updates.'
       );
     }
+    // Rate limited or other API error - use fallback
+    if (err.message === 'HTTP 403' || err.message === 'HTTP 429') {
+      console.log(`GitHub API rate limited, using fallback version ${FALLBACK_VERSION}`);
+      return FALLBACK_VERSION;
+    }
     throw err;
   }
 }
@@ -144,6 +152,9 @@ async function downloadBinary(version, platform) {
   const binaryName = getBinaryName();
   const versionDir = join(CACHE_DIR, version);
   const binaryPath = join(versionDir, binaryName);
+  // The binary in tarball is named skb-{platform}
+  const extractedBinaryName = `skb-${platform}`;
+  const extractedBinaryPath = join(versionDir, extractedBinaryName);
 
   // Check if already downloaded
   if (existsSync(binaryPath)) {
@@ -182,6 +193,10 @@ async function downloadBinary(version, platform) {
 
   // Clean up tarball
   await rm(tarballPath, { force: true });
+
+  // Rename extracted binary to standard name
+  const { rename } = await import('node:fs/promises');
+  await rename(extractedBinaryPath, binaryPath);
 
   // Make binary executable
   if (process.platform !== 'win32') {
