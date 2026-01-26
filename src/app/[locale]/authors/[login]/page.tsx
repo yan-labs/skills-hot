@@ -114,11 +114,11 @@ export default async function AuthorPage({ params, searchParams }: Props) {
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
         {/* Breadcrumb */}
         <Link
-          href="/skills"
+          href="/authors"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-3 w-3" />
-          Back to skills
+          {t('backToAuthors')}
         </Link>
 
         {/* Author Header */}

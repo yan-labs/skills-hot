@@ -93,6 +93,12 @@ export function Header() {
             {t('browse')}
           </Link>
           <Link
+            href="/authors"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            {t('authors')}
+          </Link>
+          <Link
             href="/docs"
             className="text-sm text-muted-foreground transition-colors hover:text-foreground"
           >

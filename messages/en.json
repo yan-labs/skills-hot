@@ -5,6 +5,7 @@
   },
   "header": {
     "browse": "Browse",
+    "authors": "Authors",
     "docs": "Docs",
     "github": "GitHub"
   },
@@ -166,6 +167,7 @@
   },
   "author": {
     "title": "{name}'s Skills",
+    "backToAuthors": "Back to authors",
     "skills": "Skills",
     "totalInstalls": "Total Installs",
     "githubSkills": "GitHub Skills",
@@ -177,5 +179,21 @@
       "github": "From GitHub",
       "platform": "Platform"
     }
+  },
+  "authors": {
+    "badge": "Skill Authors",
+    "title": "Authors",
+    "subtitle": "Discover the creators behind AI agent skills",
+    "totalAuthors": "authors",
+    "skills": "Skills",
+    "installs": "Installs",
+    "noAuthors": "No authors found",
+    "sort": {
+      "installs": "Most Installs",
+      "skills": "Most Skills"
+    },
+    "prev": "Previous",
+    "next": "Next",
+    "page": "Page {current} of {total}"
   }
 }

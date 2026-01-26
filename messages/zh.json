@@ -5,6 +5,7 @@
   },
   "header": {
     "browse": "浏览",
+    "authors": "作者",
     "docs": "文档",
     "github": "GitHub"
   },
@@ -166,6 +167,7 @@
   },
   "author": {
     "title": "{name} 的技能",
+    "backToAuthors": "返回作者列表",
     "skills": "技能",
     "totalInstalls": "总安装数",
     "githubSkills": "GitHub 技能",
@@ -177,5 +179,21 @@
       "github": "来自 GitHub",
       "platform": "平台"
     }
+  },
+  "authors": {
+    "badge": "技能作者",
+    "title": "作者",
+    "subtitle": "发现 AI 代理技能的创作者们",
+    "totalAuthors": "位作者",
+    "skills": "技能",
+    "installs": "安装",
+    "noAuthors": "暂无作者",
+    "sort": {
+      "installs": "安装量最多",
+      "skills": "技能数最多"
+    },
+    "prev": "上一页",
+    "next": "下一页",
+    "page": "第 {current} 页，共 {total} 页"
   }
 }
