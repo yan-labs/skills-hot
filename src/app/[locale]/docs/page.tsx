@@ -51,12 +51,12 @@ export default async function DocsPage({ params }: Props) {
 
               <CodeBlock
                 label="Via npm"
-                code="npm install -g skillbank"
+                code="npm install -g @skillbank/cli"
               />
 
               <CodeBlock
                 label="Via npx (no install)"
-                code="npx skillbank <command>"
+                code="npx @skillbank/cli <command>"
               />
             </div>
           </div>
@@ -73,19 +73,19 @@ export default async function DocsPage({ params }: Props) {
             <div>
               <h3 className="mb-2 text-lg">{t('addSkill')}</h3>
               <p className="mb-3 text-sm text-muted-foreground">{t('addSkillDesc')}</p>
-              <CodeBlock code="skillbank add <skill-name>" />
+              <CodeBlock code="skb add <skill-name>" />
             </div>
 
             <div>
               <h3 className="mb-2 text-lg">{t('listSkills')}</h3>
               <p className="mb-3 text-sm text-muted-foreground">{t('listSkillsDesc')}</p>
-              <CodeBlock code="skillbank list" />
+              <CodeBlock code="skb list" />
             </div>
 
             <div>
               <h3 className="mb-2 text-lg">{t('removeSkill')}</h3>
               <p className="mb-3 text-sm text-muted-foreground">{t('removeSkillDesc')}</p>
-              <CodeBlock code="skillbank remove <skill-name>" />
+              <CodeBlock code="skb remove <skill-name>" />
             </div>
           </div>
         </section>

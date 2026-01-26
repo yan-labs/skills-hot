@@ -101,7 +101,7 @@ export default async function Home({ params }: Props) {
           <div className="mt-8">
             <p className="byline mb-2">Quick install</p>
             <div className="inline-block">
-              <CodeBlock code="npm i -g skillbank" />
+              <CodeBlock code="curl -fsSL https://skillbank.dev/install.sh | bash" />
             </div>
           </div>
         </section>

@@ -16,7 +16,7 @@ NC='\\033[0m' # No Color
 
 # Configuration
 INSTALL_DIR="\${HOME}/.local/bin"
-BINARY_NAME="skillbank"
+BINARY_NAME="skb"
 GITHUB_REPO="yan-labs/skillbank"
 VERSION="\${1:-latest}"
 
@@ -143,19 +143,19 @@ verify_installation() {
     if [ -x "\${INSTALL_DIR}/\${BINARY_NAME}" ]; then
         echo ""
         echo -e "\${GREEN}========================================\${NC}"
-        echo -e "\${GREEN} SkillBank CLI installed successfully! \${NC}"
+        echo -e "\${GREEN} SkillBank CLI (skb) installed!        \${NC}"
         echo -e "\${GREEN}========================================\${NC}"
         echo ""
         echo "To get started:"
         echo ""
         echo -e "  \${BLUE}source ~/.bashrc\${NC}  # or restart your terminal"
-        echo -e "  \${BLUE}skillbank --help\${NC}"
+        echo -e "  \${BLUE}skb --help\${NC}"
         echo ""
         echo "Quick start:"
         echo ""
-        echo -e "  \${BLUE}skillbank search git\${NC}     # Search for skills"
-        echo -e "  \${BLUE}skillbank add git-commit\${NC} # Install a skill"
-        echo -e "  \${BLUE}skillbank login\${NC}          # Login to your account"
+        echo -e "  \${BLUE}skb search git\${NC}     # Search for skills"
+        echo -e "  \${BLUE}skb add git-commit\${NC} # Install a skill"
+        echo -e "  \${BLUE}skb login\${NC}          # Login to your account"
         echo ""
     else
         echo -e "\${RED}Installation failed.\${NC}"
@@ -167,7 +167,7 @@ verify_installation() {
 main() {
     echo ""
     echo -e "\${BLUE}╔═══════════════════════════════════════╗\${NC}"
-    echo -e "\${BLUE}║     SkillBank CLI Installer           ║\${NC}"
+    echo -e "\${BLUE}║     SkillBank CLI (skb)               ║\${NC}"
     echo -e "\${BLUE}║     https://skillbank.dev             ║\${NC}"
     echo -e "\${BLUE}╚═══════════════════════════════════════╝\${NC}"
     echo ""

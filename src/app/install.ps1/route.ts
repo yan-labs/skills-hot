@@ -8,7 +8,7 @@ $ErrorActionPreference = "Stop"
 
 # Configuration
 $InstallDir = "$env:USERPROFILE\\.local\\bin"
-$BinaryName = "skillbank.exe"
+$BinaryName = "skb.exe"
 $GitHubRepo = "yan-labs/skillbank"
 $Version = if ($args[0]) { $args[0] } else { "latest" }
 
@@ -98,18 +98,18 @@ function Test-Installation {
     if (Test-Path $BinaryPath) {
         Write-Host ""
         Write-ColorOutput "========================================" "Green"
-        Write-ColorOutput " SkillBank CLI installed successfully! " "Green"
+        Write-ColorOutput " SkillBank CLI (skb) installed!        " "Green"
         Write-ColorOutput "========================================" "Green"
         Write-Host ""
         Write-Host "To get started:"
         Write-Host ""
-        Write-ColorOutput "  skillbank --help" "Blue"
+        Write-ColorOutput "  skb --help" "Blue"
         Write-Host ""
         Write-Host "Quick start:"
         Write-Host ""
-        Write-ColorOutput "  skillbank search git" "Blue"
-        Write-ColorOutput "  skillbank add git-commit" "Blue"
-        Write-ColorOutput "  skillbank login" "Blue"
+        Write-ColorOutput "  skb search git" "Blue"
+        Write-ColorOutput "  skb add git-commit" "Blue"
+        Write-ColorOutput "  skb login" "Blue"
         Write-Host ""
         Write-Host "Note: You may need to restart your terminal for PATH changes."
         Write-Host ""
@@ -124,7 +124,7 @@ function Test-Installation {
 function Main {
     Write-Host ""
     Write-ColorOutput "=========================================" "Blue"
-    Write-ColorOutput "     SkillBank CLI Installer             " "Blue"
+    Write-ColorOutput "     SkillBank CLI (skb)                 " "Blue"
     Write-ColorOutput "     https://skillbank.dev               " "Blue"
     Write-ColorOutput "=========================================" "Blue"
     Write-Host ""
