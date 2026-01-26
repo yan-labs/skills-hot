@@ -44,7 +44,7 @@ function Get-LatestVersion {
 function Install-Binary {
     param([string]$Platform)
 
-    $BinaryUrl = "https://github.com/$GitHubRepo/releases/download/$Version/skillbank-$Platform.tar.gz"
+    $BinaryUrl = "https://github.com/$GitHubRepo/releases/download/$Version/skb-$Platform.tar.gz"
 
     Write-ColorOutput "Downloading SkillBank CLI..." "Blue"
     Write-Host "  URL: $BinaryUrl"
@@ -54,8 +54,8 @@ function Install-Binary {
         New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
     }
 
-    $TempDir = New-Item -ItemType Directory -Path (Join-Path $env:TEMP "skillbank-install-$(Get-Random)") -Force
-    $TarPath = Join-Path $TempDir "skillbank.tar.gz"
+    $TempDir = New-Item -ItemType Directory -Path (Join-Path $env:TEMP "skb-install-$(Get-Random)") -Force
+    $TarPath = Join-Path $TempDir "skb.tar.gz"
     $OutputPath = Join-Path $InstallDir $BinaryName
 
     try {
@@ -66,7 +66,7 @@ function Install-Binary {
         tar -xzf $TarPath -C $TempDir
 
         # Find and move binary
-        $ExtractedBinary = Get-ChildItem -Path $TempDir -Filter "skillbank-*" -File | Select-Object -First 1
+        $ExtractedBinary = Get-ChildItem -Path $TempDir -Filter "skb*" -File | Select-Object -First 1
         if (-not $ExtractedBinary) {
             Write-ColorOutput "Error: Binary not found in archive" "Red"
             exit 1

@@ -74,7 +74,7 @@ get_latest_version() {
 
 # Download and install binary
 install_binary() {
-    local BINARY_URL="https://github.com/\${GITHUB_REPO}/releases/download/\${VERSION}/skillbank-\${PLATFORM}.tar.gz"
+    local BINARY_URL="https://github.com/\${GITHUB_REPO}/releases/download/\${VERSION}/skb-\${PLATFORM}.tar.gz"
 
     echo -e "\${BLUE}Downloading SkillBank CLI...\${NC}"
     echo "  URL: \${BINARY_URL}"
@@ -88,19 +88,19 @@ install_binary() {
 
     # Download and extract
     if command -v curl &> /dev/null; then
-        curl -fsSL "$BINARY_URL" -o "\${TEMP_DIR}/skillbank.tar.gz"
+        curl -fsSL "$BINARY_URL" -o "\${TEMP_DIR}/skb.tar.gz"
     elif command -v wget &> /dev/null; then
-        wget -q "$BINARY_URL" -O "\${TEMP_DIR}/skillbank.tar.gz"
+        wget -q "$BINARY_URL" -O "\${TEMP_DIR}/skb.tar.gz"
     else
         echo -e "\${RED}Error: curl or wget is required\${NC}"
         exit 1
     fi
 
     # Extract
-    tar -xzf "\${TEMP_DIR}/skillbank.tar.gz" -C "\${TEMP_DIR}"
+    tar -xzf "\${TEMP_DIR}/skb.tar.gz" -C "\${TEMP_DIR}"
 
     # Find and move binary
-    EXTRACTED_BINARY=$(find "\${TEMP_DIR}" -name "skillbank-*" -type f | head -1)
+    EXTRACTED_BINARY=$(find "\${TEMP_DIR}" -name "skb*" -type f | head -1)
     if [ -z "$EXTRACTED_BINARY" ]; then
         echo -e "\${RED}Error: Binary not found in archive\${NC}"
         exit 1

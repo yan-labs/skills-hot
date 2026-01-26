@@ -107,7 +107,7 @@
       "title": "我的技能",
       "subtitle": "你发布的技能或有权访问的技能",
       "empty": "你还没有发布任何技能",
-      "emptyHint": "使用 'skillbank publish' 发布你的第一个技能",
+      "emptyHint": "使用 'skb publish' 发布你的第一个技能",
       "owned": "你发布的",
       "authorized": "授权访问"
     }

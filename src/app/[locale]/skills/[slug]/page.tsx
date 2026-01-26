@@ -289,16 +289,16 @@ export default async function SkillPage({ params }: Props) {
                 <div>
                   <p className="caption mb-1">SkillBank CLI</p>
                   <div className="flex items-center justify-between gap-2 border-b border-border py-2">
-                    <code className="truncate text-sm">skillbank add {skill.slug}</code>
-                    <CopyButton text={`skillbank add ${skill.slug}`} skillSlug={skill.slug} skillId={skill.id} />
+                    <code className="truncate text-sm">skb add {skill.slug}</code>
+                    <CopyButton text={`skb add ${skill.slug}`} skillSlug={skill.slug} skillId={skill.id} />
                   </div>
                 </div>
 
                 <div>
                   <p className="caption mb-1">npx</p>
                   <div className="flex items-center justify-between gap-2 border-b border-border py-2">
-                    <code className="truncate text-sm">npx skillbank add {skill.slug}</code>
-                    <CopyButton text={`npx skillbank add ${skill.slug}`} skillSlug={skill.slug} skillId={skill.id} />
+                    <code className="truncate text-sm">npx @skillbank/cli add {skill.slug}</code>
+                    <CopyButton text={`npx @skillbank/cli add ${skill.slug}`} skillSlug={skill.slug} skillId={skill.id} />
                   </div>
                 </div>
 

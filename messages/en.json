@@ -107,7 +107,7 @@
       "title": "My Skills",
       "subtitle": "Skills you've published or have access to",
       "empty": "You haven't published any skills yet",
-      "emptyHint": "Use 'skillbank publish' to publish your first skill",
+      "emptyHint": "Use 'skb publish' to publish your first skill",
       "owned": "Published by you",
       "authorized": "Authorized access"
     }
