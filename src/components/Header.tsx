@@ -15,7 +15,6 @@ export function Header() {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -32,60 +31,39 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <span className="text-xl font-semibold tracking-tight">
-            SkillBank
-          </span>
-        </Link>
+    <header className="sticky top-0 z-50 w-full bg-background">
+      {/* Top line - like newspaper masthead */}
+      <div className="border-b border-border">
+        <div className="mx-auto flex h-12 max-w-6xl items-center justify-between px-4 sm:px-6">
+          {/* Logo - editorial style */}
+          <Link href="/" className="group">
+            <h1 className="text-xl tracking-tight sm:text-2xl">
+              SkillBank
+            </h1>
+          </Link>
 
-        {/* Nav */}
-        <nav className="flex items-center gap-0.5 sm:gap-1">
-          <Link
-            href="/skills"
-            className="hidden rounded-md px-2 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground sm:block sm:px-3"
-          >
-            {t('browse')}
-          </Link>
-          <Link
-            href="/docs"
-            className="hidden rounded-md px-2 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground sm:block sm:px-3"
-          >
-            {t('docs')}
-          </Link>
-          <a
-            href="https://github.com/yan-labs/skillbank"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 rounded-md px-2 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground sm:px-3"
-          >
-            <Github className="h-4 w-4" />
-            <span className="hidden sm:inline">{t('github')}</span>
-          </a>
-          <div className="ml-1 flex items-center gap-1.5 sm:ml-2 sm:gap-2">
+          {/* Right side utilities */}
+          <div className="flex items-center gap-3 sm:gap-4">
             <LanguageSwitcher />
             <ThemeToggle />
 
-            {/* Auth */}
             {user ? (
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setShowDropdown(!showDropdown)}
-                  className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background transition-colors hover:bg-muted"
+                  className="flex h-8 w-8 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
                 >
-                  <User className="h-4 w-4 text-muted-foreground" />
+                  <User className="h-4 w-4" />
                 </button>
 
                 {showDropdown && (
-                  <div className="absolute right-0 top-full mt-2 w-48 rounded-md border border-border bg-background py-1 shadow-lg">
+                  <div className="absolute right-0 top-full mt-2 w-48 border border-border bg-background py-1 shadow-sm">
                     <div className="border-b border-border px-3 py-2">
-                      <p className="truncate text-sm font-medium">{user.email}</p>
+                      <p className="truncate text-sm">{user.email}</p>
                     </div>
                     <button
                       onClick={handleSignOut}
-                      className="flex w-full items-center gap-2 px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      className="flex w-full items-center gap-2 px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
                     >
                       <LogOut className="h-4 w-4" />
                       {tAuth('signOut')}
@@ -96,14 +74,41 @@ export function Header() {
             ) : (
               <Link
                 href="/auth/signin"
-                className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 {tAuth('signIn')}
               </Link>
             )}
           </div>
-        </nav>
+        </div>
       </div>
+
+      {/* Navigation - simple text links */}
+      <nav className="border-b border-border">
+        <div className="mx-auto flex h-10 max-w-6xl items-center gap-6 px-4 sm:px-6">
+          <Link
+            href="/skills"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            {t('browse')}
+          </Link>
+          <Link
+            href="/docs"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            {t('docs')}
+          </Link>
+          <a
+            href="https://github.com/yan-labs/skillbank"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <Github className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">{t('github')}</span>
+          </a>
+        </div>
+      </nav>
     </header>
   );
 }

@@ -65,6 +65,17 @@
     "noContent": "暂无内容",
     "copy": "复制",
     "copied": "已复制！",
+    "thirdParty": {
+      "label": "第三方 CLI (skills.sh / openskills)",
+      "placeholder": "npx skills add ...",
+      "generate": "生成",
+      "generating": "生成中...",
+      "copied": "已复制！",
+      "error": "错误",
+      "tooltip": "生成安装命令",
+      "tooltipPrivate": "生成临时链接（需登录）",
+      "loginRequired": "请先登录以复制安装命令"
+    },
     "source": {
       "local": "平台",
       "github": "GitHub",

@@ -64,37 +64,38 @@ export default function SignInPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="mx-auto max-w-md px-4 py-12 sm:px-6">
+      <main className="mx-auto max-w-sm px-4 py-12 sm:px-6 sm:py-16">
         <Link
           href="/"
-          className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ArrowLeft className="h-4 w-4" />
-          {t('backToSignIn').replace('sign in', 'home')}
+          <ArrowLeft className="h-3 w-3" />
+          Back
         </Link>
 
-        <div className="rounded-lg border border-border p-6 sm:p-8">
-          <h1 className="mb-6 text-2xl font-semibold">{t('signIn')}</h1>
+        <div className="mt-8">
+          <p className="section-label mb-2">Account</p>
+          <h1 className="text-3xl">{t('signIn')}</h1>
 
           {error && (
-            <div className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+            <div className="mt-6 border-l-2 border-destructive bg-destructive/5 p-3 text-sm text-destructive">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSignIn} className="space-y-4">
+          <form onSubmit={handleSignIn} className="mt-8 space-y-6">
             <div>
-              <label htmlFor="email" className="mb-2 block text-sm font-medium">
+              <label htmlFor="email" className="byline mb-2 block">
                 {t('email')}
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Mail className="absolute left-0 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-md border border-border bg-background py-2 pl-10 pr-3 text-sm transition-colors focus:border-primary focus:outline-none"
+                  className="w-full border-b border-border bg-transparent py-2 pl-6 text-sm transition-colors focus:border-foreground focus:outline-none"
                   placeholder="you@example.com"
                   required
                 />
@@ -102,17 +103,17 @@ export default function SignInPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="mb-2 block text-sm font-medium">
+              <label htmlFor="password" className="byline mb-2 block">
                 {t('password')}
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Lock className="absolute left-0 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-md border border-border bg-background py-2 pl-10 pr-3 text-sm transition-colors focus:border-primary focus:outline-none"
+                  className="w-full border-b border-border bg-transparent py-2 pl-6 text-sm transition-colors focus:border-foreground focus:outline-none"
                   placeholder="••••••••"
                   required
                 />
@@ -122,13 +123,13 @@ export default function SignInPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-md bg-primary py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+              className="w-full border border-foreground bg-foreground py-2.5 text-sm font-medium text-background transition-colors hover:bg-foreground/90 disabled:opacity-50"
             >
               {loading ? t('signingIn') : t('signIn')}
             </button>
           </form>
 
-          <div className="my-6 flex items-center gap-3">
+          <div className="my-8 flex items-center gap-3">
             <div className="h-px flex-1 bg-border" />
             <span className="text-xs text-muted-foreground">{t('orContinueWith')}</span>
             <div className="h-px flex-1 bg-border" />
@@ -136,15 +137,15 @@ export default function SignInPage() {
 
           <button
             onClick={handleGitHubSignIn}
-            className="flex w-full items-center justify-center gap-2 rounded-md border border-border py-2 text-sm font-medium transition-colors hover:bg-muted"
+            className="flex w-full items-center justify-center gap-2 border border-border py-2.5 text-sm font-medium transition-colors hover:bg-muted"
           >
             <Github className="h-4 w-4" />
             GitHub
           </button>
 
-          <p className="mt-6 text-center text-sm text-muted-foreground">
+          <p className="mt-8 text-center text-sm text-muted-foreground">
             {t('noAccount')}{' '}
-            <Link href="/auth/signup" className="text-primary hover:underline">
+            <Link href="/auth/signup" className="text-foreground underline underline-offset-2">
               {t('signUp')}
             </Link>
           </p>

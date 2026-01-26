@@ -2,12 +2,6 @@
 
 import { useState } from 'react';
 import { Check, Copy } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 
 type CodeBlockProps = {
   code: string;
@@ -27,31 +21,24 @@ export function CodeBlock({ code, label, className = '' }: CodeBlockProps) {
   return (
     <div className={className}>
       {label && (
-        <p className="mb-2 text-xs font-medium text-muted-foreground">{label}</p>
+        <p className="byline mb-2">{label}</p>
       )}
       <div className="group relative">
-        <pre className="overflow-x-auto rounded-lg bg-muted p-3 pr-12 text-xs sm:text-sm">
-          {code}
+        <pre className="terminal">
+          <span className="text-muted-foreground">$</span> {code}
+          <span className="cursor" />
         </pre>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={handleCopy}
-              className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100"
-            >
-              {copied ? (
-                <Check className="size-4 text-green-500" />
-              ) : (
-                <Copy className="size-4" />
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{copied ? 'Copied!' : 'Copy to clipboard'}</p>
-          </TooltipContent>
-        </Tooltip>
+        <button
+          onClick={handleCopy}
+          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100"
+          style={{ color: 'var(--background)' }}
+        >
+          {copied ? (
+            <Check className="h-4 w-4" />
+          ) : (
+            <Copy className="h-4 w-4" />
+          )}
+        </button>
       </div>
     </div>
   );

@@ -33,7 +33,7 @@ export async function GET(request: NextRequest, { params }: Props) {
     // 1. Try local skills table first
     const { data: localSkill } = await supabase
       .from('skills')
-      .select('*, skill_stats(installs, views), author:authors(*)')
+      .select('*, skill_stats(installs, views)')
       .eq('slug', slug)
       .single();
 

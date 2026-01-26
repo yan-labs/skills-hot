@@ -1,6 +1,6 @@
 'use client';
 
-import { Download, ArrowUpRight, Lock } from 'lucide-react';
+import { ArrowUpRight, Lock } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 
@@ -30,42 +30,36 @@ export function SkillCard({
   return (
     <Link
       href={`/skills/${slug}`}
-      className="group block rounded-lg border border-border p-4 transition-colors hover:bg-muted/50"
+      className="group block py-4 transition-colors"
     >
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-2">
-          <h3 className="font-medium">{name}</h3>
-          {isPrivate && (
-            <span className="flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-xs text-amber-600 dark:text-amber-400">
-              <Lock className="h-3 w-3" />
-              {t('common.private')}
-            </span>
-          )}
+      {/* Title row */}
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className="truncate text-base font-medium leading-tight group-hover:underline">
+              {name}
+            </h3>
+            {isPrivate && (
+              <Lock className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
+            )}
+          </div>
         </div>
-        <ArrowUpRight className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+        <ArrowUpRight className="h-4 w-4 flex-shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
       </div>
 
-      <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">
-        {description || 'No description available'}
-      </p>
+      {/* Description */}
+      {description && (
+        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+          {description}
+        </p>
+      )}
 
-      <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1">
-            <Download className="h-3 w-3" />
-            <span>{installs.toLocaleString()}</span>
-          </div>
-          {source === 'skillsmp' && (
-            <span className="rounded bg-muted px-1.5 py-0.5 text-[10px]">SkillSMP</span>
-          )}
-          {source === 'skills.sh' && (
-            <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] text-emerald-600 dark:text-emerald-400">Featured</span>
-          )}
-        </div>
-        {author && (
-          <span>
-            {t('common.by')} {author}
-          </span>
+      {/* Meta row */}
+      <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+        {author && <span>{author}</span>}
+        <span>{installs.toLocaleString()} installs</span>
+        {source === 'skills.sh' && (
+          <span className="text-accent">Featured</span>
         )}
       </div>
     </Link>

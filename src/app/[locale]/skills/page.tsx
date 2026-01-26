@@ -34,7 +34,6 @@ async function getSkills(source: string, userId?: string) {
 
   const results: Skill[] = [];
 
-  // For 'my' source, require authentication
   if (source === 'my' && !userId) {
     return { skills: [], needsAuth: true };
   }
@@ -45,7 +44,6 @@ async function getSkills(source: string, userId?: string) {
 
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  // Get local skills for 'my' or 'local' source
   if (source === 'my' || source === 'local') {
     let query = supabase.from('skills').select('*, skill_stats(installs)');
 
@@ -79,7 +77,6 @@ async function getSkills(source: string, userId?: string) {
     return { skills: results, needsAuth: false };
   }
 
-  // For 'all' or default: show skills.sh featured list (sorted by installs)
   const { data: featuredSkills } = await supabase
     .from('skills_sh_cache')
     .select('name, installs, top_source')
@@ -88,14 +85,13 @@ async function getSkills(source: string, userId?: string) {
 
   if (featuredSkills) {
     for (const skill of featuredSkills) {
-      // Extract author from top_source (e.g., "vercel-labs/agent-skills" -> "vercel-labs")
       const author = skill.top_source?.split('/')[0] || '';
 
       results.push({
         id: skill.name,
         name: skill.name,
         slug: skill.name,
-        description: '', // skills.sh doesn't have description
+        description: '',
         author,
         source: 'skills.sh',
         installs: skill.installs,
@@ -114,7 +110,6 @@ export default async function SkillsPage({ params, searchParams }: Props) {
   const t = await getTranslations('skills');
   const { source = 'all' } = await searchParams;
 
-  // Get current user from session
   const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -144,58 +139,69 @@ export default async function SkillsPage({ params, searchParams }: Props) {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+      <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
         {/* Header */}
-        <div className="mb-8 sm:mb-10">
-          <h1 className="mb-2 text-2xl font-semibold sm:text-3xl">
+        <div className="mb-8">
+          <p className="section-label mb-2">Directory</p>
+          <h1 className="text-3xl sm:text-4xl">
             {source === 'my' ? t('mySkills.title') : t('title')}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="mt-2 text-muted-foreground">
             {source === 'my' ? t('mySkills.subtitle') : t('subtitle')}
           </p>
         </div>
 
+        {/* Divider */}
+        <div className="divider" />
+
         {/* Tabs and Search */}
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between">
           <SkillsTabs currentTab={currentTab} isAuthenticated={!!user} />
-          <div className="max-w-xs">
+          <div className="w-full max-w-xs">
             <SearchBar />
           </div>
         </div>
 
+        {/* Divider */}
+        <div className="divider" />
+
         {/* Content */}
         {needsAuth ? (
-          <div className="rounded-lg border border-border p-12 text-center">
-            <Lock className="mx-auto mb-4 h-10 w-10 text-muted-foreground/50" />
-            <h3 className="mb-2 font-medium">Sign in required</h3>
-            <p className="text-sm text-muted-foreground">
+          <div className="py-16 text-center">
+            <Lock className="mx-auto mb-4 h-8 w-8 text-muted-foreground" />
+            <h3 className="text-lg">Sign in required</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
               Please sign in to view your skills
             </p>
           </div>
         ) : skills.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {skills.map((skill) => (
-              <SkillCard
+          <div className="stagger">
+            {skills.map((skill, index) => (
+              <div
                 key={`${skill.source}-${skill.id}`}
-                name={skill.name}
-                slug={skill.slug}
-                description={skill.description}
-                author={skill.author}
-                category={null}
-                tags={null}
-                installs={skill.skill_stats?.[0]?.installs || skill.installs || 0}
-                isPrivate={skill.is_private}
-                source={skill.source}
-              />
+                className={index < skills.length - 1 ? 'border-b border-border' : ''}
+              >
+                <SkillCard
+                  name={skill.name}
+                  slug={skill.slug}
+                  description={skill.description}
+                  author={skill.author}
+                  category={null}
+                  tags={null}
+                  installs={skill.skill_stats?.[0]?.installs || skill.installs || 0}
+                  isPrivate={skill.is_private}
+                  source={skill.source}
+                />
+              </div>
             ))}
           </div>
         ) : (
-          <div className="rounded-lg border border-border p-12 text-center">
-            <Package className="mx-auto mb-4 h-10 w-10 text-muted-foreground/50" />
-            <h3 className="mb-2 font-medium">
+          <div className="py-16 text-center">
+            <Package className="mx-auto mb-4 h-8 w-8 text-muted-foreground" />
+            <h3 className="text-lg">
               {source === 'my' ? t('mySkills.empty') : t('empty')}
             </h3>
-            <p className="text-sm text-muted-foreground">
+            <p className="mt-1 text-sm text-muted-foreground">
               {source === 'my' ? t('mySkills.emptyHint') : t('emptyHint')}
             </p>
           </div>

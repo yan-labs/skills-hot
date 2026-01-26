@@ -97,24 +97,25 @@ export default function DeviceAuthPage() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="mx-auto max-w-md px-4 py-12 sm:px-6">
+        <main className="mx-auto max-w-sm px-4 py-12 sm:px-6 sm:py-16">
           <Link
             href="/"
-            className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-3 w-3" />
             Back
           </Link>
 
-          <div className="rounded-lg border border-border p-6 sm:p-8 text-center">
-            <Terminal className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h1 className="mb-2 text-2xl font-semibold">Authorize CLI</h1>
-            <p className="mb-6 text-muted-foreground">
+          <div className="mt-8 text-center">
+            <Terminal className="mx-auto mb-6 h-12 w-12 text-muted-foreground" />
+            <p className="section-label mb-2">CLI Authorization</p>
+            <h1 className="text-3xl">Sign In Required</h1>
+            <p className="mt-4 text-muted-foreground">
               Please sign in to authorize your CLI application.
             </p>
             <button
               onClick={handleSignIn}
-              className="w-full rounded-md bg-primary py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              className="mt-8 w-full border border-foreground bg-foreground py-2.5 text-sm font-medium text-background transition-colors hover:bg-foreground/90"
             >
               Sign In to Continue
             </button>
@@ -129,19 +130,19 @@ export default function DeviceAuthPage() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="mx-auto max-w-md px-4 py-12 sm:px-6">
-          <div className="rounded-lg border border-border p-6 sm:p-8 text-center">
-            <CheckCircle className="mx-auto h-12 w-12 text-green-500 mb-4" />
-            <h1 className="mb-2 text-2xl font-semibold">Authorization Complete</h1>
-            <p className="mb-4 text-muted-foreground">
+        <main className="mx-auto max-w-sm px-4 py-12 sm:px-6 sm:py-16">
+          <div className="text-center">
+            <CheckCircle className="mx-auto mb-6 h-12 w-12 text-green-600" />
+            <h1 className="text-3xl">Authorization Complete</h1>
+            <p className="mt-4 text-muted-foreground">
               Your CLI has been authorized successfully.
             </p>
             {deviceInfo?.device_name && (
-              <p className="text-sm text-muted-foreground mb-6">
-                Device: {deviceInfo.device_name}
+              <p className="mt-4 text-sm text-muted-foreground">
+                Device: <span className="font-medium">{deviceInfo.device_name}</span>
               </p>
             )}
-            <p className="text-sm text-muted-foreground">
+            <p className="mt-6 text-sm text-muted-foreground">
               You can close this window and return to your terminal.
             </p>
           </div>
@@ -155,26 +156,26 @@ export default function DeviceAuthPage() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="mx-auto max-w-md px-4 py-12 sm:px-6">
+        <main className="mx-auto max-w-sm px-4 py-12 sm:px-6 sm:py-16">
           <Link
             href="/"
-            className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-3 w-3" />
             Back
           </Link>
 
-          <div className="rounded-lg border border-border p-6 sm:p-8 text-center">
-            <XCircle className="mx-auto h-12 w-12 text-destructive mb-4" />
-            <h1 className="mb-2 text-2xl font-semibold">Authorization Failed</h1>
-            <p className="mb-6 text-destructive">{error}</p>
+          <div className="mt-8 text-center">
+            <XCircle className="mx-auto mb-6 h-12 w-12 text-destructive" />
+            <h1 className="text-3xl">Authorization Failed</h1>
+            <p className="mt-4 text-destructive">{error}</p>
             <button
               onClick={() => {
                 setStatus('input');
                 setError(null);
                 setUserCode('');
               }}
-              className="w-full rounded-md bg-primary py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              className="mt-8 w-full border border-foreground bg-foreground py-2.5 text-sm font-medium text-background transition-colors hover:bg-foreground/90"
             >
               Try Again
             </button>
@@ -189,33 +190,34 @@ export default function DeviceAuthPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="mx-auto max-w-md px-4 py-12 sm:px-6">
+      <main className="mx-auto max-w-sm px-4 py-12 sm:px-6 sm:py-16">
         <Link
           href="/"
-          className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-3 w-3" />
           Back
         </Link>
 
-        <div className="rounded-lg border border-border p-6 sm:p-8">
-          <div className="mb-6 text-center">
-            <Terminal className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h1 className="mb-2 text-2xl font-semibold">Authorize CLI</h1>
-            <p className="text-muted-foreground">
+        <div className="mt-8">
+          <div className="text-center">
+            <Terminal className="mx-auto mb-6 h-12 w-12 text-muted-foreground" />
+            <p className="section-label mb-2">CLI Authorization</p>
+            <h1 className="text-3xl">Authorize CLI</h1>
+            <p className="mt-4 text-muted-foreground">
               Enter the code displayed in your terminal to authorize the SkillBank CLI.
             </p>
           </div>
 
           {user && (
-            <div className="mb-6 rounded-md bg-muted p-3 text-center text-sm">
+            <div className="mt-6 border-b border-border py-3 text-center text-sm">
               Authorizing as <span className="font-medium">{user.email}</span>
             </div>
           )}
 
-          <form onSubmit={handleAuthorize}>
+          <form onSubmit={handleAuthorize} className="mt-8">
             <div className="mb-6">
-              <label htmlFor="code" className="mb-2 block text-sm font-medium text-center">
+              <label htmlFor="code" className="byline mb-3 block text-center">
                 Device Code
               </label>
               <input
@@ -223,7 +225,7 @@ export default function DeviceAuthPage() {
                 type="text"
                 value={userCode}
                 onChange={handleCodeChange}
-                className="w-full rounded-md border border-border bg-background py-3 px-4 text-center text-2xl font-mono tracking-wider transition-colors focus:border-primary focus:outline-none"
+                className="w-full border-b-2 border-border bg-transparent py-3 text-center font-mono text-2xl tracking-widest transition-colors focus:border-foreground focus:outline-none"
                 placeholder="XXXX-XXXX"
                 maxLength={9}
                 required
@@ -235,7 +237,7 @@ export default function DeviceAuthPage() {
             <button
               type="submit"
               disabled={status === 'confirming' || userCode.length < 9}
-              className="w-full rounded-md bg-primary py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex w-full items-center justify-center gap-2 border border-foreground bg-foreground py-2.5 text-sm font-medium text-background transition-colors hover:bg-foreground/90 disabled:opacity-50"
             >
               {status === 'confirming' ? (
                 <>
@@ -248,7 +250,7 @@ export default function DeviceAuthPage() {
             </button>
           </form>
 
-          <p className="mt-6 text-center text-xs text-muted-foreground">
+          <p className="mt-8 text-center text-xs text-muted-foreground">
             Make sure this code matches exactly what you see in your terminal.
             <br />
             If you didn&apos;t request this, please close this page.

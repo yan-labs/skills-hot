@@ -111,70 +111,72 @@ export default async function AuthorPage({ params, searchParams }: Props) {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
         {/* Breadcrumb */}
         <Link
           href="/skills"
-          className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ArrowLeft className="h-4 w-4" />
-          {t('skills')}
+          <ArrowLeft className="h-3 w-3" />
+          Back to skills
         </Link>
 
         {/* Author Header */}
-        <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center gap-6">
+        <div className="mt-8 flex flex-col sm:flex-row items-start gap-6">
           {author.avatar_url && (
             <img
               src={author.avatar_url}
               alt={displayName}
-              className="h-24 w-24 rounded-full"
+              className="h-20 w-20 rounded-full"
             />
           )}
           <div className="flex-1">
-            <h1 className="text-2xl font-semibold sm:text-3xl">{displayName}</h1>
-            <p className="mt-1 text-muted-foreground">@{author.github_login}</p>
+            <p className="section-label mb-1">Author</p>
+            <h1 className="text-3xl sm:text-4xl">{displayName}</h1>
+            <p className="byline mt-2">@{author.github_login}</p>
             {author.bio && (
-              <p className="mt-3 text-sm text-muted-foreground">{author.bio}</p>
+              <p className="mt-4 text-muted-foreground leading-relaxed">{author.bio}</p>
             )}
 
             {/* Stats */}
-            <div className="mt-4 flex flex-wrap gap-6">
+            <div className="mt-4 flex flex-wrap items-center gap-6 text-sm">
               <div className="flex items-center gap-2">
                 <Package className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">
+                <span>
                   <span className="font-medium">{author.external_skill_count + author.native_skill_count}</span>{' '}
-                  {t('skills')}
+                  <span className="text-muted-foreground">{t('skills')}</span>
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <Download className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">
+                <span>
                   <span className="font-medium">{author.total_installs.toLocaleString()}</span>{' '}
-                  {t('totalInstalls')}
+                  <span className="text-muted-foreground">{t('totalInstalls')}</span>
                 </span>
               </div>
+              <a
+                href={`https://github.com/${author.github_login}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <Github className="h-4 w-4" />
+                GitHub
+              </a>
             </div>
-
-            {/* GitHub Link */}
-            <a
-              href={`https://github.com/${author.github_login}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 inline-flex items-center gap-2 text-sm text-primary hover:underline"
-            >
-              <Github className="h-4 w-4" />
-              {t('viewOnGitHub')}
-            </a>
           </div>
         </div>
 
+        {/* Divider */}
+        <div className="divider mt-8" />
+
         {/* Tabs */}
-        <div className="mb-6 flex gap-2 border-b border-border">
+        <div className="flex gap-4 py-4">
           <Link
             href={`/authors/${login}`}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
+            className={`text-sm transition-colors ${
               tab === 'all'
-                ? 'border-b-2 border-primary text-foreground'
+                ? 'text-foreground underline underline-offset-4'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -182,9 +184,9 @@ export default async function AuthorPage({ params, searchParams }: Props) {
           </Link>
           <Link
             href={`/authors/${login}?tab=github`}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
+            className={`text-sm transition-colors ${
               tab === 'github'
-                ? 'border-b-2 border-primary text-foreground'
+                ? 'text-foreground underline underline-offset-4'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -192,9 +194,9 @@ export default async function AuthorPage({ params, searchParams }: Props) {
           </Link>
           <Link
             href={`/authors/${login}?tab=platform`}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
+            className={`text-sm transition-colors ${
               tab === 'platform'
-                ? 'border-b-2 border-primary text-foreground'
+                ? 'text-foreground underline underline-offset-4'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -202,41 +204,45 @@ export default async function AuthorPage({ params, searchParams }: Props) {
           </Link>
         </div>
 
-        {/* Skills Grid */}
+        {/* Divider */}
+        <div className="divider" />
+
+        {/* Skills List */}
         {filteredSkills.length === 0 ? (
-          <div className="py-12 text-center text-muted-foreground">
-            {t('noSkills')}
+          <div className="py-16 text-center">
+            <Package className="mx-auto mb-4 h-8 w-8 text-muted-foreground" />
+            <p className="text-muted-foreground">{t('noSkills')}</p>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredSkills.map(skill => (
+          <div className="stagger">
+            {filteredSkills.map((skill, index) => (
               <Link
                 key={skill.id}
                 href={`/skills/${skill.slug}`}
-                className="group rounded-lg border border-border p-4 transition-colors hover:bg-muted/50"
+                className={`group block py-4 transition-colors hover:bg-muted/30 ${
+                  index < filteredSkills.length - 1 ? 'border-b border-border' : ''
+                }`}
               >
-                <div className="mb-2 flex items-center gap-2">
-                  <h3 className="font-medium group-hover:text-primary transition-colors">
-                    {skill.name}
-                  </h3>
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs ${
-                      skill.skillType === 'platform'
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                        : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
-                    }`}
-                  >
-                    {skill.skillType === 'platform' ? t('platformSkills') : t('githubSkills')}
-                  </span>
-                </div>
-                {skill.description && (
-                  <p className="mb-3 text-sm text-muted-foreground line-clamp-2">
-                    {skill.description}
-                  </p>
-                )}
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Download className="h-3 w-3" />
-                  {skill.installs?.toLocaleString() || 0}
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg transition-colors group-hover:text-accent">
+                        {skill.name}
+                      </h3>
+                      <span className="text-xs text-muted-foreground">
+                        {skill.skillType === 'platform' ? 'Platform' : 'GitHub'}
+                      </span>
+                    </div>
+                    {skill.description && (
+                      <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+                        {skill.description}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <Download className="h-3 w-3" />
+                    {skill.installs?.toLocaleString() || 0}
+                  </div>
                 </div>
               </Link>
             ))}

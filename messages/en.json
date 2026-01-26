@@ -65,6 +65,17 @@
     "noContent": "No content available",
     "copy": "Copy",
     "copied": "Copied!",
+    "thirdParty": {
+      "label": "Third-party CLI (skills.sh / openskills)",
+      "placeholder": "npx skills add ...",
+      "generate": "Generate",
+      "generating": "Generating...",
+      "copied": "Copied!",
+      "error": "Error",
+      "tooltip": "Generate install command",
+      "tooltipPrivate": "Generate temporary link (requires login)",
+      "loginRequired": "Please login to copy install command"
+    },
     "source": {
       "local": "Platform",
       "github": "GitHub",

@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import { Header } from '@/components/Header';
 import { SearchBar } from '@/components/SearchBar';
 import { SkillCard } from '@/components/SkillCard';
@@ -8,18 +8,56 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 
 async function getPopularSkills() {
-  const { data, error } = await supabase
-    .from('skills')
-    .select('*, skill_stats(*)')
-    .order('created_at', { ascending: false })
-    .limit(6);
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (error) {
-    console.error('Error fetching skills:', error);
+  if (!supabaseUrl || !supabaseKey) {
     return [];
   }
 
-  return data || [];
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  // Get public skills from our platform
+  const { data: localSkills, error: localError } = await supabase
+    .from('skills')
+    .select('*, skill_stats(installs)')
+    .eq('is_private', false)
+    .order('created_at', { ascending: false })
+    .limit(6);
+
+  if (localError) {
+    console.error('Error fetching local skills:', localError);
+  }
+
+  // If we have local skills, return them
+  if (localSkills && localSkills.length > 0) {
+    return localSkills;
+  }
+
+  // Otherwise, get featured skills from skills.sh cache
+  const { data: featuredSkills, error: featuredError } = await supabase
+    .from('skills_sh_cache')
+    .select('name, installs, top_source')
+    .order('installs', { ascending: false })
+    .limit(6);
+
+  if (featuredError) {
+    console.error('Error fetching featured skills:', featuredError);
+    return [];
+  }
+
+  // Transform to match the expected shape
+  return (featuredSkills || []).map((skill) => ({
+    id: skill.name,
+    name: skill.name,
+    slug: skill.name,
+    description: null,
+    author: skill.top_source?.split('/')[0] || null,
+    category: null,
+    tags: null,
+    skill_stats: [{ installs: skill.installs }],
+    source: 'skills.sh',
+  }));
 }
 
 type Props = {
@@ -37,95 +75,129 @@ export default async function Home({ params }: Props) {
     <div className="min-h-screen bg-background">
       <Header />
 
-      {/* Hero Section */}
-      <section className="mx-auto max-w-5xl px-4 py-16 text-center sm:px-6 sm:py-24">
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
-          {t('hero.title1')}
-          <br />
-          <span className="text-muted-foreground">{t('hero.title2')}</span>
-        </h1>
+      <main className="mx-auto max-w-6xl px-4 sm:px-6">
+        {/* Hero Section - Editorial style */}
+        <section className="py-16 sm:py-24">
+          {/* Section label */}
+          <p className="section-label mb-4">AI Agent Skills Marketplace</p>
 
-        <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground sm:text-lg">
-          {t('hero.subtitle')}
-        </p>
+          {/* Main headline - large serif */}
+          <h1 className="max-w-3xl text-4xl sm:text-5xl md:text-6xl">
+            {t('hero.title1')}{' '}
+            <span className="text-muted-foreground">{t('hero.title2')}</span>
+          </h1>
 
-        {/* Search Bar */}
-        <div className="mx-auto mt-10 max-w-xl">
-          <SearchBar />
-        </div>
-
-        {/* Quick install */}
-        <div className="mt-8 space-y-3">
-          <div className="mx-auto max-w-lg">
-            <CodeBlock code="curl -fsSL https://skillbank.kanchaishaoxia.workers.dev/install.sh | bash" />
-          </div>
-          <p className="text-xs text-muted-foreground">
-            or via npm: <code className="rounded bg-muted px-1.5 py-0.5">npm i -g skillbank</code>
+          {/* Subtitle */}
+          <p className="mt-6 max-w-xl text-lg text-muted-foreground">
+            {t('hero.subtitle')}
           </p>
-        </div>
-      </section>
 
-      {/* Popular Skills */}
-      <section className="border-t border-border">
-        <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
-          <div className="mb-8 flex items-center justify-between">
-            <h2 className="text-xl font-semibold">{t('popular.title')}</h2>
+          {/* Search */}
+          <div className="mt-10 max-w-md">
+            <SearchBar />
+          </div>
+
+          {/* Install command - terminal style */}
+          <div className="mt-8">
+            <p className="byline mb-2">Quick install</p>
+            <div className="inline-block">
+              <CodeBlock code="npm i -g skillbank" />
+            </div>
+          </div>
+        </section>
+
+        {/* Divider */}
+        <div className="divider-double" />
+
+        {/* Popular Skills */}
+        <section className="py-12">
+          <div className="mb-8 flex items-baseline justify-between">
+            <div>
+              <p className="section-label mb-1">Featured</p>
+              <h2 className="text-2xl sm:text-3xl">{t('popular.title')}</h2>
+            </div>
             <Link
               href="/skills"
               className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               {t('popular.viewAll')}
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {skills.map((skill) => (
-              <SkillCard
+          {/* Skills grid with dividers */}
+          <div className="grid gap-0 sm:grid-cols-2 lg:grid-cols-3">
+            {skills.map((skill, index) => (
+              <div
                 key={skill.id}
-                name={skill.name}
-                slug={skill.slug}
-                description={skill.description}
-                author={skill.author}
-                category={skill.category}
-                tags={skill.tags}
-                installs={skill.skill_stats?.[0]?.installs || 0}
-              />
+                className={`${
+                  index % 3 !== 2 ? 'lg:border-r lg:border-border lg:pr-6' : ''
+                } ${
+                  index % 2 !== 1 ? 'sm:border-r sm:border-border sm:pr-6 lg:border-r-0 lg:pr-0' : ''
+                } ${
+                  index % 3 === 1 ? 'lg:px-6' : ''
+                } ${
+                  index % 2 === 1 ? 'sm:pl-6 lg:pl-0' : ''
+                } ${
+                  index % 3 === 2 ? 'lg:pl-6' : ''
+                } ${
+                  index < skills.length - 3 ? 'border-b border-border lg:border-b' : ''
+                } ${
+                  index < skills.length - 2 ? 'sm:border-b' : 'sm:border-b-0'
+                } ${
+                  index < skills.length - 1 ? 'border-b sm:border-b-0' : 'border-b-0'
+                }`}
+              >
+                <SkillCard
+                  name={skill.name}
+                  slug={skill.slug}
+                  description={skill.description}
+                  author={skill.author}
+                  category={skill.category}
+                  tags={skill.tags}
+                  installs={skill.skill_stats?.[0]?.installs || 0}
+                  source={skill.source}
+                />
+              </div>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Features */}
-      <section className="border-t border-border bg-muted/30">
-        <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
-          <div className="grid gap-8 sm:grid-cols-3">
+        {/* Divider */}
+        <div className="divider" />
+
+        {/* Features - simple text layout */}
+        <section className="py-12">
+          <p className="section-label mb-6">Why SkillBank</p>
+
+          <div className="grid gap-8 sm:grid-cols-3 sm:gap-12">
             <div>
-              <h3 className="font-medium">{t('features.cliFirst.title')}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <h3 className="text-lg">{t('features.cliFirst.title')}</h3>
+              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
                 {t('features.cliFirst.description')}
               </p>
             </div>
             <div>
-              <h3 className="font-medium">{t('features.openSecure.title')}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <h3 className="text-lg">{t('features.openSecure.title')}</h3>
+              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
                 {t('features.openSecure.description')}
               </p>
             </div>
             <div>
-              <h3 className="font-medium">{t('features.universal.title')}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <h3 className="text-lg">{t('features.universal.title')}</h3>
+              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
                 {t('features.universal.description')}
               </p>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border">
-        <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
-          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
+        {/* Divider */}
+        <div className="divider" />
+
+        {/* Footer */}
+        <footer className="py-8">
+          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <p className="text-sm text-muted-foreground">
               {t('footer.copyright')}
             </p>
@@ -144,8 +216,8 @@ export default async function Home({ params }: Props) {
               </Link>
             </div>
           </div>
-        </div>
-      </footer>
+        </footer>
+      </main>
     </div>
   );
 }

@@ -7,6 +7,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
   --font-mono: var(--font-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -44,91 +45,288 @@
   --radius-2xl: calc(var(--radius) + 8px);
 }
 
-/* Light mode (default) */
+/* ===========================================
+   NEWSPAPER / MAGAZINE THEME
+   Clean, typographic, content-focused
+   =========================================== */
+
 :root {
-  --radius: 0.5rem;
-  --background: #ffffff;
-  --foreground: #0a0a0a;
-  --card: #ffffff;
-  --card-foreground: #0a0a0a;
-  --popover: #ffffff;
-  --popover-foreground: #0a0a0a;
-  --primary: #0a0a0a;
-  --primary-foreground: #fafafa;
-  --secondary: #f5f5f5;
-  --secondary-foreground: #171717;
-  --muted: #f5f5f5;
-  --muted-foreground: #737373;
-  --accent: #f5f5f5;
-  --accent-foreground: #171717;
-  --destructive: #ef4444;
-  --border: #e5e5e5;
-  --input: #e5e5e5;
-  --ring: #0a0a0a;
-  --chart-1: #0a0a0a;
-  --chart-2: #525252;
-  --chart-3: #737373;
-  --chart-4: #a3a3a3;
-  --chart-5: #d4d4d4;
-  --sidebar: #fafafa;
-  --sidebar-foreground: #0a0a0a;
-  --sidebar-primary: #0a0a0a;
-  --sidebar-primary-foreground: #fafafa;
-  --sidebar-accent: #f5f5f5;
-  --sidebar-accent-foreground: #171717;
-  --sidebar-border: #e5e5e5;
-  --sidebar-ring: #0a0a0a;
+  --radius: 0;
+
+  /* Pure newsprint - warm white paper */
+  --background: #FAFAF8;
+  --foreground: #1A1A1A;
+
+  --card: #FAFAF8;
+  --card-foreground: #1A1A1A;
+
+  --popover: #FFFFFF;
+  --popover-foreground: #1A1A1A;
+
+  /* Primary is just black - like ink */
+  --primary: #1A1A1A;
+  --primary-foreground: #FAFAF8;
+
+  /* Secondary - very subtle */
+  --secondary: #F5F5F3;
+  --secondary-foreground: #1A1A1A;
+
+  /* Muted - for less important text */
+  --muted: #F5F5F3;
+  --muted-foreground: #666666;
+
+  /* Accent - a single restrained red for links/emphasis */
+  --accent: #C41E3A;
+  --accent-foreground: #FFFFFF;
+
+  --destructive: #C41E3A;
+
+  /* Borders - barely there */
+  --border: #E8E8E6;
+  --input: #E8E8E6;
+  --ring: #1A1A1A;
+
+  /* Charts - grayscale */
+  --chart-1: #1A1A1A;
+  --chart-2: #4A4A4A;
+  --chart-3: #7A7A7A;
+  --chart-4: #AAAAAA;
+  --chart-5: #DADADA;
+
+  /* Sidebar */
+  --sidebar: #FAFAF8;
+  --sidebar-foreground: #1A1A1A;
+  --sidebar-primary: #1A1A1A;
+  --sidebar-primary-foreground: #FAFAF8;
+  --sidebar-accent: #F5F5F3;
+  --sidebar-accent-foreground: #1A1A1A;
+  --sidebar-border: #E8E8E6;
+  --sidebar-ring: #1A1A1A;
 }
 
-/* Dark mode */
 .dark {
-  --background: #0a0a0a;
-  --foreground: #fafafa;
-  --card: #0a0a0a;
-  --card-foreground: #fafafa;
-  --popover: #0a0a0a;
-  --popover-foreground: #fafafa;
-  --primary: #fafafa;
-  --primary-foreground: #0a0a0a;
-  --secondary: #262626;
-  --secondary-foreground: #fafafa;
-  --muted: #262626;
-  --muted-foreground: #a3a3a3;
-  --accent: #262626;
-  --accent-foreground: #fafafa;
-  --destructive: #dc2626;
-  --border: #262626;
-  --input: #262626;
-  --ring: #d4d4d4;
-  --chart-1: #fafafa;
-  --chart-2: #d4d4d4;
-  --chart-3: #a3a3a3;
-  --chart-4: #737373;
-  --chart-5: #525252;
-  --sidebar: #0a0a0a;
-  --sidebar-foreground: #fafafa;
-  --sidebar-primary: #fafafa;
-  --sidebar-primary-foreground: #0a0a0a;
-  --sidebar-accent: #262626;
-  --sidebar-accent-foreground: #fafafa;
-  --sidebar-border: #262626;
-  --sidebar-ring: #d4d4d4;
+  /* Dark mode - like reading on a dim screen */
+  --background: #121212;
+  --foreground: #E8E8E6;
+
+  --card: #121212;
+  --card-foreground: #E8E8E6;
+
+  --popover: #1A1A1A;
+  --popover-foreground: #E8E8E6;
+
+  --primary: #E8E8E6;
+  --primary-foreground: #121212;
+
+  --secondary: #1E1E1E;
+  --secondary-foreground: #E8E8E6;
+
+  --muted: #1E1E1E;
+  --muted-foreground: #888888;
+
+  --accent: #FF6B6B;
+  --accent-foreground: #121212;
+
+  --destructive: #FF6B6B;
+
+  --border: #2A2A2A;
+  --input: #2A2A2A;
+  --ring: #E8E8E6;
+
+  --chart-1: #E8E8E6;
+  --chart-2: #BBBBBB;
+  --chart-3: #888888;
+  --chart-4: #555555;
+  --chart-5: #333333;
+
+  --sidebar: #121212;
+  --sidebar-foreground: #E8E8E6;
+  --sidebar-primary: #E8E8E6;
+  --sidebar-primary-foreground: #121212;
+  --sidebar-accent: #1E1E1E;
+  --sidebar-accent-foreground: #E8E8E6;
+  --sidebar-border: #2A2A2A;
+  --sidebar-ring: #E8E8E6;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans), system-ui, sans-serif;
+    font-feature-settings: "kern" 1, "liga" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Headlines use serif for editorial feel */
+  h1, h2, h3 {
+    font-family: var(--font-serif), Georgia, 'Times New Roman', serif;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  h4, h5, h6 {
+    font-family: var(--font-sans), system-ui, sans-serif;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  /* Monospace */
+  code, pre, kbd {
+    font-family: var(--font-mono), 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+    font-size: 0.9em;
+  }
+
+  /* Links - subtle underline */
+  a {
+    text-decoration-skip-ink: auto;
+  }
+
+  /* Paragraphs */
+  p {
+    line-height: 1.6;
   }
 }
 
-/* Custom scrollbar - light mode */
+/* ===========================================
+   EDITORIAL UTILITIES
+   =========================================== */
+
+/* Section divider - thin horizontal rule */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 2rem 0;
+}
+
+/* Double line divider (like newspaper sections) */
+.divider-double {
+  height: 3px;
+  background: linear-gradient(
+    to bottom,
+    var(--foreground) 0px,
+    var(--foreground) 1px,
+    transparent 1px,
+    transparent 2px,
+    var(--foreground) 2px,
+    var(--foreground) 3px
+  );
+  margin: 2rem 0;
+}
+
+/* Section label (like "TECHNOLOGY" in newspapers) */
+.section-label {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* Byline (author, date) */
+.byline {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+
+/* Pull quote */
+.pull-quote {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 1.5rem;
+  font-style: italic;
+  line-height: 1.3;
+  border-left: 2px solid var(--foreground);
+  padding-left: 1.5rem;
+  margin: 2rem 0;
+}
+
+/* Caption text */
+.caption {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  line-height: 1.4;
+}
+
+/* Terminal/code block - minimal styling */
+.terminal {
+  background: var(--foreground);
+  color: var(--background);
+  font-family: var(--font-mono), monospace;
+  padding: 1rem 1.25rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-x: auto;
+}
+
+/* Cursor blink for terminal */
+.cursor::after {
+  content: '▋';
+  animation: blink 1s step-end infinite;
+  margin-left: 2px;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Subtle hover for cards - no background change, just slight lift */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.dark .card-hover:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Number styling for lists */
+.list-number {
+  font-family: var(--font-serif), Georgia, serif;
+  font-style: italic;
+  color: var(--muted-foreground);
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* Stagger children */
+.stagger > * {
+  opacity: 0;
+  animation: fadeIn 0.4s ease-out forwards;
+}
+.stagger > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger > *:nth-child(2) { animation-delay: 0.1s; }
+.stagger > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger > *:nth-child(4) { animation-delay: 0.2s; }
+.stagger > *:nth-child(5) { animation-delay: 0.25s; }
+.stagger > *:nth-child(6) { animation-delay: 0.3s; }
+
+/* ===========================================
+   SCROLLBAR - minimal
+   =========================================== */
+
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -136,19 +334,27 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d4d4d4;
-  border-radius: 4px;
+  background: var(--border);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a3a3a3;
+  background: var(--muted-foreground);
 }
 
-/* Custom scrollbar - dark mode */
-.dark ::-webkit-scrollbar-thumb {
-  background: #404040;
+/* ===========================================
+   SELECTION
+   =========================================== */
+
+::selection {
+  background: var(--foreground);
+  color: var(--background);
 }
 
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #525252;
+/* ===========================================
+   FOCUS - subtle
+   =========================================== */
+
+:focus-visible {
+  outline: 1px solid var(--foreground);
+  outline-offset: 2px;
 }
