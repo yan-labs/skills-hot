@@ -150,11 +150,12 @@ export default async function AuthorPage({ params, searchParams }: Props) {
   const jsonLd = generateAuthorJsonLd(author, locale);
 
   return (
-    <div className="min-h-screen bg-background">
+    <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <div className="min-h-screen bg-background">
       <Header />
 
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
@@ -295,6 +296,7 @@ export default async function AuthorPage({ params, searchParams }: Props) {
           </div>
         )}
       </main>
-    </div>
+      </div>
+    </>
   );
 }

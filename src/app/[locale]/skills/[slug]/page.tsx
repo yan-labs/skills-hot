@@ -234,11 +234,12 @@ export default async function SkillPage({ params }: Props) {
   const jsonLd = generateSkillJsonLd(skill, locale);
 
   return (
-    <div className="min-h-screen bg-background">
+    <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <div className="min-h-screen bg-background">
       <SkillTracker skillSlug={skill.slug} skillId={skill.id} />
       <Header />
 
@@ -448,6 +449,7 @@ export default async function SkillPage({ params }: Props) {
           </aside>
         </article>
       </main>
-    </div>
+      </div>
+    </>
   );
 }

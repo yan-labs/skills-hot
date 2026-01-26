@@ -98,35 +98,10 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   const messages = await getMessages();
 
-  // JSON-LD structured data
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: "SkillBank",
-    description:
-      locale === "zh"
-        ? "发现、安装和管理 AI 编程代理的技能。适用于 Claude、Codex 等的技能市场。"
-        : "Discover, install, and manage skills for your AI coding agents. The marketplace for Claude, Codex, and beyond.",
-    url: "https://skillbank.dev",
-    potentialAction: {
-      "@type": "SearchAction",
-      target: {
-        "@type": "EntryPoint",
-        urlTemplate: `https://skillbank.dev/${locale}/search?q={search_term_string}`,
-      },
-      "query-input": "required name=search_term_string",
-    },
-    inLanguage: locale === "zh" ? "zh-CN" : "en-US",
-  };
-
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
       </head>
       <body className={`${sourceSerif.variable} ${ibmPlexSans.variable} ${ibmPlexMono.variable} antialiased`}>
         <ThemeProvider

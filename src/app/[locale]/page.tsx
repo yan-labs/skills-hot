@@ -164,51 +164,62 @@ type Props = {
 };
 
 function generateHomeJsonLd(locale: string, stats: { totalSkills: number; totalInstalls: number }) {
+  // Use a single graph with @id references for better schema validation
   return [
-    // WebSite with SearchAction
     {
       '@context': 'https://schema.org',
-      '@type': 'WebSite',
-      name: 'SkillBank',
-      url: 'https://skillbank.dev',
-      description: 'AI Agent Skill Marketplace - Install skills for Claude Code, Cursor, Windsurf and other AI coding agents',
-      inLanguage: locale === 'zh' ? 'zh-CN' : 'en-US',
-      potentialAction: {
-        '@type': 'SearchAction',
-        target: {
-          '@type': 'EntryPoint',
-          urlTemplate: `https://skillbank.dev/${locale}/search?q={search_term_string}`,
+      '@graph': [
+        // WebSite with SearchAction
+        {
+          '@type': 'WebSite',
+          '@id': 'https://skillbank.dev/#website',
+          name: 'SkillBank',
+          url: 'https://skillbank.dev',
+          description: locale === 'zh'
+            ? 'AI 代理技能市场 - 为 Claude Code、Cursor、Windsurf 等 AI 编程代理安装技能'
+            : 'AI Agent Skill Marketplace - Install skills for Claude Code, Cursor, Windsurf and other AI coding agents',
+          inLanguage: locale === 'zh' ? 'zh-CN' : 'en-US',
+          publisher: { '@id': 'https://skillbank.dev/#organization' },
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: {
+              '@type': 'EntryPoint',
+              urlTemplate: `https://skillbank.dev/${locale}/search?q={search_term_string}`,
+            },
+            'query-input': 'required name=search_term_string',
+          },
         },
-        'query-input': 'required name=search_term_string',
-      },
-    },
-    // Organization
-    {
-      '@context': 'https://schema.org',
-      '@type': 'Organization',
-      name: 'SkillBank',
-      url: 'https://skillbank.dev',
-      logo: 'https://skillbank.dev/logo.png',
-      sameAs: ['https://github.com/yan-labs/skillbank'],
-      description: `AI Agent Skill Marketplace with ${stats.totalSkills.toLocaleString()} skills and ${stats.totalInstalls.toLocaleString()} total installs`,
-    },
-    // SoftwareApplication (the platform itself)
-    {
-      '@context': 'https://schema.org',
-      '@type': 'SoftwareApplication',
-      name: 'SkillBank CLI',
-      applicationCategory: 'DeveloperApplication',
-      operatingSystem: 'Cross-platform',
-      offers: {
-        '@type': 'Offer',
-        price: '0',
-        priceCurrency: 'USD',
-      },
-      aggregateRating: {
-        '@type': 'AggregateRating',
-        ratingValue: '5',
-        ratingCount: stats.totalInstalls.toString(),
-      },
+        // Organization
+        {
+          '@type': 'Organization',
+          '@id': 'https://skillbank.dev/#organization',
+          name: 'SkillBank',
+          url: 'https://skillbank.dev',
+          logo: {
+            '@type': 'ImageObject',
+            url: 'https://skillbank.dev/logo.png',
+          },
+          sameAs: ['https://github.com/yan-labs/skillbank'],
+          description: locale === 'zh'
+            ? `AI 代理技能市场，拥有 ${stats.totalSkills.toLocaleString()} 个技能和 ${stats.totalInstalls.toLocaleString()} 次安装`
+            : `AI Agent Skill Marketplace with ${stats.totalSkills.toLocaleString()} skills and ${stats.totalInstalls.toLocaleString()} total installs`,
+        },
+        // SoftwareApplication (the CLI tool)
+        {
+          '@type': 'SoftwareApplication',
+          '@id': 'https://skillbank.dev/#cli',
+          name: 'SkillBank CLI',
+          applicationCategory: 'DeveloperApplication',
+          operatingSystem: 'macOS, Windows, Linux',
+          downloadUrl: 'https://www.npmjs.com/package/@skillbank/cli',
+          offers: {
+            '@type': 'Offer',
+            price: '0',
+            priceCurrency: 'USD',
+          },
+          author: { '@id': 'https://skillbank.dev/#organization' },
+        },
+      ],
     },
   ];
 }
@@ -229,8 +240,8 @@ export default async function Home({ params }: Props) {
   const jsonLdArray = generateHomeJsonLd(locale, stats);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* JSON-LD Structured Data */}
+    <>
+      {/* JSON-LD Structured Data - rendered at top level for proper head placement */}
       {jsonLdArray.map((jsonLd, index) => (
         <script
           key={index}
@@ -238,6 +249,7 @@ export default async function Home({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       ))}
+      <div className="min-h-screen bg-background">
       {/* Combined Masthead: Header + Stats + Hero */}
       <header className="border-b border-border">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -362,6 +374,7 @@ export default async function Home({ params }: Props) {
           </div>
         </footer>
       </main>
-    </div>
+      </div>
+    </>
   );
 }
