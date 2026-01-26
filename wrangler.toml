@@ -1,0 +1,26 @@
+name = "skillbank"
+compatibility_date = "2025-01-20"
+compatibility_flags = ["nodejs_compat"]
+main = "worker-wrapper.js"
+
+# 静态资源目录
+assets = { directory = ".open-next/assets", binding = "ASSETS" }
+
+# 环境变量
+[vars]
+NEXT_PUBLIC_SUPABASE_URL = "https://eccwfcfoysauxnnsvcwn.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjY3dmY2ZveXNhdXhubnN2Y3duIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwOTgyMjUsImV4cCI6MjA4NDY3NDIyNX0.ToVALp0oGi3WxkmwY-nTL35nJVbhYATDiNkYQQKhcgI"
+SKILLSMP_API_KEY = "sk_live_skillsmp_NwrPnmNqB5kpmRSYyocsxrSmqSWX-mpCucJAwu1JC0w"
+
+# Analytics Engine 绑定
+[[analytics_engine_datasets]]
+binding = "ANALYTICS"
+dataset = "skillbank"
+
+# 禁用构建监测
+[build]
+command = ""
+
+# Cron Trigger - 每 6 小时同步 skills.sh 数据
+[triggers]
+crons = ["0 */6 * * *"]
