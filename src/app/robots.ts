@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/api/', '/_next/'],
       },
     ],
-    sitemap: 'https://skillbank.kanchaishaoxia.workers.dev/sitemap.xml',
+    sitemap: 'https://skillbank.dev/sitemap.xml',
   };
 }

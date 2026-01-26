@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const messages = (await import(`../../../messages/${locale}.json`)).default;
   const t = messages.metadata;
 
-  const baseUrl = "https://skillbank.kanchaishaoxia.workers.dev";
+  const baseUrl = "https://skillbank.dev";
 
   return {
     title: t.title,
@@ -107,12 +107,12 @@ export default async function LocaleLayout({ children, params }: Props) {
       locale === "zh"
         ? "发现、安装和管理 AI 编程代理的技能。适用于 Claude、Codex 等的技能市场。"
         : "Discover, install, and manage skills for your AI coding agents. The marketplace for Claude, Codex, and beyond.",
-    url: "https://skillbank.kanchaishaoxia.workers.dev",
+    url: "https://skillbank.dev",
     potentialAction: {
       "@type": "SearchAction",
       target: {
         "@type": "EntryPoint",
-        urlTemplate: `https://skillbank.kanchaishaoxia.workers.dev/${locale}/search?q={search_term_string}`,
+        urlTemplate: `https://skillbank.dev/${locale}/search?q={search_term_string}`,
       },
       "query-input": "required name=search_term_string",
     },

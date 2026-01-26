@@ -39,12 +39,12 @@ export default async function DocsPage({ params }: Props) {
             <div className="space-y-4">
               <CodeBlock
                 label="macOS / Linux / WSL"
-                code="curl -fsSL https://skillbank.kanchaishaoxia.workers.dev/install.sh | bash"
+                code="curl -fsSL https://skillbank.dev/install.sh | bash"
               />
 
               <CodeBlock
                 label="Windows PowerShell"
-                code="irm https://skillbank.kanchaishaoxia.workers.dev/install.ps1 | iex"
+                code="irm https://skillbank.dev/install.ps1 | iex"
               />
 
               <div className="divider my-4" />
