@@ -1,0 +1,43 @@
+{
+  "name": "@skillbank/cli",
+  "version": "0.1.0",
+  "description": "SkillBank CLI - Discover, install, and share AI agent skills",
+  "keywords": [
+    "skillbank",
+    "ai",
+    "agents",
+    "skills",
+    "cli",
+    "mcp",
+    "claude"
+  ],
+  "homepage": "https://skillbank.dev",
+  "bugs": {
+    "url": "https://github.com/yan-labs/skillbank/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yan-labs/skillbank.git",
+    "directory": "packages/cli"
+  },
+  "license": "MIT",
+  "author": "SkillBank <hello@skillbank.dev>",
+  "type": "module",
+  "bin": {
+    "skb": "./bin/skb.js",
+    "skillbank": "./bin/skb.js"
+  },
+  "files": [
+    "bin",
+    "lib"
+  ],
+  "scripts": {
+    "prepublishOnly": "node scripts/check-version.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "tar": "^7.0.0"
+  }
+}
