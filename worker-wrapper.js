@@ -12,7 +12,8 @@ export default {
   // Cron trigger - call the sync API
   async scheduled(event, env, ctx) {
     const baseUrl = env.WORKER_URL || 'https://skillbank.dev';
-    const syncUrl = `${baseUrl}/api/cron/sync-skills-sh`;
+    // 使用完整同步端点，更新 external_skills 表（包含 installs、authors）
+    const syncUrl = `${baseUrl}/api/cron/sync-external-skills`;
 
     console.log(`[Cron] Triggering sync at ${new Date().toISOString()}`);
 

@@ -157,7 +157,10 @@ export async function GET(request: Request) {
       const records = batch.map(skill => {
         const { owner, repo, path } = skill.parsed;
         const authorId = authorMap.get(owner) || null;
-        const rawUrl = getGitHubRawUrl(owner, repo, 'main', path);
+
+        // 如果 topSource 没有 path，用 skill name 作为 path（monorepo 结构）
+        const effectivePath = path || skill.name;
+        const rawUrl = getGitHubRawUrl(owner, repo, 'main', effectivePath);
 
         return {
           source: 'github',
@@ -165,7 +168,7 @@ export async function GET(request: Request) {
           name: skill.name,
           slug: generateSlug(skill.name),
           repo: `${owner}/${repo}`,
-          repo_path: path,
+          repo_path: effectivePath,
           branch: 'main',
           raw_url: rawUrl,
           author_id: authorId,
