@@ -1,95 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { Pool } from 'pg';
 
 const SNAPSHOT_LIMIT = 1000; // Top 1000 skills
 const SURGE_THRESHOLD = 0.3; // 30% increase = surging
-
-/**
- * 确保 skill_snapshots 表存在
- * 使用 pg 直接连接数据库执行 DDL
- */
-async function ensureTableExists(): Promise<boolean> {
-  const databaseUrl = process.env.DATABASE_URL;
-  if (!databaseUrl) {
-    console.log('DATABASE_URL not set, skipping table creation');
-    return false;
-  }
-
-  const pool = new Pool({
-    connectionString: databaseUrl,
-    ssl: { rejectUnauthorized: false },
-  });
-
-  try {
-    const client = await pool.connect();
-
-    // 检查表是否存在
-    const checkResult = await client.query(`
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables
-        WHERE table_schema = 'public'
-        AND table_name = 'skill_snapshots'
-      );
-    `);
-
-    if (checkResult.rows[0].exists) {
-      client.release();
-      await pool.end();
-      return true;
-    }
-
-    console.log('Creating skill_snapshots table...');
-
-    // 创建表
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS skill_snapshots (
-        id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        snapshot_at   TIMESTAMPTZ NOT NULL,
-        skill_id      UUID,
-        skill_name    TEXT NOT NULL,
-        skill_slug    TEXT NOT NULL,
-        github_owner  TEXT,
-        rank          INTEGER NOT NULL,
-        installs      INTEGER NOT NULL,
-        stars         INTEGER DEFAULT 0,
-        rank_delta    INTEGER DEFAULT 0,
-        installs_delta INTEGER DEFAULT 0,
-        installs_rate REAL DEFAULT 0,
-        is_new        BOOLEAN DEFAULT FALSE,
-        is_dropped    BOOLEAN DEFAULT FALSE,
-        created_at    TIMESTAMPTZ DEFAULT NOW(),
-        UNIQUE(snapshot_at, skill_name)
-      );
-
-      CREATE INDEX IF NOT EXISTS idx_snapshots_time ON skill_snapshots(snapshot_at DESC);
-      CREATE INDEX IF NOT EXISTS idx_snapshots_skill ON skill_snapshots(skill_name);
-      CREATE INDEX IF NOT EXISTS idx_snapshots_rank ON skill_snapshots(snapshot_at, rank);
-      CREATE INDEX IF NOT EXISTS idx_snapshots_rank_delta ON skill_snapshots(snapshot_at, rank_delta DESC);
-      CREATE INDEX IF NOT EXISTS idx_snapshots_installs_rate ON skill_snapshots(snapshot_at, installs_rate DESC);
-      CREATE INDEX IF NOT EXISTS idx_snapshots_new ON skill_snapshots(snapshot_at, is_new) WHERE is_new = TRUE;
-
-      ALTER TABLE skill_snapshots ENABLE ROW LEVEL SECURITY;
-
-      DROP POLICY IF EXISTS "Skill snapshots are publicly readable" ON skill_snapshots;
-      CREATE POLICY "Skill snapshots are publicly readable" ON skill_snapshots FOR SELECT USING (true);
-
-      CREATE OR REPLACE FUNCTION cleanup_old_snapshots() RETURNS void AS $$
-      BEGIN DELETE FROM skill_snapshots WHERE snapshot_at < NOW() - INTERVAL '30 days'; END;
-      $$ LANGUAGE plpgsql SECURITY DEFINER;
-    `);
-
-    console.log('Table skill_snapshots created successfully!');
-    client.release();
-    await pool.end();
-    return true;
-
-  } catch (error) {
-    console.error('Failed to create table:', error);
-    await pool.end();
-    return false;
-  }
-}
 
 /**
  * GET /api/cron/save-snapshot
@@ -123,9 +36,6 @@ export async function GET(request: Request) {
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   try {
-    // 确保表存在（首次运行时自动创建）
-    await ensureTableExists();
-
     // 快照时间（精确到小时）
     const now = new Date();
     now.setMinutes(0, 0, 0);
