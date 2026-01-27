@@ -1,9 +1,9 @@
 {
-  "name": "@skillbank/cli",
+  "name": "@skills-hot/shot",
   "version": "0.1.0",
-  "description": "SkillBank CLI - Discover, install, and share AI agent skills",
+  "description": "Skills Hot CLI - Discover, install, and share AI agent skills",
   "keywords": [
-    "skillbank",
+    "skills-hot",
     "ai",
     "agents",
     "skills",
@@ -11,21 +11,21 @@
     "mcp",
     "claude"
   ],
-  "homepage": "https://skillbank.dev",
+  "homepage": "https://skills.hot",
   "bugs": {
-    "url": "https://github.com/yan-labs/skillbank/issues"
+    "url": "https://github.com/yan-labs/skills-hot/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yan-labs/skillbank.git",
+    "url": "https://github.com/yan-labs/skills-hot.git",
     "directory": "packages/cli"
   },
   "license": "MIT",
-  "author": "SkillBank <hello@skillbank.dev>",
+  "author": "Skills Hot <hello@skills.hot>",
   "type": "module",
   "bin": {
-    "skb": "./bin/skb.js",
-    "skillbank": "./bin/skb.js"
+    "shot": "./bin/shot.js",
+    "skills-hot": "./bin/shot.js"
   },
   "files": [
     "bin",

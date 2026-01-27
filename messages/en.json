@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "title": "SkillBank - AI Agent Skills Marketplace",
+    "title": "Skills Hot - AI Agent Skills Marketplace",
     "description": "Discover, install, and manage skills for your AI coding agents. The marketplace for Claude, Codex, and beyond."
   },
   "header": {
@@ -42,7 +42,7 @@
     }
   },
   "footer": {
-    "copyright": "© 2025 SkillBank. Open source under MIT.",
+    "copyright": "© 2025 Skills Hot. Open source under MIT.",
     "api": "API"
   },
   "search": {
@@ -84,7 +84,7 @@
       "skillsmp": "SkillSMP"
     },
     "fromGitHub": "This skill is from GitHub and will be downloaded from the source repository",
-    "fromPlatform": "This skill is hosted on SkillBank platform",
+    "fromPlatform": "This skill is hosted on Skills Hot platform",
     "hasFiles": "This skill includes additional files that will be downloaded",
     "viewOnGitHub": "View on GitHub",
     "stars": "Stars",
@@ -108,16 +108,16 @@
       "title": "My Skills",
       "subtitle": "Skills you've published or have access to",
       "empty": "You haven't published any skills yet",
-      "emptyHint": "Use 'skb publish' to publish your first skill",
+      "emptyHint": "Use 'shot publish' to publish your first skill",
       "owned": "Published by you",
       "authorized": "Authorized access"
     }
   },
   "docs": {
     "title": "Documentation",
-    "subtitle": "Learn how to use SkillBank",
+    "subtitle": "Learn how to use Skills Hot",
     "gettingStarted": "Getting Started",
-    "gettingStartedDesc": "Install SkillBank CLI and add your first skill",
+    "gettingStartedDesc": "Install Skills Hot CLI and add your first skill",
     "installation": "Installation",
     "installationDesc": "Install the CLI globally or use npx",
     "addSkill": "Add a Skill",
@@ -131,7 +131,7 @@
     "skillFormatContent": "Skills are defined in SKILL.md files. These files contain instructions and context for AI coding agents.",
     "commands": "CLI Commands",
     "api": "API Reference",
-    "apiDesc": "SkillBank provides a REST API for programmatic access",
+    "apiDesc": "Skills Hot provides a REST API for programmatic access",
     "endpoints": "Endpoints"
   },
   "notFound": {
@@ -226,5 +226,20 @@
     "prev": "Previous",
     "next": "Next",
     "page": "Page {current} of {total}"
+  },
+  "trending": {
+    "title": "MARKET MOVERS",
+    "subtitle": "Rank changes and surging installs over the last 6 hours",
+    "rising": "Rising",
+    "declining": "Declining",
+    "new": "New",
+    "dropped": "Dropped",
+    "surging": "Surging",
+    "noRising": "No rising skills",
+    "noDeclining": "No declining skills",
+    "noNew": "No new entries",
+    "noDropped": "No dropped skills",
+    "noSurging": "No surging skills",
+    "updateNote": "Updated every 6 hours"
   }
 }

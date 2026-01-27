@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const messages = (await import(`../../../messages/${locale}.json`)).default;
   const t = messages.metadata;
 
-  const baseUrl = "https://skillbank.dev";
+  const baseUrl = "https://skills.hot";
 
   return {
     title: t.title,
@@ -62,7 +62,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: t.title,
       description: t.description,
       url: baseUrl,
-      siteName: "SkillBank",
+      siteName: "Skills Hot",
       locale: locale === "zh" ? "zh_CN" : "en_US",
       type: "website",
     },

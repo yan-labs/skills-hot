@@ -153,7 +153,7 @@ export function buildShortUrl(shortCode: string, baseUrl?: string): {
   gitUrl: string;
   tarballUrl: string;
 } {
-  const base = baseUrl || process.env.NEXT_PUBLIC_SITE_URL || 'https://skillbank.dev';
+  const base = baseUrl || process.env.NEXT_PUBLIC_SITE_URL || 'https://skills.hot';
 
   return {
     shortUrl: `${base}/g/${shortCode}`,

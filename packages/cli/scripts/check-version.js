@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const packageJson = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf8'));
 
-console.log(`Publishing @skillbank/cli v${packageJson.version}`);
+console.log(`Publishing @skills-hot/shot v${packageJson.version}`);
 
 // Ensure version is not 0.0.0 or similar placeholder
 if (packageJson.version === '0.0.0') {

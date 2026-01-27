@@ -66,7 +66,7 @@ export async function GET(request: NextRequest, { params }: Props) {
       const skillData = token.skill as { slug: string; name: string }[] | null;
       const skill = Array.isArray(skillData) ? skillData[0] : skillData;
       if (skill?.slug) {
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://skillbank.dev';
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://skills.hot';
         return NextResponse.redirect(`${siteUrl}/skills/${skill.slug}`);
       }
     }
@@ -74,8 +74,8 @@ export async function GET(request: NextRequest, { params }: Props) {
     // 否则返回简单的信息
     return NextResponse.json({
       message: 'Use git clone or download the tarball',
-      git_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://skillbank.dev'}/g/${shortCode}.git`,
-      tarball_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://skillbank.dev'}/g/${shortCode}/archive.tar.gz`,
+      git_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://skills.hot'}/g/${shortCode}.git`,
+      tarball_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://skills.hot'}/g/${shortCode}/archive.tar.gz`,
     });
   } catch (error) {
     console.error('Short link error:', error);

@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
 
 
-const INSTALL_SCRIPT = `# SkillBank CLI Installer for Windows
-# Usage: irm https://skillbank.dev/install.ps1 | iex
+const INSTALL_SCRIPT = `# Skills Hot CLI Installer for Windows
+# Usage: irm https://skills.hot/install.ps1 | iex
 
 $ErrorActionPreference = "Stop"
 
 # Configuration
 $InstallDir = "$env:USERPROFILE\\.local\\bin"
-$BinaryName = "skb.exe"
-$GitHubRepo = "yan-labs/skillbank"
+$BinaryName = "shot.exe"
+$GitHubRepo = "yan-labs/skills-hot"
 $Version = if ($args[0]) { $args[0] } else { "latest" }
 
 function Write-ColorOutput {
@@ -44,9 +44,9 @@ function Get-LatestVersion {
 function Install-Binary {
     param([string]$Platform)
 
-    $BinaryUrl = "https://github.com/$GitHubRepo/releases/download/$Version/skb-$Platform.tar.gz"
+    $BinaryUrl = "https://github.com/$GitHubRepo/releases/download/$Version/shot-$Platform.tar.gz"
 
-    Write-ColorOutput "Downloading SkillBank CLI..." "Blue"
+    Write-ColorOutput "Downloading Skills Hot CLI..." "Blue"
     Write-Host "  URL: $BinaryUrl"
 
     # Create install directory
@@ -54,8 +54,8 @@ function Install-Binary {
         New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
     }
 
-    $TempDir = New-Item -ItemType Directory -Path (Join-Path $env:TEMP "skb-install-$(Get-Random)") -Force
-    $TarPath = Join-Path $TempDir "skb.tar.gz"
+    $TempDir = New-Item -ItemType Directory -Path (Join-Path $env:TEMP "shot-install-$(Get-Random)") -Force
+    $TarPath = Join-Path $TempDir "shot.tar.gz"
     $OutputPath = Join-Path $InstallDir $BinaryName
 
     try {
@@ -66,7 +66,7 @@ function Install-Binary {
         tar -xzf $TarPath -C $TempDir
 
         # Find and move binary
-        $ExtractedBinary = Get-ChildItem -Path $TempDir -Filter "skb*" -File | Select-Object -First 1
+        $ExtractedBinary = Get-ChildItem -Path $TempDir -Filter "shot*" -File | Select-Object -First 1
         if (-not $ExtractedBinary) {
             Write-ColorOutput "Error: Binary not found in archive" "Red"
             exit 1
@@ -98,18 +98,18 @@ function Test-Installation {
     if (Test-Path $BinaryPath) {
         Write-Host ""
         Write-ColorOutput "========================================" "Green"
-        Write-ColorOutput " SkillBank CLI (skb) installed!        " "Green"
+        Write-ColorOutput " Skills Hot CLI (shot) installed!        " "Green"
         Write-ColorOutput "========================================" "Green"
         Write-Host ""
         Write-Host "To get started:"
         Write-Host ""
-        Write-ColorOutput "  skb --help" "Blue"
+        Write-ColorOutput "  shot --help" "Blue"
         Write-Host ""
         Write-Host "Quick start:"
         Write-Host ""
-        Write-ColorOutput "  skb search git" "Blue"
-        Write-ColorOutput "  skb add git-commit" "Blue"
-        Write-ColorOutput "  skb login" "Blue"
+        Write-ColorOutput "  shot search git" "Blue"
+        Write-ColorOutput "  shot add git-commit" "Blue"
+        Write-ColorOutput "  shot login" "Blue"
         Write-Host ""
         Write-Host "Note: You may need to restart your terminal for PATH changes."
         Write-Host ""
@@ -124,8 +124,8 @@ function Test-Installation {
 function Main {
     Write-Host ""
     Write-ColorOutput "=========================================" "Blue"
-    Write-ColorOutput "     SkillBank CLI (skb)                 " "Blue"
-    Write-ColorOutput "     https://skillbank.dev               " "Blue"
+    Write-ColorOutput "     Skills Hot CLI (shot)                 " "Blue"
+    Write-ColorOutput "     https://skills.hot               " "Blue"
     Write-ColorOutput "=========================================" "Blue"
     Write-Host ""
 

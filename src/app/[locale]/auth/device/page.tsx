@@ -205,7 +205,7 @@ export default function DeviceAuthPage() {
             <p className="section-label mb-2">CLI Authorization</p>
             <h1 className="text-3xl">Authorize CLI</h1>
             <p className="mt-4 text-muted-foreground">
-              Enter the code displayed in your terminal to authorize the SkillBank CLI.
+              Enter the code displayed in your terminal to authorize the Skills Hot CLI.
             </p>
           </div>
 

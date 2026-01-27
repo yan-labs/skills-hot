@@ -1,4 +1,4 @@
--- SkillBank Database Schema
+-- Skills Hot Database Schema
 
 -- skills 表：存储 skill 元数据
 CREATE TABLE skills (

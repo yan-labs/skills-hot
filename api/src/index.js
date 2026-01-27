@@ -1,4 +1,4 @@
-// SkillBank API - Cloudflare Workers
+// Skills Hot API - Cloudflare Workers
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',

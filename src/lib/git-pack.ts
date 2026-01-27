@@ -157,8 +157,8 @@ async function createCommit(
   // Build commit content
   const commitLines = [
     `tree ${treeSha}`,
-    `author SkillBank <noreply@skillbank.dev> ${ts} +0000`,
-    `committer SkillBank <noreply@skillbank.dev> ${ts} +0000`,
+    `author Skills Hot <noreply@skills.hot> ${ts} +0000`,
+    `committer Skills Hot <noreply@skills.hot> ${ts} +0000`,
     '',
     message,
   ];

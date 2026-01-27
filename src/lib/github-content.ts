@@ -53,7 +53,7 @@ export async function fetchGitHubContent(rawUrl: string): Promise<string> {
   try {
     const response = await fetch(rawUrl, {
       headers: {
-        'User-Agent': 'SkillBank/1.0',
+        'User-Agent': 'SkillsHot/1.0',
         Accept: 'text/plain',
       },
       next: { revalidate: 3600 }, // Next.js cache for 1 hour
@@ -137,7 +137,7 @@ export async function fetchSkillContent(
     try {
       const response = await fetch(url, {
         headers: {
-          'User-Agent': 'SkillBank/1.0',
+          'User-Agent': 'SkillsHot/1.0',
           Accept: 'text/plain',
         },
         next: { revalidate: 3600 },
@@ -175,7 +175,7 @@ export async function fetchGitHubDirectory(
   try {
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'SkillBank/1.0',
+        'User-Agent': 'SkillsHot/1.0',
         Accept: 'application/vnd.github.v3+json',
         ...(process.env.GITHUB_TOKEN && {
           Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
@@ -219,7 +219,7 @@ export async function fetchGitHubRepo(owner: string, repo: string): Promise<{
   try {
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'SkillBank/1.0',
+        'User-Agent': 'SkillsHot/1.0',
         Accept: 'application/vnd.github.v3+json',
         ...(process.env.GITHUB_TOKEN && {
           Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
@@ -265,7 +265,7 @@ export async function fetchGitHubUser(username: string): Promise<{
   try {
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'SkillBank/1.0',
+        'User-Agent': 'SkillsHot/1.0',
         Accept: 'application/vnd.github.v3+json',
         ...(process.env.GITHUB_TOKEN && {
           Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,

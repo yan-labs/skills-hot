@@ -151,9 +151,9 @@ export async function generateMetadata({ params }: Props) {
     return { title: 'Skill Not Found' };
   }
 
-  const title = `${skill.name} - SkillBank`;
+  const title = `${skill.name} - Skills Hot`;
   const description = skill.description || `Install ${skill.name} skill for your AI coding agent`;
-  const url = `https://skillbank.dev/${locale}/skills/${slug}`;
+  const url = `https://skills.hot/${locale}/skills/${slug}`;
 
   return {
     title,
@@ -169,7 +169,7 @@ export async function generateMetadata({ params }: Props) {
       title,
       description,
       url,
-      siteName: 'SkillBank',
+      siteName: 'Skills Hot',
       type: 'website',
       locale: locale === 'zh' ? 'zh_CN' : 'en_US',
     },
@@ -182,7 +182,7 @@ export async function generateMetadata({ params }: Props) {
 }
 
 function generateSkillJsonLd(skill: SkillDetail, locale: string) {
-  const url = `https://skillbank.dev/${locale}/skills/${skill.slug}`;
+  const url = `https://skills.hot/${locale}/skills/${skill.slug}`;
 
   return {
     '@context': 'https://schema.org',
@@ -201,7 +201,7 @@ function generateSkillJsonLd(skill: SkillDetail, locale: string) {
       author: {
         '@type': 'Person',
         name: skill.author_info?.name || skill.author,
-        url: `https://skillbank.dev/${locale}/authors/${skill.author}`,
+        url: `https://skills.hot/${locale}/authors/${skill.author}`,
       },
     }),
     ...(skill.installs && {
@@ -355,7 +355,7 @@ export default async function SkillPage({ params }: Props) {
 
               <div className="space-y-3">
                 <div>
-                  <p className="caption mb-1">SkillBank CLI</p>
+                  <p className="caption mb-1">Skills Hot CLI</p>
                   <div className="flex items-center justify-between gap-2 border-b border-border py-2">
                     <code className="truncate text-sm">skb add {skill.slug}</code>
                     <CopyButton text={`skb add ${skill.slug}`} skillSlug={skill.slug} skillId={skill.id} />
@@ -365,8 +365,8 @@ export default async function SkillPage({ params }: Props) {
                 <div>
                   <p className="caption mb-1">npx</p>
                   <div className="flex items-center justify-between gap-2 border-b border-border py-2">
-                    <code className="truncate text-sm">npx @skillbank/cli add {skill.slug}</code>
-                    <CopyButton text={`npx @skillbank/cli add ${skill.slug}`} skillSlug={skill.slug} skillId={skill.id} />
+                    <code className="truncate text-sm">npx @skills-hot/cli add {skill.slug}</code>
+                    <CopyButton text={`npx @skills-hot/cli add ${skill.slug}`} skillSlug={skill.slug} skillId={skill.id} />
                   </div>
                 </div>
 

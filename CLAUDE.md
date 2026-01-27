@@ -1,11 +1,11 @@
-# Claude Code Guidelines for SkillBank
+# Claude Code Guidelines for Skills Hot
 
 ## Deployment
 
 - **部署平台**: Cloudflare Workers (通过 OpenNext)
 - **配置文件**: `wrangler.toml`, `open-next.config.ts`
 - **部署命令**: `npx wrangler deploy` (需要先 `npm run build`)
-- **生产域名**: https://skillbank.dev
+- **生产域名**: https://skills.hot
 - **不要**提及或假设使用 Vercel
 - **注意**: 推送代码后需要手动运行 `npx wrangler deploy` 部署
 

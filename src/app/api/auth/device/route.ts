@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 返回设备授权信息
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://skillbank.dev';
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://skills.hot';
 
     return NextResponse.json({
       device_code: deviceCode,

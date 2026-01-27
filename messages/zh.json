@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "title": "SkillBank - AI 代理技能市场",
+    "title": "Skills Hot - AI 代理技能市场",
     "description": "发现、安装和管理 AI 编程代理的技能。适用于 Claude、Codex 等的技能市场。"
   },
   "header": {
@@ -42,7 +42,7 @@
     }
   },
   "footer": {
-    "copyright": "© 2025 SkillBank. MIT 开源协议。",
+    "copyright": "© 2025 Skills Hot. MIT 开源协议。",
     "api": "API"
   },
   "search": {
@@ -84,7 +84,7 @@
       "skillsmp": "SkillSMP"
     },
     "fromGitHub": "此技能来自 GitHub，将从源仓库下载",
-    "fromPlatform": "此技能托管在 SkillBank 平台",
+    "fromPlatform": "此技能托管在 Skills Hot 平台",
     "hasFiles": "此技能包含附属文件，将一并下载",
     "viewOnGitHub": "在 GitHub 查看",
     "stars": "星标",
@@ -108,16 +108,16 @@
       "title": "我的技能",
       "subtitle": "你发布的技能或有权访问的技能",
       "empty": "你还没有发布任何技能",
-      "emptyHint": "使用 'skb publish' 发布你的第一个技能",
+      "emptyHint": "使用 'shot publish' 发布你的第一个技能",
       "owned": "你发布的",
       "authorized": "授权访问"
     }
   },
   "docs": {
     "title": "文档",
-    "subtitle": "了解如何使用 SkillBank",
+    "subtitle": "了解如何使用 Skills Hot",
     "gettingStarted": "快速开始",
-    "gettingStartedDesc": "安装 SkillBank CLI 并添加你的第一个技能",
+    "gettingStartedDesc": "安装 Skills Hot CLI 并添加你的第一个技能",
     "installation": "安装",
     "installationDesc": "全局安装 CLI 或使用 npx",
     "addSkill": "添加技能",
@@ -131,7 +131,7 @@
     "skillFormatContent": "技能通过 SKILL.md 文件定义。这些文件包含 AI 编程代理的指令和上下文。",
     "commands": "CLI 命令",
     "api": "API 参考",
-    "apiDesc": "SkillBank 提供 REST API 供程序化访问",
+    "apiDesc": "Skills Hot 提供 REST API 供程序化访问",
     "endpoints": "接口"
   },
   "notFound": {
@@ -226,5 +226,20 @@
     "prev": "上一页",
     "next": "下一页",
     "page": "第 {current} 页，共 {total} 页"
+  },
+  "trending": {
+    "title": "趋势动态",
+    "subtitle": "过去 6 小时的排名变化与增长热点",
+    "rising": "上升",
+    "declining": "下降",
+    "new": "新晋",
+    "dropped": "掉榜",
+    "surging": "暴涨",
+    "noRising": "暂无上升技能",
+    "noDeclining": "暂无下降技能",
+    "noNew": "暂无新晋技能",
+    "noDropped": "暂无掉榜技能",
+    "noSurging": "暂无暴涨技能",
+    "updateNote": "每 6 小时更新一次"
   }
 }

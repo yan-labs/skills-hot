@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 import { supabase } from '@/lib/supabase';
 
-const BASE_URL = 'https://skillbank.dev';
+const BASE_URL = 'https://skills.hot';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Get all skills for dynamic routes

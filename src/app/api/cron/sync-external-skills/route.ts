@@ -42,7 +42,7 @@ export async function GET(request: Request) {
     // 1. 拉取 skills.sh 全量数据
     const response = await fetch(SKILLS_SH_API, {
       headers: {
-        'User-Agent': 'SkillBank/1.0',
+        'User-Agent': 'SkillsHot/1.0',
       },
     });
 

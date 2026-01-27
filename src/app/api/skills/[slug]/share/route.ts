@@ -31,10 +31,10 @@ interface ShareRequestBody {
  *
  * Response:
  * {
- *   "short_url": "https://skillbank.dev/g/x7Kp2Q",
- *   "git_url": "https://skillbank.dev/g/x7Kp2Q.git",
- *   "tarball_url": "https://skillbank.dev/g/x7Kp2Q/archive.tar.gz",
- *   "clone_command": "git clone https://skillbank.dev/g/x7Kp2Q.git skill-name",
+ *   "short_url": "https://skills.hot/g/x7Kp2Q",
+ *   "git_url": "https://skills.hot/g/x7Kp2Q.git",
+ *   "tarball_url": "https://skills.hot/g/x7Kp2Q/archive.tar.gz",
+ *   "clone_command": "git clone https://skills.hot/g/x7Kp2Q.git skill-name",
  *   "expires_at": "2025-01-30T12:30:00Z",
  *   "max_uses": 5
  * }

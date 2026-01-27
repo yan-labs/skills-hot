@@ -1,4 +1,4 @@
-name = "skillbank"
+name = "skills-hot"
 compatibility_date = "2025-01-20"
 compatibility_flags = ["nodejs_compat"]
 main = "worker-wrapper.js"
@@ -7,10 +7,10 @@ workers_dev = true
 # 静态资源目录
 assets = { directory = ".open-next/assets", binding = "ASSETS" }
 
-# 自定义域名路由 - skillbank.dev 已托管在 Cloudflare
+# 自定义域名路由 - skills.hot 已托管在 Cloudflare
 routes = [
-  { pattern = "skillbank.dev/*", zone_name = "skillbank.dev" },
-  { pattern = "www.skillbank.dev/*", zone_name = "skillbank.dev" }
+  { pattern = "skills.hot/*", zone_name = "skills.hot" },
+  { pattern = "www.skills.hot/*", zone_name = "skills.hot" }
 ]
 
 # 环境变量
@@ -22,7 +22,7 @@ SKILLSMP_API_KEY = "sk_live_skillsmp_NwrPnmNqB5kpmRSYyocsxrSmqSWX-mpCucJAwu1JC0w
 # Analytics Engine 绑定
 [[analytics_engine_datasets]]
 binding = "ANALYTICS"
-dataset = "skillbank"
+dataset = "skills-hot"
 
 # 禁用构建监测
 [build]

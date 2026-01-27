@@ -45,7 +45,7 @@ openssl rand -hex 32
 2. 点击 **Generate new token (classic)**
 
 3. 配置 Token：
-   - **Note**: `SkillBank Sync Stars`
+   - **Note**: `Skills Hot Sync Stars`
    - **Expiration**: 选择有效期（建议 90 天或 1 年）
    - **Scopes**: 只需要勾选 `public_repo`（读取公开仓库信息）
 

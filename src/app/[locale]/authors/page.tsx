@@ -61,8 +61,8 @@ export async function generateMetadata({ params }: Props) {
   const { locale } = await params;
 
   const title = locale === 'zh'
-    ? 'AI 技能作者 - 发现技能创作者 | SkillBank'
-    : 'AI Skill Authors - Discover Skill Creators | SkillBank';
+    ? 'AI 技能作者 - 发现技能创作者 | Skills Hot'
+    : 'AI Skill Authors - Discover Skill Creators | Skills Hot';
   const description = locale === 'zh'
     ? '浏览 AI 代理技能的创作者，发现他们为 Claude Code、Cursor 和其他编程代理创建的技能'
     : 'Browse creators of AI agent skills. Discover their skills for Claude Code, Cursor, and other coding agents';
@@ -71,7 +71,7 @@ export async function generateMetadata({ params }: Props) {
     title,
     description,
     alternates: {
-      canonical: `https://skillbank.dev/${locale}/authors`,
+      canonical: `https://skills.hot/${locale}/authors`,
       languages: {
         en: '/en/authors',
         zh: '/zh/authors',
@@ -80,8 +80,8 @@ export async function generateMetadata({ params }: Props) {
     openGraph: {
       title,
       description,
-      url: `https://skillbank.dev/${locale}/authors`,
-      siteName: 'SkillBank',
+      url: `https://skills.hot/${locale}/authors`,
+      siteName: 'Skills Hot',
       type: 'website',
       locale: locale === 'zh' ? 'zh_CN' : 'en_US',
     },
@@ -101,11 +101,11 @@ function generateAuthorsJsonLd(locale: string, total: number) {
     description: locale === 'zh'
       ? `浏览 ${total} 位 AI 代理技能创作者`
       : `Browse ${total} AI agent skill creators`,
-    url: `https://skillbank.dev/${locale}/authors`,
+    url: `https://skills.hot/${locale}/authors`,
     isPartOf: {
       '@type': 'WebSite',
-      '@id': 'https://skillbank.dev/#website',
-      name: 'SkillBank',
+      '@id': 'https://skills.hot/#website',
+      name: 'Skills Hot',
     },
     breadcrumb: {
       '@type': 'BreadcrumbList',
@@ -114,13 +114,13 @@ function generateAuthorsJsonLd(locale: string, total: number) {
           '@type': 'ListItem',
           position: 1,
           name: 'Home',
-          item: 'https://skillbank.dev',
+          item: 'https://skills.hot',
         },
         {
           '@type': 'ListItem',
           position: 2,
           name: locale === 'zh' ? '作者' : 'Authors',
-          item: `https://skillbank.dev/${locale}/authors`,
+          item: `https://skills.hot/${locale}/authors`,
         },
       ],
     },

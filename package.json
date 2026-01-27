@@ -1,5 +1,5 @@
 {
-  "name": "skillbank",
+  "name": "skills-hot",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -11,7 +11,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "build:cf": "npx @opennextjs/cloudflare build",
-    "deploy": "npx @opennextjs/cloudflare build && wrangler pages deploy .open-next/assets --project-name=skillbank",
+    "deploy": "npx @opennextjs/cloudflare build && wrangler pages deploy .open-next/assets --project-name=skills-hot",
     "preview": "npx @opennextjs/cloudflare build && wrangler pages dev .open-next/assets"
   },
   "dependencies": {

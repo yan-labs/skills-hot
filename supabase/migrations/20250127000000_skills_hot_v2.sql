@@ -1,5 +1,5 @@
 -- ========================================
--- SkillBank V2 Migration
+-- Skills Hot V2 Migration
 -- 添加 authors, external_skills, skill_files 表
 -- 支持 GitHub 来源的 skills 和用户认领机制
 -- ========================================

@@ -38,7 +38,7 @@ export function Header() {
           {/* Logo - editorial style */}
           <Link href="/" className="group">
             <h1 className="text-xl tracking-tight sm:text-2xl">
-              SkillBank
+              Skills Hot
             </h1>
           </Link>
 
@@ -109,7 +109,7 @@ export function Header() {
             {t('docs')}
           </Link>
           <a
-            href="https://github.com/yan-labs/skillbank"
+            href="https://github.com/yan-labs/skills-hot"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"

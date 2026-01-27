@@ -1,4 +1,4 @@
-# SkillBank 主页设计研究
+# Skills Hot 主页设计研究
 
 ## 竞品分析
 

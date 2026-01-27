@@ -28,7 +28,7 @@ jobs:
         run: |
           response=$(curl -s -w "\n%{http_code}" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            "https://skillbank.dev/api/cron/sync-external-skills")
+            "https://skills.hot/api/cron/sync-external-skills")
 
           http_code=$(echo "$response" | tail -n1)
           body=$(echo "$response" | sed '$d')

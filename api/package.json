@@ -1,7 +1,7 @@
 {
-  "name": "skillbank-api",
+  "name": "skills-hot-api",
   "version": "0.1.0",
-  "description": "SkillBank API - Cloudflare Workers",
+  "description": "Skills Hot API - Cloudflare Workers",
   "main": "src/index.js",
   "type": "module",
   "scripts": {
@@ -9,7 +9,7 @@
     "deploy": "wrangler deploy",
     "tail": "wrangler tail"
   },
-  "keywords": ["skillbank", "api", "cloudflare", "workers"],
+  "keywords": ["skills-hot", "api", "cloudflare", "workers"],
   "author": "yan-labs",
   "license": "MIT",
   "devDependencies": {

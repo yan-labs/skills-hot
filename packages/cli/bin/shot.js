@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * SkillBank CLI wrapper
+ * Skills Hot CLI wrapper
  * Downloads and runs the native skb binary
  */
 
@@ -18,7 +18,7 @@ import https from 'node:https';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CACHE_DIR = join(__dirname, '..', '.cache');
-const GITHUB_REPO = 'yan-labs/skillbank';
+const GITHUB_REPO = 'yan-labs/skills-hot';
 
 /**
  * Detect platform and architecture
@@ -61,7 +61,7 @@ function getPlatform() {
  * Get binary name based on platform
  */
 function getBinaryName() {
-  return process.platform === 'win32' ? 'skb.exe' : 'skb';
+  return process.platform === 'win32' ? 'shot.exe' : 'shot';
 }
 
 /**
@@ -69,7 +69,7 @@ function getBinaryName() {
  */
 function fetchJson(url) {
   return new Promise((resolve, reject) => {
-    https.get(url, { headers: { 'User-Agent': 'skillbank-cli' } }, (res) => {
+    https.get(url, { headers: { 'User-Agent': 'skills-hot-cli' } }, (res) => {
       if (res.statusCode === 301 || res.statusCode === 302) {
         return fetchJson(res.headers.location).then(resolve).catch(reject);
       }
@@ -96,7 +96,7 @@ function fetchJson(url) {
 function downloadFile(url, dest) {
   return new Promise((resolve, reject) => {
     const file = createWriteStream(dest);
-    https.get(url, { headers: { 'User-Agent': 'skillbank-cli' } }, (res) => {
+    https.get(url, { headers: { 'User-Agent': 'skills-hot-cli' } }, (res) => {
       if (res.statusCode === 301 || res.statusCode === 302) {
         file.close();
         return downloadFile(res.headers.location, dest).then(resolve).catch(reject);
@@ -132,8 +132,8 @@ async function getLatestVersion() {
     // No releases yet
     if (err.message === 'HTTP 404') {
       throw new Error(
-        'No releases found. The SkillBank CLI binary has not been published yet.\n' +
-        'Please check https://github.com/yan-labs/skillbank/releases for updates.'
+        'No releases found. The Skills Hot CLI binary has not been published yet.\n' +
+        'Please check https://github.com/yan-labs/skills-hot/releases for updates.'
       );
     }
     // Rate limited or other API error - use fallback
@@ -153,7 +153,7 @@ async function downloadBinary(version, platform) {
   const versionDir = join(CACHE_DIR, version);
   const binaryPath = join(versionDir, binaryName);
   // The binary in tarball is named skb-{platform}
-  const extractedBinaryName = `skb-${platform}`;
+  const extractedBinaryName = `shot-${platform}`;
   const extractedBinaryPath = join(versionDir, extractedBinaryName);
 
   // Check if already downloaded
@@ -161,14 +161,14 @@ async function downloadBinary(version, platform) {
     return binaryPath;
   }
 
-  console.log(`Downloading SkillBank CLI ${version} for ${platform}...`);
+  console.log(`Downloading Skills Hot CLI ${version} for ${platform}...`);
 
   // Create cache directory
   await mkdir(versionDir, { recursive: true });
 
   // Download tarball
-  const tarballUrl = `https://github.com/${GITHUB_REPO}/releases/download/${version}/skb-${platform}.tar.gz`;
-  const tarballPath = join(versionDir, 'skb.tar.gz');
+  const tarballUrl = `https://github.com/${GITHUB_REPO}/releases/download/${version}/shot-${platform}.tar.gz`;
+  const tarballPath = join(versionDir, 'shot.tar.gz');
 
   try {
     await downloadFile(tarballUrl, tarballPath);
@@ -222,7 +222,7 @@ function runBinary(binaryPath, args) {
     });
 
     child.on('error', (err) => {
-      console.error(`Failed to run skb: ${err.message}`);
+      console.error(`Failed to run shot: ${err.message}`);
       resolve(1);
     });
   });

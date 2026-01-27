@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 
 
 const INSTALL_SCRIPT = `#!/bin/bash
-# SkillBank CLI Installer
-# Usage: curl -fsSL https://skillbank.dev/install.sh | bash
+# Skills Hot CLI Installer
+# Usage: curl -fsSL https://skills.hot/install.sh | bash
 
 set -e
 
@@ -16,8 +16,8 @@ NC='\\033[0m' # No Color
 
 # Configuration
 INSTALL_DIR="\${HOME}/.local/bin"
-BINARY_NAME="skb"
-GITHUB_REPO="yan-labs/skillbank"
+BINARY_NAME="shot"
+GITHUB_REPO="yan-labs/skills-hot"
 VERSION="\${1:-latest}"
 
 # Detect OS and Architecture
@@ -34,7 +34,7 @@ detect_platform() {
             ;;
         mingw*|msys*|cygwin*)
             echo -e "\${RED}Error: Windows detected. Please use install.ps1 instead.\${NC}"
-            echo "Run: irm https://skillbank.dev/install.ps1 | iex"
+            echo "Run: irm https://skills.hot/install.ps1 | iex"
             exit 1
             ;;
         *)
@@ -74,9 +74,9 @@ get_latest_version() {
 
 # Download and install binary
 install_binary() {
-    local BINARY_URL="https://github.com/\${GITHUB_REPO}/releases/download/\${VERSION}/skb-\${PLATFORM}.tar.gz"
+    local BINARY_URL="https://github.com/\${GITHUB_REPO}/releases/download/\${VERSION}/shot-\${PLATFORM}.tar.gz"
 
-    echo -e "\${BLUE}Downloading SkillBank CLI...\${NC}"
+    echo -e "\${BLUE}Downloading Skills Hot CLI...\${NC}"
     echo "  URL: \${BINARY_URL}"
 
     # Create install directory
@@ -88,19 +88,19 @@ install_binary() {
 
     # Download and extract
     if command -v curl &> /dev/null; then
-        curl -fsSL "$BINARY_URL" -o "\${TEMP_DIR}/skb.tar.gz"
+        curl -fsSL "$BINARY_URL" -o "\${TEMP_DIR}/shot.tar.gz"
     elif command -v wget &> /dev/null; then
-        wget -q "$BINARY_URL" -O "\${TEMP_DIR}/skb.tar.gz"
+        wget -q "$BINARY_URL" -O "\${TEMP_DIR}/shot.tar.gz"
     else
         echo -e "\${RED}Error: curl or wget is required\${NC}"
         exit 1
     fi
 
     # Extract
-    tar -xzf "\${TEMP_DIR}/skb.tar.gz" -C "\${TEMP_DIR}"
+    tar -xzf "\${TEMP_DIR}/shot.tar.gz" -C "\${TEMP_DIR}"
 
     # Find and move binary
-    EXTRACTED_BINARY=$(find "\${TEMP_DIR}" -name "skb*" -type f | head -1)
+    EXTRACTED_BINARY=$(find "\${TEMP_DIR}" -name "shot*" -type f | head -1)
     if [ -z "$EXTRACTED_BINARY" ]; then
         echo -e "\${RED}Error: Binary not found in archive\${NC}"
         exit 1
@@ -131,7 +131,7 @@ setup_path() {
     if [ -f "$PROFILE" ]; then
         if ! grep -q "\\.local/bin" "$PROFILE"; then
             echo "" >> "$PROFILE"
-            echo "# SkillBank CLI" >> "$PROFILE"
+            echo "# Skills Hot CLI" >> "$PROFILE"
             echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$PROFILE"
             echo -e "\${GREEN}Added to $PROFILE\${NC}"
         fi
@@ -143,19 +143,19 @@ verify_installation() {
     if [ -x "\${INSTALL_DIR}/\${BINARY_NAME}" ]; then
         echo ""
         echo -e "\${GREEN}========================================\${NC}"
-        echo -e "\${GREEN} SkillBank CLI (skb) installed!        \${NC}"
+        echo -e "\${GREEN} Skills Hot CLI (shot) installed!        \${NC}"
         echo -e "\${GREEN}========================================\${NC}"
         echo ""
         echo "To get started:"
         echo ""
         echo -e "  \${BLUE}source ~/.bashrc\${NC}  # or restart your terminal"
-        echo -e "  \${BLUE}skb --help\${NC}"
+        echo -e "  \${BLUE}shot --help\${NC}"
         echo ""
         echo "Quick start:"
         echo ""
-        echo -e "  \${BLUE}skb search git\${NC}     # Search for skills"
-        echo -e "  \${BLUE}skb add git-commit\${NC} # Install a skill"
-        echo -e "  \${BLUE}skb login\${NC}          # Login to your account"
+        echo -e "  \${BLUE}shot search git\${NC}     # Search for skills"
+        echo -e "  \${BLUE}shot add git-commit\${NC} # Install a skill"
+        echo -e "  \${BLUE}shot login\${NC}          # Login to your account"
         echo ""
     else
         echo -e "\${RED}Installation failed.\${NC}"
@@ -167,8 +167,8 @@ verify_installation() {
 main() {
     echo ""
     echo -e "\${BLUE}╔═══════════════════════════════════════╗\${NC}"
-    echo -e "\${BLUE}║     SkillBank CLI (skb)               ║\${NC}"
-    echo -e "\${BLUE}║     https://skillbank.dev             ║\${NC}"
+    echo -e "\${BLUE}║     Skills Hot CLI (shot)               ║\${NC}"
+    echo -e "\${BLUE}║     https://skills.hot             ║\${NC}"
     echo -e "\${BLUE}╚═══════════════════════════════════════╝\${NC}"
     echo ""
 

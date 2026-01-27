@@ -1,4 +1,4 @@
-name = "skillbank-api"
+name = "skills-hot-api"
 main = "src/index.js"
 compatibility_date = "2024-01-01"
 
@@ -9,7 +9,7 @@ SUPABASE_URL = "https://eccwfcfoysauxnnsvcwn.supabase.co"
 # SUPABASE_ANON_KEY = ""
 
 [env.production]
-name = "skillbank-api"
+name = "skills-hot-api"
 
 [env.dev]
-name = "skillbank-api-dev"
+name = "skills-hot-api-dev"

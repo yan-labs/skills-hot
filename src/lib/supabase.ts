@@ -41,7 +41,7 @@ export type SkillsShCache = {
 };
 
 // ========================================
-// SkillBank V2 Types
+// Skills Hot V2 Types
 // ========================================
 
 export type Author = {

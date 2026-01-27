@@ -118,7 +118,7 @@ describe('github-content', () => {
       expect(result).toBe(mockContent);
       expect(global.fetch).toHaveBeenCalledWith(url, expect.objectContaining({
         headers: expect.objectContaining({
-          'User-Agent': 'SkillBank/1.0',
+          'User-Agent': 'SkillsHot/1.0',
         }),
       }));
     });

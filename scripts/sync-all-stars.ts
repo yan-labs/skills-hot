@@ -17,7 +17,7 @@ async function fetchGitHubRepo(owner: string, repo: string): Promise<number | nu
   try {
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'SkillBank/1.0',
+        'User-Agent': 'SkillsHot/1.0',
         'Accept': 'application/vnd.github.v3+json',
         ...(process.env.GITHUB_TOKEN && {
           'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`,

@@ -39,24 +39,24 @@ export default async function DocsPage({ params }: Props) {
             <div className="space-y-4">
               <CodeBlock
                 label="macOS / Linux / WSL"
-                code="curl -fsSL https://skillbank.dev/install.sh | bash"
+                code="curl -fsSL https://skills.hot/install.sh | bash"
               />
 
               <CodeBlock
                 label="Windows PowerShell"
-                code="irm https://skillbank.dev/install.ps1 | iex"
+                code="irm https://skills.hot/install.ps1 | iex"
               />
 
               <div className="divider my-4" />
 
               <CodeBlock
                 label="Via npm"
-                code="npm install -g @skillbank/cli"
+                code="npm install -g @skills-hot/cli"
               />
 
               <CodeBlock
                 label="Via npx (no install)"
-                code="npx @skillbank/cli <command>"
+                code="npx @skills-hot/cli <command>"
               />
             </div>
           </div>
@@ -73,19 +73,19 @@ export default async function DocsPage({ params }: Props) {
             <div>
               <h3 className="mb-2 text-lg">{t('addSkill')}</h3>
               <p className="mb-3 text-sm text-muted-foreground">{t('addSkillDesc')}</p>
-              <CodeBlock code="skb add <skill-name>" />
+              <CodeBlock code="shot add <skill-name>" />
             </div>
 
             <div>
               <h3 className="mb-2 text-lg">{t('listSkills')}</h3>
               <p className="mb-3 text-sm text-muted-foreground">{t('listSkillsDesc')}</p>
-              <CodeBlock code="skb list" />
+              <CodeBlock code="shot list" />
             </div>
 
             <div>
               <h3 className="mb-2 text-lg">{t('removeSkill')}</h3>
               <p className="mb-3 text-sm text-muted-foreground">{t('removeSkillDesc')}</p>
-              <CodeBlock code="skb remove <skill-name>" />
+              <CodeBlock code="shot remove <skill-name>" />
             </div>
           </div>
         </section>

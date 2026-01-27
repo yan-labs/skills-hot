@@ -154,7 +154,7 @@ export async function GET(request: NextRequest, { params }: Props) {
         if (externalSkill.raw_url) {
           try {
             const response = await fetch(externalSkill.raw_url, {
-              headers: { 'User-Agent': 'SkillBank/1.0' },
+              headers: { 'User-Agent': 'SkillsHot/1.0' },
             });
             if (response.ok) {
               content = await response.text();
@@ -188,7 +188,7 @@ export async function GET(request: NextRequest, { params }: Props) {
       const content = skill.content || '# Empty Skill';
       const skillContent = content.startsWith('---')
         ? content
-        : `---\nname: ${skill.name || skill.slug}\ndescription: ${skill.description || 'A SkillBank skill'}\n---\n\n${content}`;
+        : `---\nname: ${skill.name || skill.slug}\ndescription: ${skill.description || 'A Skills Hot skill'}\n---\n\n${content}`;
 
       pack = await createGitPack(skill.slug, skillContent);
       setCachedPack(cacheKey, pack);
@@ -387,7 +387,7 @@ export async function POST(request: NextRequest, { params }: Props) {
         if (externalSkill.raw_url) {
           try {
             const response = await fetch(externalSkill.raw_url, {
-              headers: { 'User-Agent': 'SkillBank/1.0' },
+              headers: { 'User-Agent': 'SkillsHot/1.0' },
             });
             if (response.ok) {
               content = await response.text();
@@ -421,7 +421,7 @@ export async function POST(request: NextRequest, { params }: Props) {
       const content = skill.content || '# Empty Skill';
       const skillContent = content.startsWith('---')
         ? content
-        : `---\nname: ${skill.name || skill.slug}\ndescription: ${skill.description || 'A SkillBank skill'}\n---\n\n${content}`;
+        : `---\nname: ${skill.name || skill.slug}\ndescription: ${skill.description || 'A Skills Hot skill'}\n---\n\n${content}`;
 
       pack = await createGitPack(skill.slug, skillContent);
       setCachedPack(cacheKey, pack);

@@ -192,13 +192,13 @@ describe('download-token', () => {
 
   describe('buildShortUrl', () => {
     it('should build all URL formats', () => {
-      process.env.NEXT_PUBLIC_SITE_URL = 'https://skillbank.dev';
+      process.env.NEXT_PUBLIC_SITE_URL = 'https://skills.hot';
 
       const result = buildShortUrl('x7Kp2Q');
 
-      expect(result.shortUrl).toBe('https://skillbank.dev/g/x7Kp2Q');
-      expect(result.gitUrl).toBe('https://skillbank.dev/g/x7Kp2Q.git');
-      expect(result.tarballUrl).toBe('https://skillbank.dev/g/x7Kp2Q/archive.tar.gz');
+      expect(result.shortUrl).toBe('https://skills.hot/g/x7Kp2Q');
+      expect(result.gitUrl).toBe('https://skills.hot/g/x7Kp2Q.git');
+      expect(result.tarballUrl).toBe('https://skills.hot/g/x7Kp2Q/archive.tar.gz');
     });
 
     it('should use custom baseUrl', () => {

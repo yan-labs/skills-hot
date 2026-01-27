@@ -72,9 +72,9 @@ export async function generateMetadata({ params }: Props) {
   }
 
   const name = author.name || author.github_login;
-  const title = `${name} - SkillBank`;
+  const title = `${name} - Skills Hot`;
   const description = author.bio || `${author.external_skill_count + author.native_skill_count} skills by ${name} with ${author.total_installs.toLocaleString()} total installs`;
-  const url = `https://skillbank.dev/${locale}/authors/${login}`;
+  const url = `https://skills.hot/${locale}/authors/${login}`;
 
   return {
     title,
@@ -90,7 +90,7 @@ export async function generateMetadata({ params }: Props) {
       title,
       description,
       url,
-      siteName: 'SkillBank',
+      siteName: 'Skills Hot',
       type: 'profile',
       locale: locale === 'zh' ? 'zh_CN' : 'en_US',
       ...(author.avatar_url && {
@@ -108,7 +108,7 @@ export async function generateMetadata({ params }: Props) {
 
 function generateAuthorJsonLd(author: AuthorWithSkills, locale: string) {
   const name = author.name || author.github_login;
-  const url = `https://skillbank.dev/${locale}/authors/${author.github_login}`;
+  const url = `https://skills.hot/${locale}/authors/${author.github_login}`;
 
   return {
     '@context': 'https://schema.org',
@@ -121,8 +121,8 @@ function generateAuthorJsonLd(author: AuthorWithSkills, locale: string) {
     knowsAbout: ['AI', 'Software Development', 'Coding Agents'],
     memberOf: {
       '@type': 'Organization',
-      name: 'SkillBank',
-      url: 'https://skillbank.dev',
+      name: 'Skills Hot',
+      url: 'https://skills.hot',
     },
   };
 }

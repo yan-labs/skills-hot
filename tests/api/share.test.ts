@@ -20,9 +20,9 @@ vi.mock('@/lib/download-token', async () => {
       maxUses: 5,
     }),
     buildShortUrl: vi.fn().mockReturnValue({
-      shortUrl: 'https://skillbank.dev/g/x7Kp2Q',
-      gitUrl: 'https://skillbank.dev/g/x7Kp2Q.git',
-      tarballUrl: 'https://skillbank.dev/g/x7Kp2Q/archive.tar.gz',
+      shortUrl: 'https://skills.hot/g/x7Kp2Q',
+      gitUrl: 'https://skills.hot/g/x7Kp2Q.git',
+      tarballUrl: 'https://skills.hot/g/x7Kp2Q/archive.tar.gz',
     }),
   };
 });
@@ -51,7 +51,7 @@ describe('POST /api/skills/[slug]/share', () => {
 
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-key';
-    process.env.NEXT_PUBLIC_SITE_URL = 'https://skillbank.dev';
+    process.env.NEXT_PUBLIC_SITE_URL = 'https://skills.hot';
 
     // Reset mock chain
     mockSupabaseClient.from.mockReturnThis();
@@ -95,8 +95,8 @@ describe('POST /api/skills/[slug]/share', () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.short_url).toBe('https://skillbank.dev/g/x7Kp2Q');
-      expect(data.git_url).toBe('https://skillbank.dev/g/x7Kp2Q.git');
+      expect(data.short_url).toBe('https://skills.hot/g/x7Kp2Q');
+      expect(data.git_url).toBe('https://skills.hot/g/x7Kp2Q.git');
       expect(data.clone_command).toContain('git clone');
       expect(data.npx_command).toContain('npx skills add');
     });

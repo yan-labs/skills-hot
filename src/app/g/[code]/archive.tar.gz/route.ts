@@ -53,10 +53,10 @@ function createTarEntry(filename: string, content: string): Uint8Array {
   header.set(encoder.encode('00'), 263);
 
   // Owner name (32 bytes)
-  header.set(encoder.encode('skillbank'), 265);
+  header.set(encoder.encode('skillshot'), 265);
 
   // Group name (32 bytes)
-  header.set(encoder.encode('skillbank'), 297);
+  header.set(encoder.encode('skillshot'), 297);
 
   // Calculate checksum
   let checksum = 0;

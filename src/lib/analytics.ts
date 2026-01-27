@@ -1,7 +1,7 @@
 // Analytics utility for tracking skill events
 // Uses sessionStorage to deduplicate events within a session
 
-const TRACKED_KEY = 'skillbank_tracked';
+const TRACKED_KEY = 'skills_hot_tracked';
 
 function getTrackedEvents(): Set<string> {
   if (typeof window === 'undefined') return new Set();
