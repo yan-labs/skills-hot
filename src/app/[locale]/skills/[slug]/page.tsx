@@ -6,8 +6,9 @@ import { Link } from '@/i18n/navigation';
 import { CopyButton } from '@/components/CopyButton';
 import { ThirdPartyCopyButton } from '@/components/ThirdPartyCopyButton';
 import { SkillTracker } from '@/components/SkillTracker';
+import { MarkdownContent } from '@/components/MarkdownContent';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { fetchGitHubContent, getGitHubRawUrl, parseTopSource } from '@/lib/github-content';
+import { fetchGitHubContent, fetchSkillContent, getGitHubRawUrl, parseTopSource } from '@/lib/github-content';
 import type { SkillDetail } from '@/lib/supabase';
 
 type Props = {
@@ -128,14 +129,15 @@ async function getSkillContent(skill: SkillDetail): Promise<string> {
     return data?.content || '';
   }
 
-  if (skill.raw_url) {
-    return await fetchGitHubContent(skill.raw_url);
-  }
-
+  // 使用智能获取函数尝试多种可能的路径
   if (skill.repo) {
     const { owner, repo } = parseTopSource(skill.repo);
-    const rawUrl = getGitHubRawUrl(owner, repo, 'main', skill.repo_path);
-    return await fetchGitHubContent(rawUrl);
+    return await fetchSkillContent(owner, repo, skill.name, skill.repo_path);
+  }
+
+  // 回退到 raw_url（如果有的话）
+  if (skill.raw_url) {
+    return await fetchGitHubContent(skill.raw_url);
   }
 
   return '';
@@ -335,9 +337,13 @@ export default async function SkillPage({ params }: Props) {
             {/* Content */}
             <div className="my-8">
               <h2 className="mb-4 text-lg">SKILL.md</h2>
-              <pre className="terminal max-h-[600px] overflow-auto whitespace-pre-wrap break-words text-sm">
-                {content || t('noContent')}
-              </pre>
+              {content ? (
+                <div className="border border-border rounded-lg p-6 bg-card">
+                  <MarkdownContent content={content} />
+                </div>
+              ) : (
+                <p className="text-muted-foreground">{t('noContent')}</p>
+              )}
             </div>
           </div>
 

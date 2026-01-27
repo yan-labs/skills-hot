@@ -80,6 +80,87 @@ export async function fetchGitHubContent(rawUrl: string): Promise<string> {
 }
 
 /**
+ * 智能获取 SKILL.md 内容，尝试多种可能的路径
+ * @param owner - 仓库所有者
+ * @param repo - 仓库名
+ * @param skillName - skill 名称
+ * @param repoPath - 可选的仓库路径提示
+ * @returns Markdown 内容
+ */
+export async function fetchSkillContent(
+  owner: string,
+  repo: string,
+  skillName: string,
+  repoPath?: string | null
+): Promise<string> {
+  // 构建可能的 URL 列表（按优先级排序）
+  const possibleUrls: string[] = [];
+  const branch = 'main';
+
+  // 1. 如果有 repoPath，先尝试 skills/{repoPath}（常见的 monorepo 结构）
+  if (repoPath) {
+    possibleUrls.push(
+      `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/skills/${repoPath}/SKILL.md`
+    );
+    // 2. 尝试直接的 {repoPath}
+    possibleUrls.push(
+      `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${repoPath}/SKILL.md`
+    );
+  }
+
+  // 3. 尝试 skills/{skillName}
+  possibleUrls.push(
+    `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/skills/${skillName}/SKILL.md`
+  );
+
+  // 4. 尝试直接的 {skillName}
+  possibleUrls.push(
+    `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${skillName}/SKILL.md`
+  );
+
+  // 5. 尝试根目录 SKILL.md
+  possibleUrls.push(
+    `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/SKILL.md`
+  );
+
+  // 去重
+  const uniqueUrls = [...new Set(possibleUrls)];
+
+  // 尝试每个 URL
+  for (const url of uniqueUrls) {
+    // 检查缓存
+    const cached = contentCache.get(url);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      return cached.content;
+    }
+
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'SkillBank/1.0',
+          Accept: 'text/plain',
+        },
+        next: { revalidate: 3600 },
+      });
+
+      if (response.ok) {
+        const content = await response.text();
+        // 缓存成功的结果
+        contentCache.set(url, {
+          content,
+          timestamp: Date.now(),
+        });
+        return content;
+      }
+    } catch {
+      // 继续尝试下一个 URL
+    }
+  }
+
+  return '# Content Unavailable\n\nCould not fetch SKILL.md from GitHub.';
+}
+
+/**
  * 从 GitHub 获取仓库目录中的文件列表
  */
 export async function fetchGitHubDirectory(
