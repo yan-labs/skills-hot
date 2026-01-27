@@ -1,6 +1,3 @@
-'use client';
-
-import { useAuth } from '@/components/AuthProvider';
 import { Eye, Copy } from 'lucide-react';
 
 type Props = {
@@ -9,13 +6,6 @@ type Props = {
 };
 
 export function AuthStats({ views = 0, copies = 0 }: Props) {
-  const { user, loading } = useAuth();
-
-  // 未登录或加载中不显示
-  if (loading || !user) {
-    return null;
-  }
-
   return (
     <>
       <div className="flex items-center justify-between">

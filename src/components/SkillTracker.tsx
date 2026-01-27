@@ -1,18 +1,16 @@
 'use client';
 
 import { useEffect } from 'react';
-import { trackEvent } from '@/lib/analytics';
+import { trackView } from '@/lib/analytics';
 
 type Props = {
   skillSlug: string;
-  skillId?: string;
 };
 
-export function SkillTracker({ skillSlug, skillId }: Props) {
+export function SkillTracker({ skillSlug }: Props) {
   useEffect(() => {
-    // Track view on mount (deduplicated by session)
-    trackEvent(skillSlug, 'view', skillId);
-  }, [skillSlug, skillId]);
+    trackView(skillSlug);
+  }, [skillSlug]);
 
   return null;
 }

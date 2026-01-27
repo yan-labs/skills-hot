@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     // Get user's skills
     const { data: skills, error } = await supabase
       .from('skills')
-      .select('*, skill_stats(installs, views)')
+      .select('*, skill_stats(installs, views, copies)')
       .eq('user_id', user.id)
       .order('updated_at', { ascending: false });
 

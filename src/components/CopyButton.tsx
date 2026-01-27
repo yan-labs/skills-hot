@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Check, Copy } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { trackEvent } from '@/lib/analytics';
+import { trackCopy } from '@/lib/analytics';
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
@@ -15,10 +15,9 @@ type CopyButtonProps = {
   text: string;
   className?: string;
   skillSlug?: string;
-  skillId?: string;
 };
 
-export function CopyButton({ text, className = '', skillSlug, skillId }: CopyButtonProps) {
+export function CopyButton({ text, className = '', skillSlug }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
   const t = useTranslations('skill');
 
@@ -27,9 +26,8 @@ export function CopyButton({ text, className = '', skillSlug, skillId }: CopyBut
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
 
-    // Track copy event if skill info provided
     if (skillSlug) {
-      trackEvent(skillSlug, 'copy', skillId);
+      trackCopy(skillSlug);
     }
   };
 

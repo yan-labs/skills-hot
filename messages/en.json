@@ -144,6 +144,12 @@
     "en": "English",
     "zh": "中文"
   },
+  "languageSuggestion": {
+    "detected": "Your browser is set to {language}",
+    "suggestion": "Would you like to switch to this language?",
+    "switch": "Switch to {language}",
+    "stay": "Stay in English"
+  },
   "auth": {
     "signIn": "Sign In",
     "signUp": "Sign Up",

@@ -7,6 +7,7 @@ import { CopyButton } from '@/components/CopyButton';
 import { ThirdPartyCopyButton } from '@/components/ThirdPartyCopyButton';
 import { SkillTracker } from '@/components/SkillTracker';
 import { MarkdownContent } from '@/components/MarkdownContent';
+import { AuthStats } from '@/components/AuthStats';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { fetchGitHubContent, fetchSkillContent, getGitHubRawUrl, parseTopSource } from '@/lib/github-content';
 import type { SkillDetail } from '@/lib/supabase';
@@ -27,7 +28,7 @@ async function getSkill(slug: string): Promise<SkillDetail | null> {
 
   const { data: localSkill } = await supabase
     .from('skills')
-    .select('*, skill_stats(installs, views)')
+    .select('*, skill_stats(installs, views, copies)')
     .eq('slug', slug)
     .single();
 
@@ -44,6 +45,7 @@ async function getSkill(slug: string): Promise<SkillDetail | null> {
       contentSource: 'database',
       installs: localSkill.skill_stats?.installs || 0,
       views: localSkill.skill_stats?.views || 0,
+      copies: localSkill.skill_stats?.copies || 0,
       version: localSkill.version,
       has_files: localSkill.has_files,
       is_private: localSkill.is_private,
@@ -242,7 +244,7 @@ export default async function SkillPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className="min-h-screen bg-background">
-      <SkillTracker skillSlug={skill.slug} skillId={skill.id} />
+      <SkillTracker skillSlug={skill.slug} />
       <Header />
 
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
@@ -358,7 +360,7 @@ export default async function SkillPage({ params }: Props) {
                   <p className="caption mb-1">Skills Hot CLI</p>
                   <div className="flex items-center justify-between gap-2 border-b border-border py-2">
                     <code className="truncate text-sm">skb add {skill.slug}</code>
-                    <CopyButton text={`skb add ${skill.slug}`} skillSlug={skill.slug} skillId={skill.id} />
+                    <CopyButton text={`skb add ${skill.slug}`} skillSlug={skill.slug} />
                   </div>
                 </div>
 
@@ -366,7 +368,7 @@ export default async function SkillPage({ params }: Props) {
                   <p className="caption mb-1">npx</p>
                   <div className="flex items-center justify-between gap-2 border-b border-border py-2">
                     <code className="truncate text-sm">npx @skills-hot/cli add {skill.slug}</code>
-                    <CopyButton text={`npx @skills-hot/cli add ${skill.slug}`} skillSlug={skill.slug} skillId={skill.id} />
+                    <CopyButton text={`npx @skills-hot/cli add ${skill.slug}`} skillSlug={skill.slug} />
                   </div>
                 </div>
 
@@ -402,6 +404,7 @@ export default async function SkillPage({ params }: Props) {
                     <span>{skill.stars.toLocaleString()}</span>
                   </div>
                 )}
+                <AuthStats views={skill.views} copies={skill.copies} />
               </div>
             </div>
 

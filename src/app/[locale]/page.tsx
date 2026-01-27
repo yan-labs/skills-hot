@@ -3,6 +3,7 @@ import { SearchBar } from '@/components/SearchBar';
 import { HeadlineSkill } from '@/components/HeadlineSkill';
 import { TrendingBoard, TrendingSkill } from '@/components/TrendingBoard';
 import { Leaderboard } from '@/components/Leaderboard';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 
@@ -392,6 +393,7 @@ export default async function Home({ params }: Props) {
               </div>
               <div className="h-4 w-px bg-border hidden lg:block" />
               <SearchBar compact />
+              <ThemeToggle />
             </div>
           </div>
         </div>

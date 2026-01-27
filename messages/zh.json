@@ -144,6 +144,12 @@
     "en": "English",
     "zh": "中文"
   },
+  "languageSuggestion": {
+    "detected": "检测到你的浏览器语言是{language}",
+    "suggestion": "是否切换到该语言？",
+    "switch": "切换到{language}",
+    "stay": "保持中文"
+  },
   "auth": {
     "signIn": "登录",
     "signUp": "注册",

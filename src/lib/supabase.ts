@@ -125,6 +125,7 @@ export type SkillDetail = {
   installs: number;
   stars?: number;
   views?: number;
+  copies?: number;
   version?: string | null;
   has_files?: boolean;
   is_private?: boolean;

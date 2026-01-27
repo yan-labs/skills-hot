@@ -1,59 +1,48 @@
-// Analytics utility for tracking skill events
-// Uses sessionStorage to deduplicate events within a session
+// 简单的统计追踪：view 和 copy
+// 使用 sessionStorage 去重 view 事件
 
-const TRACKED_KEY = 'skills_hot_tracked';
+const VIEWED_KEY = 'skills_hot_viewed';
 
-function getTrackedEvents(): Set<string> {
+function getViewedSlugs(): Set<string> {
   if (typeof window === 'undefined') return new Set();
   try {
-    const stored = sessionStorage.getItem(TRACKED_KEY);
+    const stored = sessionStorage.getItem(VIEWED_KEY);
     return stored ? new Set(JSON.parse(stored)) : new Set();
   } catch {
     return new Set();
   }
 }
 
-function saveTrackedEvents(events: Set<string>) {
+function saveViewedSlugs(slugs: Set<string>) {
   if (typeof window === 'undefined') return;
   try {
-    sessionStorage.setItem(TRACKED_KEY, JSON.stringify([...events]));
+    sessionStorage.setItem(VIEWED_KEY, JSON.stringify([...slugs]));
   } catch {
-    // Ignore storage errors
+    // 忽略存储错误
   }
 }
 
-export async function trackEvent(
-  skillSlug: string,
-  eventType: 'view' | 'copy' | 'install',
-  skillId?: string
-) {
-  // Create unique key for this event
-  const eventKey = `${skillSlug}:${eventType}`;
+export async function trackView(skillSlug: string) {
+  // 同一会话只记录一次 view
+  const viewed = getViewedSlugs();
+  if (viewed.has(skillSlug)) return;
 
-  // Check if already tracked in this session (for view events)
-  if (eventType === 'view') {
-    const tracked = getTrackedEvents();
-    if (tracked.has(eventKey)) {
-      return; // Already tracked this view in this session
-    }
-    tracked.add(eventKey);
-    saveTrackedEvents(tracked);
-  }
+  viewed.add(skillSlug);
+  saveViewedSlugs(viewed);
 
-  // Send to API (fire and forget)
-  try {
-    fetch('/api/stats', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        skill_slug: skillSlug,
-        skill_id: skillId,
-        event_type: eventType,
-      }),
-    }).catch(() => {
-      // Silently fail - don't block user experience
-    });
-  } catch {
-    // Silently fail
-  }
+  // 发送到 API（fire and forget）
+  fetch('/api/stats', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event_type: 'view', skill_slug: skillSlug }),
+  }).catch(() => {});
+}
+
+export async function trackCopy(skillSlug: string) {
+  // copy 每次都记录
+  fetch('/api/stats', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event_type: 'copy', skill_slug: skillSlug }),
+  }).catch(() => {});
 }

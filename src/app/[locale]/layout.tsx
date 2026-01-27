@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/components/AuthProvider";
+import { LanguageSuggestion } from "@/components/LanguageSuggestion";
 import "./globals.css";
 
 // Serif for headlines - elegant, editorial
@@ -113,6 +114,7 @@ export default async function LocaleLayout({ children, params }: Props) {
           <NextIntlClientProvider messages={messages}>
             <AuthProvider>
               {children}
+              <LanguageSuggestion />
             </AuthProvider>
           </NextIntlClientProvider>
         </ThemeProvider>

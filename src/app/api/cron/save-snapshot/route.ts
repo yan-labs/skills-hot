@@ -4,10 +4,37 @@ import { createClient } from '@supabase/supabase-js';
 const SNAPSHOT_LIMIT = 1000; // Top 1000 skills
 const SURGE_THRESHOLD = 0.3; // 30% increase = surging
 
+type SnapshotRecord = {
+  snapshot_at: string;
+  skill_id: string | null;
+  skill_name: string;
+  skill_slug: string;
+  github_owner: string | null;
+  rank: number;
+  installs: number;
+  stars: number;
+  views: number;
+  copies: number;
+  rank_delta: number;
+  installs_delta: number;
+  views_delta: number;
+  copies_delta: number;
+  installs_rate: number;
+  is_new: boolean;
+  is_dropped: boolean;
+};
+
+type LastSnapshotData = {
+  rank: number;
+  installs: number;
+  views: number;
+  copies: number;
+};
+
 /**
  * GET /api/cron/save-snapshot
  * 保存技能快照，用于趋势追踪
- * 应在 sync-external-skills 之后调用
+ * 包含 external_skills 和本地 skills 的统计数据
  */
 export async function GET(request: Request) {
   // 验证请求来源：Cloudflare Cron 或 CRON_SECRET
@@ -41,60 +68,127 @@ export async function GET(request: Request) {
     now.setMinutes(0, 0, 0);
     const snapshotAt = now.toISOString();
 
-    // 1. 获取当前 Top 1000 技能
-    const { data: currentSkills, error: fetchError } = await supabase
+    // 1. 获取 external_skills（GitHub 技能）
+    const { data: externalSkills, error: externalError } = await supabase
       .from('external_skills')
       .select('id, name, slug, github_owner, installs, stars')
       .order('installs', { ascending: false })
       .limit(SNAPSHOT_LIMIT);
 
-    if (fetchError || !currentSkills) {
-      console.error('Failed to fetch skills:', fetchError);
-      return NextResponse.json(
-        { error: 'Failed to fetch current skills' },
-        { status: 500 }
-      );
+    if (externalError) {
+      console.error('Failed to fetch external skills:', externalError);
     }
 
-    // 2. 获取上一次快照（用于计算变化）
+    // 2. 获取本地 skills（带统计数据）
+    const { data: localSkills, error: localError } = await supabase
+      .from('skills')
+      .select('id, name, slug, author, skill_stats(installs, views, copies)')
+      .eq('is_private', false)
+      .order('created_at', { ascending: false });
+
+    if (localError) {
+      console.error('Failed to fetch local skills:', localError);
+    }
+
+    // 3. 合并所有技能并按安装量排序
+    type SkillData = {
+      id: string;
+      name: string;
+      slug: string;
+      github_owner: string | null;
+      installs: number;
+      stars: number;
+      views: number;
+      copies: number;
+      source: 'external' | 'local';
+    };
+
+    const allSkills: SkillData[] = [];
+
+    // 添加 external skills
+    if (externalSkills) {
+      for (const skill of externalSkills) {
+        allSkills.push({
+          id: skill.id,
+          name: skill.name,
+          slug: skill.slug,
+          github_owner: skill.github_owner,
+          installs: skill.installs || 0,
+          stars: skill.stars || 0,
+          views: 0, // external skills 没有 views
+          copies: 0, // external skills 没有 copies
+          source: 'external',
+        });
+      }
+    }
+
+    // 添加 local skills
+    if (localSkills) {
+      for (const skill of localSkills) {
+        const statsArray = skill.skill_stats as Array<{ installs: number; views: number; copies: number }> | null;
+        const stats = statsArray?.[0] || null;
+        allSkills.push({
+          id: skill.id,
+          name: skill.name,
+          slug: skill.slug,
+          github_owner: skill.author,
+          installs: stats?.installs || 0,
+          stars: 0,
+          views: stats?.views || 0,
+          copies: stats?.copies || 0,
+          source: 'local',
+        });
+      }
+    }
+
+    // 按安装量排序并截取 Top 1000
+    allSkills.sort((a, b) => b.installs - a.installs);
+    const topSkills = allSkills.slice(0, SNAPSHOT_LIMIT);
+
+    // 4. 获取上一次快照（用于计算变化）
     const { data: lastSnapshot } = await supabase
       .from('skill_snapshots')
-      .select('skill_name, rank, installs')
+      .select('skill_name, rank, installs, views, copies')
       .order('snapshot_at', { ascending: false })
       .limit(SNAPSHOT_LIMIT);
 
     // 构建上次快照的映射
-    const lastSnapshotMap = new Map<string, { rank: number; installs: number }>();
+    const lastSnapshotMap = new Map<string, LastSnapshotData>();
     if (lastSnapshot) {
       for (const s of lastSnapshot) {
-        lastSnapshotMap.set(s.skill_name, { rank: s.rank, installs: s.installs });
+        lastSnapshotMap.set(s.skill_name, {
+          rank: s.rank,
+          installs: s.installs,
+          views: s.views || 0,
+          copies: s.copies || 0,
+        });
       }
     }
 
     // 当前技能名称集合（用于检测掉榜）
-    const currentSkillNames = new Set(currentSkills.map(s => s.name));
+    const currentSkillNames = new Set(topSkills.map(s => s.name));
 
-    // 3. 准备快照记录
-    const snapshotRecords = currentSkills.map((skill, index) => {
+    // 5. 准备快照记录
+    const snapshotRecords: SnapshotRecord[] = topSkills.map((skill, index) => {
       const rank = index + 1;
       const lastData = lastSnapshotMap.get(skill.name);
 
       let rankDelta = 0;
       let installsDelta = 0;
+      let viewsDelta = 0;
+      let copiesDelta = 0;
       let installsRate = 0;
       let isNew = false;
 
       if (lastData) {
-        // 排名变化（正数=上升）
         rankDelta = lastData.rank - rank;
-        // 安装量变化
         installsDelta = skill.installs - lastData.installs;
-        // 变化率
+        viewsDelta = skill.views - lastData.views;
+        copiesDelta = skill.copies - lastData.copies;
         if (lastData.installs > 0) {
           installsRate = installsDelta / lastData.installs;
         }
       } else {
-        // 新晋技能
         isNew = true;
       }
 
@@ -106,31 +200,39 @@ export async function GET(request: Request) {
         github_owner: skill.github_owner,
         rank,
         installs: skill.installs,
-        stars: skill.stars || 0,
+        stars: skill.stars,
+        views: skill.views,
+        copies: skill.copies,
         rank_delta: rankDelta,
         installs_delta: installsDelta,
-        installs_rate: Math.round(installsRate * 10000) / 10000, // 保留4位小数
+        views_delta: viewsDelta,
+        copies_delta: copiesDelta,
+        installs_rate: Math.round(installsRate * 10000) / 10000,
         is_new: isNew,
         is_dropped: false,
       };
     });
 
-    // 4. 检测掉榜的技能（上次在 Top 1000，这次不在）
-    const droppedRecords: typeof snapshotRecords = [];
+    // 6. 检测掉榜的技能
+    const droppedRecords: SnapshotRecord[] = [];
     if (lastSnapshot) {
       for (const lastSkill of lastSnapshot) {
         if (!currentSkillNames.has(lastSkill.skill_name)) {
           droppedRecords.push({
             snapshot_at: snapshotAt,
-            skill_id: null as unknown as string, // 可能已被删除
+            skill_id: null,
             skill_name: lastSkill.skill_name,
             skill_slug: lastSkill.skill_name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
             github_owner: null,
-            rank: lastSkill.rank, // 保留上次排名作为 previousRank
+            rank: lastSkill.rank,
             installs: lastSkill.installs,
             stars: 0,
+            views: lastSkill.views || 0,
+            copies: lastSkill.copies || 0,
             rank_delta: 0,
             installs_delta: 0,
+            views_delta: 0,
+            copies_delta: 0,
             installs_rate: 0,
             is_new: false,
             is_dropped: true,
@@ -139,10 +241,9 @@ export async function GET(request: Request) {
       }
     }
 
-    // 5. 合并并插入快照
+    // 7. 合并并插入快照
     const allRecords = [...snapshotRecords, ...droppedRecords];
 
-    // 分批插入（避免单次请求过大）
     const batchSize = 500;
     let insertedCount = 0;
 
@@ -159,10 +260,10 @@ export async function GET(request: Request) {
       }
     }
 
-    // 6. 清理旧快照（保留 30 天）
+    // 8. 清理旧快照（保留 30 天）
     await supabase.rpc('cleanup_old_snapshots');
 
-    // 7. 统计趋势数据
+    // 9. 统计趋势数据
     const stats = {
       rising: snapshotRecords.filter(s => s.rank_delta > 0 && !s.is_new).length,
       declining: snapshotRecords.filter(s => s.rank_delta < 0).length,
@@ -174,7 +275,9 @@ export async function GET(request: Request) {
     return NextResponse.json({
       success: true,
       snapshotAt,
-      totalSkills: currentSkills.length,
+      totalSkills: topSkills.length,
+      externalCount: externalSkills?.length || 0,
+      localCount: localSkills?.length || 0,
       inserted: insertedCount,
       stats,
     });
