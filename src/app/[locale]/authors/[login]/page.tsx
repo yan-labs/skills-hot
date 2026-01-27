@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { Header } from '@/components/Header';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Github, Download, Package } from 'lucide-react';
+import { ArrowLeft, Github, Download, Package, Star } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { Author, ExternalSkill, SkillV2 } from '@/lib/supabase';
@@ -14,6 +14,7 @@ type Props = {
 interface AuthorWithSkills extends Author {
   externalSkills: ExternalSkill[];
   nativeSkills: SkillV2[];
+  totalStars: number;
 }
 
 async function getAuthorByLogin(login: string): Promise<AuthorWithSkills | null> {
@@ -51,10 +52,14 @@ async function getAuthorByLogin(login: string): Promise<AuthorWithSkills | null>
     .eq('author_id', author.id)
     .eq('is_private', false);
 
+  // Calculate total stars from external skills
+  const totalStars = (externalSkills || []).reduce((sum, skill) => sum + (skill.stars || 0), 0);
+
   return {
     ...author,
     externalSkills: externalSkills || [],
     nativeSkills: nativeSkills || [],
+    totalStars,
   };
 }
 
@@ -201,6 +206,15 @@ export default async function AuthorPage({ params, searchParams }: Props) {
                   <span className="text-muted-foreground">{t('totalInstalls')}</span>
                 </span>
               </div>
+              {author.totalStars > 0 && (
+                <div className="flex items-center gap-2">
+                  <Star className="h-4 w-4 text-muted-foreground" />
+                  <span>
+                    <span className="font-medium">{author.totalStars.toLocaleString()}</span>{' '}
+                    <span className="text-muted-foreground">{t('totalStars')}</span>
+                  </span>
+                </div>
+              )}
               <a
                 href={`https://github.com/${author.github_login}`}
                 target="_blank"
