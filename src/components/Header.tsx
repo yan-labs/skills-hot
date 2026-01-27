@@ -1,6 +1,6 @@
 'use client';
 
-import { Github, User, LogOut } from 'lucide-react';
+import { Github, User, LogOut, UserCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { ThemeToggle } from './ThemeToggle';
@@ -61,6 +61,16 @@ export function Header() {
                     <div className="border-b border-border px-3 py-2">
                       <p className="truncate text-sm">{user.email}</p>
                     </div>
+                    {user.user_metadata?.user_name && (
+                      <Link
+                        href={`/authors/${user.user_metadata.user_name}`}
+                        onClick={() => setShowDropdown(false)}
+                        className="flex w-full items-center gap-2 px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        <UserCircle className="h-4 w-4" />
+                        {tAuth('myProfile')}
+                      </Link>
+                    )}
                     <button
                       onClick={handleSignOut}
                       className="flex w-full items-center gap-2 px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
