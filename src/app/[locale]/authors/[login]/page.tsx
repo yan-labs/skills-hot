@@ -63,6 +63,37 @@ async function getAuthorByLogin(login: string): Promise<AuthorWithSkills | null>
   };
 }
 
+async function getAuthorRank(authorId: string): Promise<number | null> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) return null;
+
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  // Get all authors ordered by total_installs to find rank
+  const { data: authors } = await supabase
+    .from('authors')
+    .select('id')
+    .order('total_installs', { ascending: false })
+    .limit(100);
+
+  if (!authors) return null;
+
+  const rank = authors.findIndex(a => a.id === authorId) + 1;
+  return rank > 0 ? rank : null;
+}
+
+function formatNumber(num: number): string {
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1) + 'M';
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'K';
+  }
+  return num.toString();
+}
+
 export async function generateMetadata({ params }: Props) {
   const { locale, login } = await params;
   const author = await getAuthorByLogin(login);
@@ -73,8 +104,27 @@ export async function generateMetadata({ params }: Props) {
 
   const name = author.name || author.github_login;
   const title = `${name} - Skills Hot`;
-  const description = author.bio || `${author.external_skill_count + author.native_skill_count} skills by ${name} with ${author.total_installs.toLocaleString()} total installs`;
+  const skillCount = author.external_skill_count + author.native_skill_count;
+  const description = author.bio || `${skillCount} skills by ${name} with ${author.total_installs.toLocaleString()} total installs`;
   const url = `https://skills.hot/${locale}/authors/${login}`;
+
+  // Get author's rank
+  const rank = await getAuthorRank(author.id);
+
+  // Build OG image URL with all stats
+  const ogParams = new URLSearchParams({
+    title: name,
+    subtitle: author.github_login,
+    type: 'author',
+    locale,
+    skills: skillCount.toString(),
+    installs: formatNumber(author.total_installs),
+    stars: formatNumber(author.totalStars),
+    ...(rank && rank <= 10 && { rank: rank.toString() }),
+    ...(author.avatar_url && { avatar: author.avatar_url }),
+  });
+
+  const ogUrl = `https://skills.hot/api/og?${ogParams.toString()}`;
 
   return {
     title,
@@ -93,15 +143,18 @@ export async function generateMetadata({ params }: Props) {
       siteName: 'Skills Hot',
       type: 'profile',
       locale: locale === 'zh' ? 'zh_CN' : 'en_US',
-      ...(author.avatar_url && {
-        images: [{ url: author.avatar_url, width: 200, height: 200, alt: name }],
-      }),
+      images: [{
+        url: ogUrl,
+        width: 1200,
+        height: 630,
+        alt: name,
+      }],
     },
     twitter: {
-      card: 'summary',
+      card: 'summary_large_image',
       title,
       description,
-      ...(author.avatar_url && { images: [author.avatar_url] }),
+      images: [ogUrl],
     },
   };
 }

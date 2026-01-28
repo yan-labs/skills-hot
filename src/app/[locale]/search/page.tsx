@@ -4,11 +4,113 @@ import { SearchBar } from '@/components/SearchBar';
 import { SkillCard } from '@/components/SkillCard';
 import { Search } from 'lucide-react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import type { Metadata } from 'next';
 
 type Props = {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ q?: string }>;
 };
+
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const { q } = await searchParams;
+
+  const baseTitle = locale === 'zh' ? '搜索技能' : 'Search Skills';
+  const title = q
+    ? `${q} - ${baseTitle} | Skills Hot`
+    : `${baseTitle} | Skills Hot`;
+
+  const description = locale === 'zh'
+    ? q
+      ? `搜索 "${q}" 的 AI 代理技能结果 - 在 Skills Hot 发现适合 Claude Code、Cursor 等的技能`
+      : '搜索 AI 代理技能 - 在 Skills Hot 发现适合 Claude Code、Cursor、Windsurf 等编程代理的技能'
+    : q
+      ? `Search results for "${q}" AI agent skills - Discover skills for Claude Code, Cursor and more on Skills Hot`
+      : 'Search AI agent skills - Discover skills for Claude Code, Cursor, Windsurf and other coding agents on Skills Hot';
+
+  const url = q
+    ? `https://skills.hot/${locale}/search?q=${encodeURIComponent(q)}`
+    : `https://skills.hot/${locale}/search`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: url,
+      languages: {
+        en: q ? `/en/search?q=${encodeURIComponent(q)}` : '/en/search',
+        zh: q ? `/zh/search?q=${encodeURIComponent(q)}` : '/zh/search',
+      },
+    },
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: 'Skills Hot',
+      type: 'website',
+      locale: locale === 'zh' ? 'zh_CN' : 'en_US',
+      images: [{
+        url: `https://skills.hot/api/og?title=${encodeURIComponent(baseTitle)}&subtitle=${encodeURIComponent(locale === 'zh' ? '发现 AI 代理技能' : 'Discover AI Agent Skills')}&type=search&locale=${locale}`,
+        width: 1200,
+        height: 630,
+        alt: title,
+      }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [`https://skills.hot/api/og?title=${encodeURIComponent(baseTitle)}&subtitle=${encodeURIComponent(locale === 'zh' ? '发现 AI 代理技能' : 'Discover AI Agent Skills')}&type=search&locale=${locale}`],
+    },
+    robots: {
+      index: !q, // Don't index search result pages, only the main search page
+      follow: true,
+    },
+  };
+}
+
+function generateSearchJsonLd(locale: string, query?: string, resultsCount?: number) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'SearchResultsPage',
+    name: locale === 'zh' ? '搜索技能' : 'Search Skills',
+    description: locale === 'zh'
+      ? 'AI 代理技能搜索页面'
+      : 'AI agent skills search page',
+    url: query
+      ? `https://skills.hot/${locale}/search?q=${encodeURIComponent(query)}`
+      : `https://skills.hot/${locale}/search`,
+    isPartOf: {
+      '@type': 'WebSite',
+      '@id': 'https://skills.hot/#website',
+      name: 'Skills Hot',
+    },
+    ...(query && resultsCount !== undefined && {
+      mainEntity: {
+        '@type': 'ItemList',
+        numberOfItems: resultsCount,
+        itemListElement: [],
+      },
+    }),
+    breadcrumb: {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Home',
+          item: 'https://skills.hot',
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: locale === 'zh' ? '搜索' : 'Search',
+          item: `https://skills.hot/${locale}/search`,
+        },
+      ],
+    },
+  };
+}
 
 async function searchSkills(query: string) {
   if (!query) return [];
@@ -47,8 +149,14 @@ export default async function SearchPage({ params, searchParams }: Props) {
   const query = q || '';
   const skills = await searchSkills(query);
 
+  const jsonLd = generateSearchJsonLd(locale, query, skills.length);
+
   return (
     <div className="min-h-screen bg-background">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Header />
 
       <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">

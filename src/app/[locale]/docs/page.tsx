@@ -1,10 +1,101 @@
 import { Header } from '@/components/Header';
 import { CodeBlock } from '@/components/CodeBlock';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import type { Metadata } from 'next';
 
 type Props = {
   params: Promise<{ locale: string }>;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+
+  const title = locale === 'zh'
+    ? '文档 - Skills Hot CLI 使用指南'
+    : 'Documentation - Skills Hot CLI Guide';
+
+  const description = locale === 'zh'
+    ? '学习如何使用 Skills Hot CLI 安装、管理和发布 AI 代理技能。包含完整的命令参考、API 文档和 SKILL.md 格式说明。'
+    : 'Learn how to use Skills Hot CLI to install, manage, and publish AI agent skills. Includes complete command reference, API documentation, and SKILL.md format guide.';
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `https://skills.hot/${locale}/docs`,
+      languages: {
+        en: '/en/docs',
+        zh: '/zh/docs',
+      },
+    },
+    openGraph: {
+      title,
+      description,
+      url: `https://skills.hot/${locale}/docs`,
+      siteName: 'Skills Hot',
+      type: 'article',
+      locale: locale === 'zh' ? 'zh_CN' : 'en_US',
+      images: [{
+        url: `https://skills.hot/api/og?title=${encodeURIComponent(locale === 'zh' ? '文档' : 'Documentation')}&subtitle=${encodeURIComponent(locale === 'zh' ? 'Skills Hot CLI 使用指南' : 'Skills Hot CLI Guide')}&type=docs&locale=${locale}`,
+        width: 1200,
+        height: 630,
+        alt: title,
+      }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [`https://skills.hot/api/og?title=${encodeURIComponent(locale === 'zh' ? '文档' : 'Documentation')}&subtitle=${encodeURIComponent(locale === 'zh' ? 'Skills Hot CLI 使用指南' : 'Skills Hot CLI Guide')}&type=docs&locale=${locale}`],
+    },
+  };
+}
+
+function generateDocsJsonLd(locale: string) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'TechArticle',
+    headline: locale === 'zh' ? 'Skills Hot CLI 文档' : 'Skills Hot CLI Documentation',
+    description: locale === 'zh'
+      ? '学习如何使用 Skills Hot CLI 安装、管理和发布 AI 代理技能'
+      : 'Learn how to use Skills Hot CLI to install, manage, and publish AI agent skills',
+    url: `https://skills.hot/${locale}/docs`,
+    inLanguage: locale === 'zh' ? 'zh-CN' : 'en-US',
+    isPartOf: {
+      '@type': 'WebSite',
+      '@id': 'https://skills.hot/#website',
+      name: 'Skills Hot',
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Skills Hot',
+      url: 'https://skills.hot',
+    },
+    breadcrumb: {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Home',
+          item: 'https://skills.hot',
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: locale === 'zh' ? '文档' : 'Documentation',
+          item: `https://skills.hot/${locale}/docs`,
+        },
+      ],
+    },
+    about: {
+      '@type': 'SoftwareApplication',
+      name: 'Skills Hot CLI',
+      applicationCategory: 'DeveloperApplication',
+      operatingSystem: 'macOS, Linux, Windows',
+    },
+  };
+}
 
 export default async function DocsPage({ params }: Props) {
   const { locale } = await params;
@@ -12,8 +103,14 @@ export default async function DocsPage({ params }: Props) {
 
   const t = await getTranslations('docs');
 
+  const jsonLd = generateDocsJsonLd(locale);
+
   return (
     <div className="min-h-screen bg-background">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Header />
 
       <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">

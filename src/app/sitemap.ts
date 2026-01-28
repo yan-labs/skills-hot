@@ -18,13 +18,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const locales = ['en', 'zh'];
 
-  // Static pages
-  const staticPages: MetadataRoute.Sitemap = ['', '/authors', '/docs'].flatMap((route) =>
+  // Static pages with their priorities and change frequencies
+  const staticRoutes = [
+    { route: '', changeFrequency: 'daily' as const, priority: 1 },
+    { route: '/authors', changeFrequency: 'weekly' as const, priority: 0.8 },
+    { route: '/docs', changeFrequency: 'monthly' as const, priority: 0.7 },
+    { route: '/search', changeFrequency: 'weekly' as const, priority: 0.6 },
+  ];
+
+  const staticPages: MetadataRoute.Sitemap = staticRoutes.flatMap(({ route, changeFrequency, priority }) =>
     locales.map((locale) => ({
       url: `${BASE_URL}/${locale}${route}`,
       lastModified: new Date(),
-      changeFrequency: (route === '' ? 'daily' : 'weekly') as 'daily' | 'weekly',
-      priority: route === '' ? 1 : 0.8,
+      changeFrequency,
+      priority,
     }))
   );
 

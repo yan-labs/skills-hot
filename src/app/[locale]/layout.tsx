@@ -66,11 +66,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: "Skills Hot",
       locale: locale === "zh" ? "zh_CN" : "en_US",
       type: "website",
+      images: [{
+        url: `${baseUrl}/api/og?title=${encodeURIComponent(t.title)}&locale=${locale}`,
+        width: 1200,
+        height: 630,
+        alt: t.title,
+      }],
     },
     twitter: {
       card: "summary_large_image",
       title: t.title,
       description: t.description,
+      images: [`${baseUrl}/api/og?title=${encodeURIComponent(t.title)}&locale=${locale}`],
     },
     robots: {
       index: true,

@@ -145,6 +145,58 @@ async function getSkillContent(skill: SkillDetail): Promise<string> {
   return '';
 }
 
+async function getSkillRank(skillId: string, source: string): Promise<number | null> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) return null;
+
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  // Get skills ordered by installs to find rank
+  if (source === 'local') {
+    const { data: skills } = await supabase
+      .from('skills')
+      .select('id, skill_stats(installs)')
+      .eq('is_private', false)
+      .order('created_at', { ascending: false })
+      .limit(100);
+
+    if (!skills) return null;
+
+    // Sort by installs
+    const sorted = skills.sort((a, b) => {
+      const bStats = Array.isArray(b.skill_stats) ? b.skill_stats[0] : b.skill_stats;
+      const aStats = Array.isArray(a.skill_stats) ? a.skill_stats[0] : a.skill_stats;
+      return ((bStats as { installs: number } | null)?.installs || 0) -
+        ((aStats as { installs: number } | null)?.installs || 0);
+    });
+    const rank = sorted.findIndex(s => s.id === skillId) + 1;
+    return rank > 0 ? rank : null;
+  } else {
+    const { data: skills } = await supabase
+      .from('external_skills')
+      .select('id')
+      .order('installs', { ascending: false })
+      .limit(100);
+
+    if (!skills) return null;
+
+    const rank = skills.findIndex(s => s.id === skillId) + 1;
+    return rank > 0 ? rank : null;
+  }
+}
+
+function formatNumber(num: number): string {
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1) + 'M';
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'K';
+  }
+  return num.toString();
+}
+
 export async function generateMetadata({ params }: Props) {
   const { locale, slug } = await params;
   const skill = await getSkill(slug);
@@ -156,6 +208,24 @@ export async function generateMetadata({ params }: Props) {
   const title = `${skill.name} - Skills Hot`;
   const description = skill.description || `Install ${skill.name} skill for your AI coding agent`;
   const url = `https://skills.hot/${locale}/skills/${slug}`;
+
+  // Get skill rank (only show for top 10)
+  const rank = await getSkillRank(skill.id, skill.source);
+
+  // Build OG image URL with stats
+  const ogParams = new URLSearchParams({
+    title: skill.name,
+    subtitle: skill.description || '',
+    type: 'skill',
+    locale,
+    installs: formatNumber(skill.installs),
+    ...(skill.stars && { stars: formatNumber(skill.stars) }),
+    ...(skill.author && { author: skill.author }),
+    source: skill.source,
+    ...(rank && rank <= 10 && { rank: rank.toString() }),
+  });
+
+  const ogUrl = `https://skills.hot/api/og?${ogParams.toString()}`;
 
   return {
     title,
@@ -174,11 +244,18 @@ export async function generateMetadata({ params }: Props) {
       siteName: 'Skills Hot',
       type: 'website',
       locale: locale === 'zh' ? 'zh_CN' : 'en_US',
+      images: [{
+        url: ogUrl,
+        width: 1200,
+        height: 630,
+        alt: title,
+      }],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
+      images: [ogUrl],
     },
   };
 }

@@ -4,11 +4,14 @@ import { Link } from '@/i18n/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Download, Package, Users } from 'lucide-react';
 import type { Author } from '@/lib/supabase';
+import type { Metadata } from 'next';
 
 type Props = {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ sort?: string; page?: string }>;
 };
+
+const ITEMS_PER_PAGE = 50;
 
 interface AuthorWithStats extends Author {
   skill_count: number;
@@ -57,38 +60,80 @@ async function getAuthors(
   };
 }
 
-export async function generateMetadata({ params }: Props) {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { locale } = await params;
+  const { sort = 'installs', page = '1' } = await searchParams;
+  const currentPage = parseInt(page, 10) || 1;
 
-  const title = locale === 'zh'
-    ? 'AI 技能作者 - 发现技能创作者 | Skills Hot'
-    : 'AI Skill Authors - Discover Skill Creators | Skills Hot';
+  // Get total count for pagination metadata
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  let totalPages = 1;
+
+  if (supabaseUrl && supabaseKey) {
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    const { count } = await supabase
+      .from('authors')
+      .select('*', { count: 'exact', head: true });
+    totalPages = Math.ceil((count || 0) / ITEMS_PER_PAGE);
+  }
+
+  const baseTitle = locale === 'zh' ? 'AI 技能作者' : 'AI Skill Authors';
+  const title = currentPage > 1
+    ? `${baseTitle} - ${locale === 'zh' ? `第 ${currentPage} 页` : `Page ${currentPage}`} | Skills Hot`
+    : `${baseTitle} - ${locale === 'zh' ? '发现技能创作者' : 'Discover Skill Creators'} | Skills Hot`;
+
   const description = locale === 'zh'
     ? '浏览 AI 代理技能的创作者，发现他们为 Claude Code、Cursor 和其他编程代理创建的技能'
     : 'Browse creators of AI agent skills. Discover their skills for Claude Code, Cursor, and other coding agents';
+
+  const baseUrl = `https://skills.hot/${locale}/authors`;
+  const currentUrl = currentPage > 1 ? `${baseUrl}?sort=${sort}&page=${currentPage}` : baseUrl;
+
+  // Build pagination links
+  const paginationLinks: { prev?: string; next?: string } = {};
+  if (currentPage > 1) {
+    paginationLinks.prev = currentPage === 2
+      ? `/${locale}/authors${sort !== 'installs' ? `?sort=${sort}` : ''}`
+      : `/${locale}/authors?sort=${sort}&page=${currentPage - 1}`;
+  }
+  if (currentPage < totalPages) {
+    paginationLinks.next = `/${locale}/authors?sort=${sort}&page=${currentPage + 1}`;
+  }
 
   return {
     title,
     description,
     alternates: {
-      canonical: `https://skills.hot/${locale}/authors`,
+      canonical: currentUrl,
       languages: {
-        en: '/en/authors',
-        zh: '/zh/authors',
+        en: currentPage > 1 ? `/en/authors?sort=${sort}&page=${currentPage}` : '/en/authors',
+        zh: currentPage > 1 ? `/zh/authors?sort=${sort}&page=${currentPage}` : '/zh/authors',
       },
     },
     openGraph: {
       title,
       description,
-      url: `https://skills.hot/${locale}/authors`,
+      url: currentUrl,
       siteName: 'Skills Hot',
       type: 'website',
       locale: locale === 'zh' ? 'zh_CN' : 'en_US',
+      images: [{
+        url: `https://skills.hot/api/og?title=${encodeURIComponent(baseTitle)}&subtitle=${encodeURIComponent(locale === 'zh' ? '发现技能创作者' : 'Discover Skill Creators')}&type=author&locale=${locale}`,
+        width: 1200,
+        height: 630,
+        alt: title,
+      }],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
+      images: [`https://skills.hot/api/og?title=${encodeURIComponent(baseTitle)}&subtitle=${encodeURIComponent(locale === 'zh' ? '发现技能创作者' : 'Discover Skill Creators')}&type=author&locale=${locale}`],
+    },
+    other: {
+      ...(paginationLinks.prev && { 'link:prev': paginationLinks.prev }),
+      ...(paginationLinks.next && { 'link:next': paginationLinks.next }),
     },
   };
 }
@@ -136,7 +181,7 @@ export default async function AuthorsPage({ params, searchParams }: Props) {
   const currentPage = parseInt(page, 10) || 1;
   const { authors, total } = await getAuthors(sort, currentPage);
 
-  const totalPages = Math.ceil(total / 50);
+  const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
   const jsonLd = generateAuthorsJsonLd(locale, total);
 
   return (
