@@ -21,10 +21,9 @@ type HeadlineSkillProps = {
     installs: number;
     stars?: number;
     repo?: string;
+    installs_delta?: number; // 24小时增长量
   };
   author: Author | null;
-  rank: number;
-  growthPercent?: number;
 };
 
 function formatNumber(num: number): string {
@@ -37,7 +36,7 @@ function formatNumber(num: number): string {
   return num.toString();
 }
 
-export function HeadlineSkill({ skill, author, rank, growthPercent }: HeadlineSkillProps) {
+export function HeadlineSkill({ skill, author }: HeadlineSkillProps) {
   const t = useTranslations();
 
   return (
@@ -99,26 +98,35 @@ export function HeadlineSkill({ skill, author, rank, growthPercent }: HeadlineSk
             href={`/skills/${skill.slug}`}
             className="group block"
           >
-            {/* Rank badge - 红色醒目数字 */}
-            <div className="mb-4 flex items-start gap-4">
-              <div className="relative">
-                <span
-                  className="font-serif text-[6rem] font-black leading-none tracking-tighter text-[#C41E3A] sm:text-[7rem] lg:text-[9rem]"
-                >
-                  {rank}
-                </span>
-                {/* 装饰性下划线 */}
-                <div className="absolute -bottom-1 left-0 h-1 w-full bg-[#C41E3A]" />
+            {/* Growth badge - 红色醒目数字 */}
+            {skill.installs_delta && skill.installs_delta > 0 ? (
+              <div className="mb-4 flex items-start gap-4">
+                <div className="relative">
+                  <span
+                    className="font-serif text-[5rem] font-black leading-none tracking-tighter text-[#C41E3A] sm:text-[6rem] lg:text-[7rem]"
+                  >
+                    +{formatNumber(skill.installs_delta)}
+                  </span>
+                  {/* 装饰性下划线 */}
+                  <div className="absolute -bottom-1 left-0 h-1 w-full bg-[#C41E3A]" />
+                </div>
+                <div className="mt-4 flex flex-col">
+                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C41E3A]">
+                    <TrendingUp className="inline h-3 w-3 mr-1" />
+                    24H
+                  </span>
+                  <span className="mt-1 text-sm font-medium uppercase tracking-wider">
+                    {t('headline.fastestGrowing')}
+                  </span>
+                </div>
               </div>
-              <div className="mt-4 flex flex-col">
+            ) : (
+              <div className="mb-4">
                 <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C41E3A]">
-                  No.{rank}
-                </span>
-                <span className="mt-1 text-sm font-medium uppercase tracking-wider">
-                  {t('headline.mostInstalled')}
+                  {t('headline.topSkill')}
                 </span>
               </div>
-            </div>
+            )}
 
             {/* Skill name - 报纸标题风格 */}
             <h2 className="font-serif text-3xl font-normal leading-tight sm:text-4xl md:text-5xl lg:text-[3.5rem] group-hover:underline decoration-1 underline-offset-4">
@@ -173,15 +181,15 @@ export function HeadlineSkill({ skill, author, rank, growthPercent }: HeadlineSk
                 </div>
               )}
 
-              {/* Growth */}
-              {growthPercent !== undefined && growthPercent > 0 && (
+              {/* 24h Growth */}
+              {skill.installs_delta !== undefined && skill.installs_delta > 0 && (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <TrendingUp className="h-4 w-4" />
-                    <span className="text-xs">{t('headline.growth')}</span>
+                    <span className="text-xs">{t('headline.growth24h')}</span>
                   </div>
                   <span className="font-mono text-base font-bold text-[#C41E3A]">
-                    +{growthPercent}%
+                    +{formatNumber(skill.installs_delta)}
                   </span>
                 </div>
               )}

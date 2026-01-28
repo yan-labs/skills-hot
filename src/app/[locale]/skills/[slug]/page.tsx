@@ -233,7 +233,11 @@ export default async function SkillPage({ params }: Props) {
   }
 
   const content = await getSkillContent(skill);
-  const githubUrl = skill.repo ? `https://github.com/${skill.repo}${skill.repo_path ? `/tree/main/${skill.repo_path}` : ''}` : null;
+
+  // 使用数据库中存储的 repo_path 构建 GitHub URL
+  const githubUrl = skill.repo
+    ? `https://github.com/${skill.repo}${skill.repo_path ? `/tree/main/${skill.repo_path}` : ''}`
+    : null;
 
   const jsonLd = generateSkillJsonLd(skill, locale);
 

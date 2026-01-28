@@ -43,7 +43,7 @@ async function getStats() {
   return { totalSkills, totalInstalls, totalAuthors };
 }
 
-// Get the headline skill (top 1 by installs) and its author
+// Get the headline skill (fastest growing in last 24 hours) and its author
 async function getHeadlineSkill() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -54,16 +54,43 @@ async function getHeadlineSkill() {
 
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  // Get top skill from external_skills (most data)
-  const { data: topSkill, error } = await supabase
-    .from('external_skills')
-    .select('*')
-    .order('installs', { ascending: false })
+  // 获取最新快照中 installs_delta 最高的技能（24小时增长最快）
+  const { data: topSnapshot } = await supabase
+    .from('skill_snapshots')
+    .select('skill_name, skill_slug, installs_delta')
+    .order('snapshot_at', { ascending: false })
+    .order('installs_delta', { ascending: false })
     .limit(1)
     .single();
 
-  if (error || !topSkill) {
-    return null;
+  // 如果有快照数据且有增长，使用快照中的技能
+  let topSkill = null;
+
+  if (topSnapshot && topSnapshot.installs_delta > 0) {
+    const { data: skill } = await supabase
+      .from('external_skills')
+      .select('*')
+      .eq('slug', topSnapshot.skill_slug)
+      .single();
+
+    if (skill) {
+      topSkill = { ...skill, installs_delta: topSnapshot.installs_delta };
+    }
+  }
+
+  // 回退：如果没有快照数据或没有增长，使用安装量最高的
+  if (!topSkill) {
+    const { data: fallbackSkill, error } = await supabase
+      .from('external_skills')
+      .select('*')
+      .order('installs', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error || !fallbackSkill) {
+      return null;
+    }
+    topSkill = fallbackSkill;
   }
 
   // Get author info - try author_id first, then github_owner
@@ -115,6 +142,7 @@ async function getHeadlineSkill() {
       installs: topSkill.installs || 0,
       stars: topSkill.stars || 0,
       repo: topSkill.repo,
+      installs_delta: topSkill.installs_delta || 0, // 24小时增长量
     },
     author: authorData,
   };
@@ -406,8 +434,6 @@ export default async function Home({ params }: Props) {
             <HeadlineSkill
               skill={headline.skill}
               author={headline.author}
-              rank={1}
-              growthPercent={12}
             />
             <div className="divider" />
           </>
@@ -465,7 +491,10 @@ export default async function Home({ params }: Props) {
         {/* Footer */}
         <footer className="py-8">
           <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-            <p className="text-sm text-muted-foreground">{t('footer.copyright')}</p>
+            <div className="flex flex-col gap-1">
+              <p className="text-sm text-muted-foreground">{t('footer.copyright')}</p>
+              <p className="text-xs text-muted-foreground">Annals, Inc.</p>
+            </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <Link href="/docs" className="transition-colors hover:text-foreground">
                 {t('header.docs')}

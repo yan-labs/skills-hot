@@ -192,6 +192,8 @@
   "headline": {
     "badge": "今日头条",
     "mostInstalled": "安装量第一",
+    "fastestGrowing": "增长最快",
+    "topSkill": "热门技能",
     "viewSkill": "查看技能",
     "skills": "个技能",
     "totalInstalls": "总安装量",
@@ -199,7 +201,7 @@
     "statistics": "数据统计",
     "installs": "安装量",
     "stars": "星标数",
-    "growth": "本周增长",
+    "growth24h": "24小时增长",
     "installHint": "一键安装："
   },
   "leaderboard": {

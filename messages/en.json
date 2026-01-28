@@ -192,6 +192,8 @@
   "headline": {
     "badge": "TODAY'S HEADLINE",
     "mostInstalled": "MOST INSTALLED",
+    "fastestGrowing": "FASTEST GROWING",
+    "topSkill": "TOP SKILL",
     "viewSkill": "View Skill",
     "skills": "skills",
     "totalInstalls": "total installs",
@@ -199,7 +201,7 @@
     "statistics": "STATISTICS",
     "installs": "Installs",
     "stars": "Stars",
-    "growth": "This week",
+    "growth24h": "24h Growth",
     "installHint": "Install with one command:"
   },
   "leaderboard": {

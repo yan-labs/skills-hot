@@ -294,6 +294,90 @@ export async function fetchGitHubUser(username: string): Promise<{
 }
 
 /**
+ * 探测并返回正确的 GitHub 目录 URL
+ * 尝试多种可能的路径结构，返回第一个存在的路径
+ * @param owner - 仓库所有者
+ * @param repo - 仓库名
+ * @param skillName - skill 名称
+ * @param repoPath - 数据库中存储的路径提示（可能不准确）
+ * @returns 正确的 GitHub 目录 URL，或 null
+ */
+export async function findGitHubSkillUrl(
+  owner: string,
+  repo: string,
+  skillName: string,
+  repoPath?: string | null
+): Promise<string | null> {
+  const branch = 'main';
+  const baseUrl = `https://github.com/${owner}/${repo}/tree/${branch}`;
+
+  // 构建可能的路径列表（按优先级排序）
+  const possiblePaths: string[] = [];
+
+  // 从 skillName 中移除可能的前缀（如 vercel-react-best-practices -> react-best-practices）
+  // 常见模式：{owner}-{actualPath}、{ownerFirstPart}-{actualPath} 或 {repo}-{actualPath}
+  // 例如 owner="vercel-labs" 时，也尝试移除 "vercel-" 前缀
+  const ownerFirstPart = owner.split('-')[0];
+  const strippedName = skillName
+    .replace(new RegExp(`^${owner}-`, 'i'), '')
+    .replace(new RegExp(`^${ownerFirstPart}-`, 'i'), '')
+    .replace(new RegExp(`^${repo}-`, 'i'), '');
+
+  // 1. 优先尝试 skills/{strippedName}（monorepo 常见结构）
+  if (strippedName !== skillName) {
+    possiblePaths.push(`skills/${strippedName}`);
+  }
+
+  // 2. 如果有 repoPath，尝试 skills/{repoPath 去除前缀}
+  if (repoPath) {
+    const strippedPath = repoPath
+      .replace(new RegExp(`^${owner}-`, 'i'), '')
+      .replace(new RegExp(`^${ownerFirstPart}-`, 'i'), '')
+      .replace(new RegExp(`^${repo}-`, 'i'), '');
+    if (strippedPath !== repoPath) {
+      possiblePaths.push(`skills/${strippedPath}`);
+    }
+    possiblePaths.push(`skills/${repoPath}`);
+    possiblePaths.push(repoPath);
+  }
+
+  // 3. 尝试 skills/{skillName}
+  possiblePaths.push(`skills/${skillName}`);
+
+  // 4. 尝试直接的 {skillName}
+  possiblePaths.push(skillName);
+
+  // 去重
+  const uniquePaths = [...new Set(possiblePaths)];
+
+  // 尝试每个路径，找到第一个存在的
+  for (const path of uniquePaths) {
+    try {
+      const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
+      const response = await fetch(apiUrl, {
+        headers: {
+          'User-Agent': 'SkillsHot/1.0',
+          Accept: 'application/vnd.github.v3+json',
+          ...(process.env.GITHUB_TOKEN && {
+            Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+          }),
+        },
+        next: { revalidate: 3600 }, // Cache for 1 hour
+      });
+
+      if (response.ok) {
+        return `${baseUrl}/${path}`;
+      }
+    } catch {
+      // 继续尝试下一个路径
+    }
+  }
+
+  // 如果都找不到，返回仓库根目录
+  return `https://github.com/${owner}/${repo}`;
+}
+
+/**
  * 生成 URL-friendly slug
  */
 export function generateSlug(name: string): string {
