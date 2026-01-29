@@ -1,21 +1,9 @@
 import { MetadataRoute } from 'next';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 const BASE_URL = 'https://skills.hot';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Get all skills for dynamic routes
-  const { data: skills } = await supabase
-    .from('skills')
-    .select('slug, updated_at')
-    .order('updated_at', { ascending: false });
-
-  // Get all authors for dynamic routes
-  const { data: authors } = await supabase
-    .from('authors')
-    .select('github_login, updated_at')
-    .order('total_installs', { ascending: false });
-
   const locales = ['en', 'zh'];
 
   // Static pages with their priorities and change frequencies
@@ -34,6 +22,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority,
     }))
   );
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  // Allow `next build` to succeed without Supabase env vars (e.g. CI, forks).
+  // In that case, we return a sitemap with only the static routes.
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return staticPages;
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+  const [{ data: skills }, { data: authors }] = await Promise.all([
+    supabase.from('skills').select('slug, updated_at').order('updated_at', { ascending: false }),
+    supabase.from('authors').select('github_login, updated_at').order('total_installs', { ascending: false }),
+  ]);
 
   // Dynamic skill pages
   const skillPages: MetadataRoute.Sitemap = (skills || []).flatMap((skill) =>
