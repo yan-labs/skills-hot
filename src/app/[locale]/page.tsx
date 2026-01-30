@@ -43,12 +43,10 @@ async function getStats() {
   return { totalSkills, totalInstalls, totalAuthors };
 }
 
-// Get the headline skill with fallback priority chain
-// Priority: 1. installs_delta > 0 (fastest growing)
-//           2. rank_delta > 0 (rank rising)
-//           3. highest installs_rate (growth rate)
-//           4. is_new (new entry)
-//           5. highest installs (fallback)
+// Get the headline skill (based on 24h snapshot data only)
+// Priority: 1. highest installs_delta (fastest growing in 24h)
+//           2. highest rank_delta (rank rising most)
+//           3. rank #1 (current top)
 async function getHeadlineSkill() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -67,155 +65,60 @@ async function getHeadlineSkill() {
     .limit(1)
     .maybeSingle();
 
+  if (!latestSnapshotInfo) {
+    return null;
+  }
+
+  const snapshotAt = latestSnapshotInfo.snapshot_at;
+
+  // Priority 1: installs_delta 最高的（24小时增长最快，即使是负数）
+  const { data: topSnapshot } = await supabase
+    .from('skill_snapshots')
+    .select('skill_name, skill_slug, installs_delta, rank')
+    .eq('snapshot_at', snapshotAt)
+    .order('installs_delta', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
   let topSkill = null;
-  let headlineReason = ''; // For debugging/displaying why this skill was chosen
+  let headlineSlug = topSnapshot?.skill_slug;
 
-  if (latestSnapshotInfo) {
-    const snapshotAt = latestSnapshotInfo.snapshot_at;
-
-    // Priority 1: installs_delta > 0 最高的（24小时增长最快）
-    const { data: growingSkill } = await supabase
+  // Priority 2: 如果所有 installs_delta 都是 null/0，选 rank_delta 最高的
+  if (!headlineSlug) {
+    const { data: risingSnapshot } = await supabase
       .from('skill_snapshots')
-      .select('skill_name, skill_slug, installs_delta')
+      .select('skill_name, skill_slug, rank_delta')
       .eq('snapshot_at', snapshotAt)
-      .gt('installs_delta', 0)
-      .order('installs_delta', { ascending: false })
+      .order('rank_delta', { ascending: false })
       .limit(1)
       .maybeSingle();
 
-    if (growingSkill) {
-      const { data: skill } = await supabase
-        .from('external_skills')
-        .select('*')
-        .eq('slug', growingSkill.skill_slug)
-        .maybeSingle();
-
-      if (skill) {
-        topSkill = { ...skill, installs_delta: growingSkill.installs_delta };
-        headlineReason = 'fastest-growing';
-      }
-    }
-
-    // Priority 2: rank_delta > 0 最高的（排名上升最多）
-    if (!topSkill) {
-      const { data: risingSkill } = await supabase
-        .from('skill_snapshots')
-        .select('skill_name, skill_slug, rank_delta, installs_delta')
-        .eq('snapshot_at', snapshotAt)
-        .gt('rank_delta', 0)
-        .order('rank_delta', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (risingSkill) {
-        const { data: skill } = await supabase
-          .from('external_skills')
-          .select('*')
-          .eq('slug', risingSkill.skill_slug)
-          .maybeSingle();
-
-        if (skill) {
-          topSkill = { ...skill, installs_delta: risingSkill.installs_delta || 0 };
-          headlineReason = 'rank-rising';
-        }
-      }
-    }
-
-    // Priority 3: installs_rate 最高的（增长率最高）
-    if (!topSkill) {
-      const { data: surgingSkill } = await supabase
-        .from('skill_snapshots')
-        .select('skill_name, skill_slug, installs_rate, installs_delta')
-        .eq('snapshot_at', snapshotAt)
-        .gt('installs_rate', 0)
-        .order('installs_rate', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (surgingSkill) {
-        const { data: skill } = await supabase
-          .from('external_skills')
-          .select('*')
-          .eq('slug', surgingSkill.skill_slug)
-          .maybeSingle();
-
-        if (skill) {
-          topSkill = { ...skill, installs_delta: surgingSkill.installs_delta || 0 };
-          headlineReason = 'highest-growth-rate';
-        }
-      }
-    }
-
-    // Priority 4: is_new（新上榜技能）
-    if (!topSkill) {
-      const { data: newSkill } = await supabase
-        .from('skill_snapshots')
-        .select('skill_name, skill_slug, installs, installs_delta')
-        .eq('snapshot_at', snapshotAt)
-        .eq('is_new', true)
-        .order('installs', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (newSkill) {
-        const { data: skill } = await supabase
-          .from('external_skills')
-          .select('*')
-          .eq('slug', newSkill.skill_slug)
-          .maybeSingle();
-
-        if (skill) {
-          topSkill = { ...skill, installs_delta: newSkill.installs_delta || 0 };
-          headlineReason = 'new-entry';
-        }
-      }
-    }
-
-    // Priority 5: 基于日期从 Top 10 中轮换选择（避免永远同一个）
-    if (!topSkill) {
-      // 使用当前日期作为偏移量，每天选择 Top 10 中不同的一个
-      const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
-      const rankOffset = (dayOfYear % 10) + 1; // 1-10 之间循环
-
-      const { data: rotatingSkill } = await supabase
-        .from('skill_snapshots')
-        .select('skill_name, skill_slug, installs, installs_delta, rank')
-        .eq('snapshot_at', snapshotAt)
-        .eq('rank', rankOffset)
-        .maybeSingle();
-
-      if (rotatingSkill) {
-        const { data: skill } = await supabase
-          .from('external_skills')
-          .select('*')
-          .eq('slug', rotatingSkill.skill_slug)
-          .maybeSingle();
-
-        if (skill) {
-          topSkill = { ...skill, installs_delta: rotatingSkill.installs_delta || 0 };
-          headlineReason = 'top-ranked';
-        }
-      }
-    }
+    headlineSlug = risingSnapshot?.skill_slug;
   }
 
-  // Fallback: 如果没有快照数据，使用安装量最高的
-  if (!topSkill) {
-    const { data: fallbackSkill } = await supabase
+  // Priority 3: 还是没有，选 rank = 1 的（当前排名第一）
+  if (!headlineSlug) {
+    const { data: rankOneSnapshot } = await supabase
+      .from('skill_snapshots')
+      .select('skill_name, skill_slug')
+      .eq('snapshot_at', snapshotAt)
+      .eq('rank', 1)
+      .maybeSingle();
+
+    headlineSlug = rankOneSnapshot?.skill_slug;
+  }
+
+  // 如果找到了 slug，获取完整的技能信息
+  if (headlineSlug) {
+    const { data: skill } = await supabase
       .from('external_skills')
       .select('*')
-      .order('installs', { ascending: false })
-      .limit(1)
+      .eq('slug', headlineSlug)
       .maybeSingle();
 
-    if (fallbackSkill) {
-      topSkill = { ...fallbackSkill, installs_delta: 0 };
-      headlineReason = 'most-installed';
+    if (skill) {
+      topSkill = { ...skill, installs_delta: topSnapshot?.installs_delta || 0 };
     }
-  }
-
-  if (!topSkill) {
-    return null;
   }
 
   // Get author info - try author_id first, then github_owner
