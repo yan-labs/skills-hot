@@ -251,7 +251,7 @@ export function TrendingBoard({
           icon={Flame}
           skills={surging}
           type="surging"
-          emptyText={t('noSurging'}
+          emptyText={t('noSurging')}
           accentColor={colors.surging}
         />
       </div>
