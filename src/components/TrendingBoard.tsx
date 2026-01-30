@@ -6,7 +6,6 @@ import {
   TrendingUp,
   TrendingDown,
   Sparkles,
-  XCircle,
   Flame,
   ArrowUpRight
 } from 'lucide-react';
@@ -20,14 +19,12 @@ export type TrendingSkill = {
   rankDelta?: number;      // 排名变化（正=上升）
   installsDelta?: number;  // 安装量变化
   installsRate?: number;   // 安装量变化率
-  previousRank?: number;   // 之前的排名（用于 dropped）
 };
 
 type TrendingBoardProps = {
   rising: TrendingSkill[];      // 排名上升最多
   declining: TrendingSkill[];   // 排名下降最多
   newEntries: TrendingSkill[];  // 新晋榜单
-  dropped: TrendingSkill[];     // 跌出榜单
   surging: TrendingSkill[];     // 安装量暴涨
   className?: string;
 };
@@ -58,7 +55,7 @@ function TrendColumn({
   title: string;
   icon: React.ElementType;
   skills: TrendingSkill[];
-  type: 'rising' | 'declining' | 'new' | 'dropped' | 'surging';
+  type: 'rising' | 'declining' | 'new' | 'surging';
   emptyText: string;
   accentColor: string;
 }) {
@@ -92,12 +89,6 @@ function TrendColumn({
         return (
           <span className="font-mono text-xs font-bold text-blue-600 dark:text-blue-400">
             NEW
-          </span>
-        );
-      case 'dropped':
-        return (
-          <span className="font-mono text-xs text-muted-foreground">
-            #{skill.previousRank}
           </span>
         );
       case 'surging':
@@ -164,7 +155,6 @@ export function TrendingBoard({
   rising,
   declining,
   newEntries,
-  dropped,
   surging,
   className = '',
 }: TrendingBoardProps) {
@@ -175,7 +165,6 @@ export function TrendingBoard({
     rising: '#16A34A',    // green-600
     declining: '#C41E3A', // accent red
     new: '#2563EB',       // blue-600
-    dropped: '#6B7280',   // gray-500
     surging: '#EA580C',   // orange-600
   };
 
@@ -195,8 +184,8 @@ export function TrendingBoard({
         </p>
       </div>
 
-      {/* Desktop: 5 columns */}
-      <div className="hidden gap-4 lg:grid lg:grid-cols-5">
+      {/* Desktop: 4 columns */}
+      <div className="hidden gap-4 lg:grid lg:grid-cols-4">
         <TrendColumn
           title={t('rising')}
           icon={TrendingUp}
@@ -222,14 +211,6 @@ export function TrendingBoard({
           accentColor={colors.new}
         />
         <TrendColumn
-          title={t('dropped')}
-          icon={XCircle}
-          skills={dropped}
-          type="dropped"
-          emptyText={t('noDropped')}
-          accentColor={colors.dropped}
-        />
-        <TrendColumn
           title={t('surging')}
           icon={Flame}
           skills={surging}
@@ -239,8 +220,8 @@ export function TrendingBoard({
         />
       </div>
 
-      {/* Tablet: 3+2 grid */}
-      <div className="hidden gap-4 md:grid md:grid-cols-3 lg:hidden">
+      {/* Tablet: 2+2 grid */}
+      <div className="hidden gap-4 md:grid md:grid-cols-2 lg:hidden">
         <TrendColumn
           title={t('rising')}
           icon={TrendingUp}
@@ -258,31 +239,21 @@ export function TrendingBoard({
           accentColor={colors.declining}
         />
         <TrendColumn
+          title={t('new')}
+          icon={Sparkles}
+          skills={newEntries}
+          type="new"
+          emptyText={t('noNew')}
+          accentColor={colors.new}
+        />
+        <TrendColumn
           title={t('surging')}
           icon={Flame}
           skills={surging}
           type="surging"
-          emptyText={t('noSurging')}
+          emptyText={t('noSurging'}
           accentColor={colors.surging}
         />
-        <div className="col-span-3 mt-4 grid grid-cols-2 gap-4">
-          <TrendColumn
-            title={t('new')}
-            icon={Sparkles}
-            skills={newEntries}
-            type="new"
-            emptyText={t('noNew')}
-            accentColor={colors.new}
-          />
-          <TrendColumn
-            title={t('dropped')}
-            icon={XCircle}
-            skills={dropped}
-            type="dropped"
-            emptyText={t('noDropped')}
-            accentColor={colors.dropped}
-          />
-        </div>
       </div>
 
       {/* Mobile: Stacked accordion-like */}
@@ -307,17 +278,7 @@ export function TrendingBoard({
           />
         </div>
 
-        {/* Surging full width */}
-        <TrendColumn
-          title={t('surging')}
-          icon={Flame}
-          skills={surging}
-          type="surging"
-          emptyText={t('noSurging')}
-          accentColor={colors.surging}
-        />
-
-        {/* New & Dropped side by side */}
+        {/* New & Surging side by side */}
         <div className="grid grid-cols-2 gap-4">
           <TrendColumn
             title={t('new')}
@@ -328,12 +289,12 @@ export function TrendingBoard({
             accentColor={colors.new}
           />
           <TrendColumn
-            title={t('dropped')}
-            icon={XCircle}
-            skills={dropped}
-            type="dropped"
-            emptyText={t('noDropped')}
-            accentColor={colors.dropped}
+            title={t('surging')}
+            icon={Flame}
+            skills={surging}
+            type="surging"
+            emptyText={t('noSurging')}
+            accentColor={colors.surging}
           />
         </div>
       </div>

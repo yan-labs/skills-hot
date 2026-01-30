@@ -191,19 +191,17 @@ async function getLeaderboardSkills() {
 // Get trending data from skill_snapshots table
 // 方案 B：24 小时滚动窗口
 // New = 最近 24 小时内首次上榜的
-// Dropped = 最近 24 小时内掉榜的
 async function getTrendingData(): Promise<{
   rising: TrendingSkill[];
   declining: TrendingSkill[];
   newEntries: TrendingSkill[];
-  dropped: TrendingSkill[];
   surging: TrendingSkill[];
 }> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
-    return { rising: [], declining: [], newEntries: [], dropped: [], surging: [] };
+    return { rising: [], declining: [], newEntries: [], surging: [] };
   }
 
   const supabase = createClient(supabaseUrl, supabaseKey);
@@ -218,7 +216,7 @@ async function getTrendingData(): Promise<{
       .single();
 
     if (!latestSnapshot) {
-      return { rising: [], declining: [], newEntries: [], dropped: [], surging: [] };
+      return { rising: [], declining: [], newEntries: [], surging: [] };
     }
 
     const snapshotAt = latestSnapshot.snapshot_at;
@@ -244,20 +242,19 @@ async function getTrendingData(): Promise<{
         .order('rank_delta', { ascending: true })
         .limit(5),
 
-      // 当前快照的所有技能（用于计算 New 和 Dropped）
+      // 当前快照的所有技能（用于计算 New）
       supabase
         .from('skill_snapshots')
         .select('skill_name, skill_slug, github_owner, installs, rank')
         .eq('snapshot_at', snapshotAt)
         .order('rank', { ascending: true }),
 
-      // 24 小时前的快照（用于计算 Dropped）
+      // 24 小时前的快照（用于计算 New）
       supabase
         .from('skill_snapshots')
-        .select('skill_name, skill_slug, github_owner, installs, rank')
+        .select('skill_name')
         .gte('snapshot_at', twentyFourHoursAgo)
-        .lt('snapshot_at', snapshotAt)
-        .order('snapshot_at', { ascending: false }),
+        .lt('snapshot_at', snapshotAt),
 
       // 暴涨 Top 5
       supabase
@@ -269,23 +266,11 @@ async function getTrendingData(): Promise<{
         .limit(5),
     ]);
 
-    const currentSkills = new Set((currentSnapshotRes.data || []).map(s => s.skill_name));
-    const currentSkillsMap = new Map((currentSnapshotRes.data || []).map(s => [s.skill_name, s]));
-
     // New: 在当前快照中，但 24 小时前的任何快照中都不存在
     const oldSkillsNames = new Set((oldSnapshotsRes.data || []).map(s => s.skill_name));
     const newEntries = (currentSnapshotRes.data || [])
       .filter(s => !oldSkillsNames.has(s.skill_name))
       .slice(0, 5);
-
-    // Dropped: 在 24 小时前的快照中存在过，但当前快照中不存在
-    const droppedMap = new Map();
-    for (const old of (oldSnapshotsRes.data || [])) {
-      if (!currentSkills.has(old.skill_name) && !droppedMap.has(old.skill_name)) {
-        droppedMap.set(old.skill_name, old);
-      }
-    }
-    const dropped = Array.from(droppedMap.values()).slice(0, 5);
 
     const formatSkill = (s: {
       skill_name: string;
@@ -302,7 +287,6 @@ async function getTrendingData(): Promise<{
       installs: s.installs,
       rank: s.rank,
       rankDelta: s.rank_delta,
-      previousRank: s.rank,
       installsRate: s.installs_rate,
     });
 
@@ -310,12 +294,11 @@ async function getTrendingData(): Promise<{
       rising: (risingRes.data || []).map(formatSkill),
       declining: (decliningRes.data || []).map(formatSkill),
       newEntries: newEntries.map(formatSkill),
-      dropped: dropped.map(formatSkill),
       surging: (surgingRes.data || []).map(formatSkill),
     };
   } catch (error) {
     console.error('Failed to fetch trending data:', error);
-    return { rising: [], declining: [], newEntries: [], dropped: [], surging: [] };
+    return { rising: [], declining: [], newEntries: [], surging: [] };
   }
 }
 
@@ -464,7 +447,6 @@ export default async function Home({ params }: Props) {
           rising={trending.rising}
           declining={trending.declining}
           newEntries={trending.newEntries}
-          dropped={trending.dropped}
           surging={trending.surging}
         />
 
