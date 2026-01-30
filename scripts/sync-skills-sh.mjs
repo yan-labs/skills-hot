@@ -1,24 +1,27 @@
 #!/usr/bin/env node
 /**
- * skills.sh 数据同步脚本
+ * skills.sh 数据同步脚本（增强版）
  *
  * 用法: node scripts/sync-skills-sh.mjs
  *
  * 功能:
  * - 从 skills.sh API 拉取全量数据
  * - 解析 topSource 提取 GitHub 仓库信息
+ * - 从 SKILL.md 解析 platforms
  * - upsert external_skills 表
- * - 维护 authors 表
+ * - 维护 authors 表（调用 GitHub API）
  *
  * 环境变量:
  * - SUPABASE_URL
  * - SUPABASE_SERVICE_ROLE_KEY
+ * - GITHUB_TOKEN (可选，用于获取作者信息)
  */
 
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const SKILLS_SH_API = 'https://skills.sh/api/skills?limit=50000';
 
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
@@ -27,6 +30,8 @@ if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
 }
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+
+// ============ 工具函数 ============
 
 /**
  * 解析 topSource 字符串
@@ -60,9 +65,194 @@ function getGitHubRawUrl(owner, repo, branch, path) {
   return `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${basePath}SKILL.md`;
 }
 
+/**
+ * 解析 YAML frontmatter
+ */
+function parseFrontmatter(content) {
+  const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
+  const match = content.match(frontmatterRegex);
+
+  if (!match) {
+    return { frontmatter: {}, content };
+  }
+
+  const yamlContent = match[1];
+  const frontmatter = {};
+  const lines = yamlContent.split('\n');
+
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    if (!trimmedLine || trimmedLine.startsWith('#')) continue;
+
+    const colonIndex = trimmedLine.indexOf(':');
+    if (colonIndex === -1) continue;
+
+    const key = trimmedLine.slice(0, colonIndex).trim();
+    const valueStr = trimmedLine.slice(colonIndex + 1).trim();
+
+    // 解析数组语法: [item1, item2]
+    if (valueStr.startsWith('[') && valueStr.endsWith(']')) {
+      const arrayContent = valueStr.slice(1, -1);
+      frontmatter[key] = arrayContent
+        .split(',')
+        .map(item => item.trim())
+        .filter(item => item.length > 0);
+    } else {
+      frontmatter[key] = valueStr;
+    }
+  }
+
+  return { frontmatter, content: match[2] };
+}
+
+/**
+ * 从 SKILL.md 提取 platforms
+ */
+function extractPlatforms(content) {
+  const { frontmatter } = parseFrontmatter(content);
+  const platformsValue = frontmatter['platforms'];
+
+  // Platform 名称标准化映射
+  const platformAliases = {
+    'claude': 'claudecode',
+    'claudecode': 'claudecode',
+    'claude-code': 'claudecode',
+    'cursor': 'cursor',
+    'windsurf': 'windsurf',
+    'codex': 'codex',
+    'copilot': 'copilot',
+    'gemini': 'gemini',
+    'cline': 'cline',
+    'amp': 'amp',
+    'antigravity': 'antigravity',
+    'clawdbot': 'clawdbot',
+    'droid': 'droid',
+    'goose': 'goose',
+    'kilo': 'kilo',
+    'kiro': 'kiro-cli',
+    'kirocli': 'kiro-cli',
+    'kiro-cli': 'kiro-cli',
+    'manus': 'manus',
+    'moltbot': 'moltbot',
+    'opencode': 'opencode',
+    'roo': 'roo',
+    'trae': 'trae',
+    'universal': 'universal',
+  };
+
+  if (Array.isArray(platformsValue)) {
+    const extracted = [];
+    for (const p of platformsValue) {
+      if (typeof p === 'string') {
+        const normalized = p.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const platform = platformAliases[normalized];
+        if (platform && !extracted.includes(platform)) {
+          extracted.push(platform);
+        }
+      }
+    }
+    return extracted.length > 0 ? extracted : ['universal'];
+  }
+
+  // 检查字符串值
+  if (typeof platformsValue === 'string') {
+    const normalized = platformsValue.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const platform = platformAliases[normalized];
+    if (platform) {
+      return [platform];
+    }
+  }
+
+  return ['universal'];
+}
+
+/**
+ * 从 GitHub 获取 SKILL.md 内容
+ */
+async function fetchSkillContent(owner, repo, skillName, repoPath) {
+  const possibleUrls = [];
+
+  // 1. 如果有 repoPath，先尝试 skills/{repoPath}
+  if (repoPath) {
+    possibleUrls.push(`https://raw.githubusercontent.com/${owner}/${repo}/main/skills/${repoPath}/SKILL.md`);
+    possibleUrls.push(`https://raw.githubusercontent.com/${owner}/${repo}/main/${repoPath}/SKILL.md`);
+  }
+
+  // 2. 尝试 skills/{skillName}
+  possibleUrls.push(`https://raw.githubusercontent.com/${owner}/${repo}/main/skills/${skillName}/SKILL.md`);
+
+  // 3. 尝试直接的 {skillName}
+  possibleUrls.push(`https://raw.githubusercontent.com/${owner}/${repo}/main/${skillName}/SKILL.md`);
+
+  // 4. 尝试根目录
+  possibleUrls.push(`https://raw.githubusercontent.com/${owner}/${repo}/main/SKILL.md`);
+
+  // 去重并尝试
+  for (const url of [...new Set(possibleUrls)]) {
+    try {
+      const response = await fetch(url, {
+        headers: { 'User-Agent': 'SkillsHot/1.0', Accept: 'text/plain' },
+      });
+
+      if (response.ok) {
+        return await response.text();
+      }
+    } catch {
+      // 继续尝试下一个
+    }
+  }
+
+  return null;
+}
+
+/**
+ * 从 GitHub 获取用户信息
+ */
+async function fetchGitHubUser(username) {
+  if (!GITHUB_TOKEN) {
+    return null;
+  }
+
+  const url = `https://api.github.com/users/${username}`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'SkillsHot/1.0',
+        Accept: 'application/vnd.github.v3+json',
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+      },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    return {
+      id: data.id,
+      login: data.login,
+      name: data.name,
+      avatar_url: data.avatar_url,
+      bio: data.bio,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 延迟函数（避免 GitHub API 限流）
+ */
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// ============ 主逻辑 ============
+
 async function main() {
   const startTime = Date.now();
-  console.log('🚀 skills.sh 数据同步\n');
+  console.log('🚀 skills.sh 数据同步（增强版）\n');
 
   // 1. 拉取 skills.sh 全量数据
   console.log('📥 拉取 skills.sh 数据...');
@@ -119,33 +309,35 @@ async function main() {
     }
   }
 
-  // 创建缺失的 authors（占位记录，不调用 GitHub API）
+  // 创建缺失的 authors
   const missingOwners = owners.filter(o => !authorMap.has(o));
   if (missingOwners.length > 0) {
-    console.log(`  创建 ${missingOwners.length} 个新 authors...`);
+    console.log(`  获取 ${missingOwners.length} 个新 authors 信息...`);
 
-    const newAuthors = missingOwners.map(login => ({
-      github_id: Math.floor(Math.random() * 1000000000), // 临时 ID
-      github_login: login,
-      name: null,
-      avatar_url: null,
-      bio: null,
-    }));
+    for (const login of missingOwners) {
+      const ghUser = await fetchGitHubUser(login);
 
-    // 分批插入
-    for (let i = 0; i < newAuthors.length; i += 500) {
-      const batch = newAuthors.slice(i, i + 500);
-      const { data: inserted, error } = await supabase
+      const authorData = {
+        github_id: ghUser?.id || Math.floor(Math.random() * 1000000000),
+        github_login: login,
+        name: ghUser?.name || null,
+        avatar_url: ghUser?.avatar_url || null,
+        bio: ghUser?.bio || null,
+      };
+
+      const { data: inserted } = await supabase
         .from('authors')
-        .upsert(batch, { onConflict: 'github_login', ignoreDuplicates: true })
-        .select('id, github_login');
+        .upsert(authorData, { onConflict: 'github_login' })
+        .select('id, github_login')
+        .single();
 
-      if (error) {
-        console.error('  ⚠️ authors upsert 错误:', error.message);
-      } else if (inserted) {
-        for (const author of inserted) {
-          authorMap.set(author.github_login, author.id);
-        }
+      if (inserted) {
+        authorMap.set(login, inserted.id);
+      }
+
+      // 避免 GitHub API 限流
+      if (GITHUB_TOKEN) {
+        await delay(100);
       }
     }
   }
@@ -175,44 +367,59 @@ async function main() {
 
   console.log(`✅ 获取到 ${existingPathMap.size} 个已存在的路径\n`);
 
-  // 5. 批量 upsert external_skills
-  console.log('💾 更新 external_skills 表...');
+  // 5. 批量 upsert external_skills（包含 platforms）
+  console.log('💾 更新 external_skills 表（含 platforms）...');
   let inserted = 0;
   let errors = 0;
+  let platformsFetched = 0;
 
   for (let i = 0; i < skillsWithParsed.length; i += 2000) {
     const batch = skillsWithParsed.slice(i, i + 2000);
+    const batchNum = Math.floor(i / 2000) + 1;
+    const totalBatches = Math.ceil(skillsWithParsed.length / 2000);
 
-    process.stdout.write(`\r  [${Math.min(i + 2000, skillsWithParsed.length)}/${skillsWithParsed.length}]`);
+    process.stdout.write(`\r  [${Math.min(i + 2000, skillsWithParsed.length)}/${skillsWithParsed.length}] Batch ${batchNum}/${totalBatches}`);
 
-    const records = batch.map(skill => {
+    const records = await Promise.all(batch.map(async (skill) => {
       const { owner, repo, path } = skill.parsed;
       const authorId = authorMap.get(owner) || null;
 
       // 优先使用已存在的路径
       const existingPath = existingPathMap.get(skill.name);
       const effectivePath = existingPath || path || skill.name;
-      const rawUrl = getGitHubRawUrl(owner, repo, 'main', effectivePath);
+
+      // 获取 platforms（从 SKILL.md）
+      let platforms = ['universal'];
+      try {
+        const content = await fetchSkillContent(owner, repo, skill.name, effectivePath);
+        if (content) {
+          platforms = extractPlatforms(content);
+          platformsFetched++;
+        }
+      } catch {
+        // 失败时使用默认值
+      }
 
       return {
-        source: 'github',
+        source: 'skills.sh',
         source_id: skill.name,
         name: skill.name,
         slug: generateSlug(skill.name),
         repo: `${owner}/${repo}`,
         repo_path: effectivePath,
         branch: 'main',
-        raw_url: rawUrl,
+        raw_url: getGitHubRawUrl(owner, repo, 'main', effectivePath),
         author_id: authorId,
         github_owner: owner,
         installs: skill.installs || 0,
+        platforms,
         synced_at: new Date().toISOString(),
       };
-    });
+    }));
 
     const { error, count } = await supabase
       .from('external_skills')
-      .upsert(records, { onConflict: 'source,source_id', ignoreDuplicates: false, count: 'exact' });
+      .upsert(records, { onConflict: 'source,source_id', ignoreDuplicates: false });
 
     if (error) {
       console.error('\n  ⚠️ upsert 错误:', error.message);
@@ -222,7 +429,8 @@ async function main() {
     }
   }
 
-  console.log(`\n✅ external_skills 更新完成: ${inserted} 条\n`);
+  console.log(`\n✅ external_skills 更新完成: ${inserted} 条`);
+  console.log(`   成功解析 platforms: ${platformsFetched} 个\n`);
 
   // 6. 更新 authors 统计
   console.log('📊 更新 authors 统计...');
@@ -248,6 +456,7 @@ async function main() {
   console.log(`   耗时: ${elapsed}s`);
   console.log(`   skills: ${inserted}`);
   console.log(`   authors: ${authorMap.size}`);
+  console.log(`   platforms 解析: ${platformsFetched}`);
   if (errors > 0) console.log(`   错误: ${errors}`);
 }
 

@@ -5,6 +5,52 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// Runtime platform enum (aligned with skills.sh)
+export type Platform =
+  | 'amp'
+  | 'antigravity'
+  | 'claudecode'
+  | 'clawdbot'
+  | 'cline'
+  | 'codex'
+  | 'copilot'
+  | 'cursor'
+  | 'droid'
+  | 'gemini'
+  | 'goose'
+  | 'kilo'
+  | 'kiro-cli'
+  | 'manus'
+  | 'moltbot'
+  | 'opencode'
+  | 'roo'
+  | 'trae'
+  | 'universal'
+  | 'windsurf';
+
+export const PLATFORMS: Record<Platform, string> = {
+  amp: 'AMP',
+  antigravity: 'Antigravity',
+  claudecode: 'Claude Code',
+  clawdbot: 'ClawdBot',
+  cline: 'Cline',
+  codex: 'Codex',
+  copilot: 'Copilot',
+  cursor: 'Cursor',
+  droid: 'Droid',
+  gemini: 'Gemini',
+  goose: 'Goose',
+  kilo: 'Kilo',
+  'kiro-cli': 'Kiro CLI',
+  manus: 'Manus',
+  moltbot: 'MoltBot',
+  opencode: 'OpenCode',
+  roo: 'Roo',
+  trae: 'Trae',
+  universal: 'Universal',
+  windsurf: 'Windsurf',
+};
+
 export type Skill = {
   id: string;
   name: string;
@@ -15,6 +61,7 @@ export type Skill = {
   source_url: string | null;
   category: string | null;
   tags: string[] | null;
+  platforms: Platform[] | null;
   is_paid: boolean;
   price: number | null;
   created_at: string;
@@ -74,6 +121,7 @@ export type ExternalSkill = {
   github_owner: string | null;
   installs: number;
   stars: number;
+  platforms: Platform[] | null;
   synced_at: string | null;
   verified: boolean;
   created_at: string;
@@ -120,6 +168,7 @@ export type SkillDetail = {
   author: string | null;
   category: string | null;
   tags: string[] | null;
+  platforms: Platform[] | null;
   source: 'local' | 'github' | 'skillsmp';
   contentSource: 'database' | 'github';
   installs: number;

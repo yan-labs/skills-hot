@@ -104,6 +104,13 @@ CREATE INDEX IF NOT EXISTS idx_skill_files_skill ON skill_files(skill_id);
 -- ========================================
 -- 5. 触发器：更新 authors.updated_at
 -- ========================================
+DO $$
+BEGIN
+    DROP TRIGGER IF EXISTS trigger_update_authors_updated_at ON authors;
+EXCEPTION
+    WHEN OTHERS THEN
+        NULL;
+END $$;
 CREATE TRIGGER trigger_update_authors_updated_at
 BEFORE UPDATE ON authors
 FOR EACH ROW EXECUTE FUNCTION update_updated_at();
@@ -111,6 +118,13 @@ FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 -- ========================================
 -- 6. 触发器：更新 external_skills.updated_at
 -- ========================================
+DO $$
+BEGIN
+    DROP TRIGGER IF EXISTS trigger_update_external_skills_updated_at ON external_skills;
+EXCEPTION
+    WHEN OTHERS THEN
+        NULL;
+END $$;
 CREATE TRIGGER trigger_update_external_skills_updated_at
 BEFORE UPDATE ON external_skills
 FOR EACH ROW EXECUTE FUNCTION update_updated_at();
@@ -123,19 +137,27 @@ ALTER TABLE external_skills ENABLE ROW LEVEL SECURITY;
 ALTER TABLE skill_files ENABLE ROW LEVEL SECURITY;
 
 -- Authors 公开读取
-CREATE POLICY "Authors are publicly readable" ON authors
+DO $$
+BEGIN
+    DROP POLICY IF EXISTS "Authors are publicly readable" ON authors
   FOR SELECT USING (true);
 
 -- Authors 只能由本人更新自己的记录（通过 user_id）
-CREATE POLICY "Users can update own author profile" ON authors
+DO $$
+BEGIN
+    DROP POLICY IF EXISTS "Users can update own author profile" ON authors
   FOR UPDATE USING (auth.uid() = user_id);
 
 -- External skills 公开读取
-CREATE POLICY "External skills are publicly readable" ON external_skills
+DO $$
+BEGIN
+    DROP POLICY IF EXISTS "External skills are publicly readable" ON external_skills
   FOR SELECT USING (true);
 
 -- Skill files 公开读取
-CREATE POLICY "Skill files are publicly readable" ON skill_files
+DO $$
+BEGIN
+    DROP POLICY IF EXISTS "Skill files are publicly readable" ON skill_files
   FOR SELECT USING (true);
 
 -- ========================================

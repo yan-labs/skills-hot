@@ -3,9 +3,118 @@
  * 用于从 GitHub 获取 SKILL.md 内容并缓存
  */
 
+import type { Platform } from './supabase';
+
 // 简单的内存缓存（生产环境应使用 Redis/KV）
 const contentCache = new Map<string, { content: string; timestamp: number }>();
 const CACHE_TTL = 3600 * 1000; // 1 小时
+
+/**
+ * Parse frontmatter from markdown content
+ * Extracts YAML-like metadata between --- markers
+ */
+export function parseFrontmatter(content: string): { frontmatter: Record<string, unknown>; content: string } {
+  const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
+  const match = content.match(frontmatterRegex);
+
+  if (!match) {
+    return { frontmatter: {}, content };
+  }
+
+  const yamlContent = match[1];
+  const markdownContent = match[2];
+
+  // Simple YAML parser for our use case
+  const frontmatter: Record<string, unknown> = {};
+  const lines = yamlContent.split('\n');
+
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    if (!trimmedLine || trimmedLine.startsWith('#')) continue;
+
+    const colonIndex = trimmedLine.indexOf(':');
+    if (colonIndex === -1) continue;
+
+    const key = trimmedLine.slice(0, colonIndex).trim();
+    const valueStr = trimmedLine.slice(colonIndex + 1).trim();
+
+    // Parse array syntax: [item1, item2]
+    if (valueStr.startsWith('[') && valueStr.endsWith(']')) {
+      const arrayContent = valueStr.slice(1, -1);
+      frontmatter[key] = arrayContent
+        .split(',')
+        .map(item => item.trim())
+        .filter(item => item.length > 0);
+    } else {
+      // Simple string value
+      frontmatter[key] = valueStr;
+    }
+  }
+
+  return { frontmatter, content: markdownContent };
+}
+
+/**
+ * Extract platforms from SKILL.md frontmatter
+ * @returns Array of platforms, or ['universal'] if not specified
+ */
+export function extractPlatforms(content: string): Platform[] {
+  const { frontmatter } = parseFrontmatter(content);
+  const platformsValue = frontmatter['platforms'];
+
+  // Platform name normalization map
+  const platformAliases: Record<string, Platform> = {
+    'claude': 'claudecode',
+    'claudecode': 'claudecode',
+    'claude-code': 'claudecode',
+    'cursor': 'cursor',
+    'windsurf': 'windsurf',
+    'codex': 'codex',
+    'copilot': 'copilot',
+    'gemini': 'gemini',
+    'cline': 'cline',
+    'amp': 'amp',
+    'antigravity': 'antigravity',
+    'clawdbot': 'clawdbot',
+    'droid': 'droid',
+    'goose': 'goose',
+    'kilo': 'kilo',
+    'kiro': 'kiro-cli',
+    'kirocli': 'kiro-cli',
+    'kiro-cli': 'kiro-cli',
+    'manus': 'manus',
+    'moltbot': 'moltbot',
+    'opencode': 'opencode',
+    'roo': 'roo',
+    'trae': 'trae',
+    'universal': 'universal',
+  };
+
+  if (Array.isArray(platformsValue)) {
+    const extracted: Platform[] = [];
+    for (const p of platformsValue) {
+      if (typeof p === 'string') {
+        const normalized = p.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const platform = platformAliases[normalized];
+        if (platform && !extracted.includes(platform)) {
+          extracted.push(platform);
+        }
+      }
+    }
+    return extracted.length > 0 ? extracted : ['universal'];
+  }
+
+  // Also check single string value
+  if (typeof platformsValue === 'string') {
+    const normalized = platformsValue.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const platform = platformAliases[normalized];
+    if (platform) {
+      return [platform];
+    }
+  }
+
+  return ['universal'];
+}
 
 /**
  * 解析 topSource 字符串，提取 GitHub 仓库信息

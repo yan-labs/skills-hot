@@ -237,7 +237,7 @@
   },
   "trending": {
     "title": "MARKET MOVERS",
-    "subtitle": "Rank changes and surging installs over the last 6 hours",
+    "subtitle": "Rank changes and surging installs over the last 1 hour",
     "rising": "Rising",
     "declining": "Declining",
     "new": "New",
@@ -248,6 +248,6 @@
     "noNew": "No new entries",
     "noDropped": "No dropped skills",
     "noSurging": "No surging skills",
-    "updateNote": "Updated every 6 hours"
+    "updateNote": "Updated every 1 hour"
   }
 }

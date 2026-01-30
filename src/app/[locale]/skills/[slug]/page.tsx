@@ -6,6 +6,7 @@ import { Link } from '@/i18n/navigation';
 import { CopyButton } from '@/components/CopyButton';
 import { ThirdPartyCopyButton } from '@/components/ThirdPartyCopyButton';
 import { SkillTracker } from '@/components/SkillTracker';
+import { PlatformBadge } from '@/components/PlatformBadge';
 import { MarkdownContent } from '@/components/MarkdownContent';
 import { AuthStats } from '@/components/AuthStats';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
@@ -41,6 +42,7 @@ async function getSkill(slug: string): Promise<SkillDetail | null> {
       author: localSkill.author,
       category: localSkill.category,
       tags: localSkill.tags,
+      platforms: localSkill.platforms,
       source: 'local',
       contentSource: 'database',
       installs: localSkill.skill_stats?.installs || 0,
@@ -70,6 +72,7 @@ async function getSkill(slug: string): Promise<SkillDetail | null> {
       author: externalSkill.github_owner,
       category: null,
       tags: null,
+      platforms: externalSkill.platforms,
       source: 'github',
       contentSource: 'github',
       installs: externalSkill.installs,
@@ -99,6 +102,7 @@ async function getSkill(slug: string): Promise<SkillDetail | null> {
       author: externalByName.github_owner,
       category: null,
       tags: null,
+      platforms: externalByName.platforms,
       source: 'github',
       contentSource: 'github',
       installs: externalByName.installs,
@@ -400,6 +404,13 @@ export default async function SkillPage({ params }: Props) {
               <div className="my-6 text-sm text-muted-foreground">
                 <Info className="mr-2 inline-block h-4 w-4" />
                 {t('hasFiles')}
+              </div>
+            )}
+
+            {/* Platforms */}
+            {skill.platforms && skill.platforms.length > 0 && (
+              <div className="my-6">
+                <PlatformBadge platforms={skill.platforms} showLabel={true} />
               </div>
             )}
 

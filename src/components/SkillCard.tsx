@@ -3,6 +3,8 @@
 import { ArrowUpRight, Lock } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
+import { PlatformBadge } from '@/components/PlatformBadge';
+import type { Platform } from '@/lib/supabase';
 
 type SkillCardProps = {
   name: string;
@@ -11,6 +13,7 @@ type SkillCardProps = {
   author: string | null;
   category: string | null;
   tags: string[] | null;
+  platforms?: Platform[] | null;
   installs: number;
   isPrivate?: boolean;
   source?: 'local' | 'skillsmp' | 'skills.sh';
@@ -21,6 +24,7 @@ export function SkillCard({
   slug,
   description,
   author,
+  platforms,
   installs,
   isPrivate,
   source,
@@ -52,6 +56,13 @@ export function SkillCard({
         <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
           {description}
         </p>
+      )}
+
+      {/* Platforms */}
+      {platforms && platforms.length > 0 && (
+        <div className="mt-2">
+          <PlatformBadge platforms={platforms} showLabel={false} />
+        </div>
       )}
 
       {/* Meta row */}

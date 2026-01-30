@@ -16,6 +16,7 @@ export type TrendingSkill = {
   slug: string;
   author?: string;
   installs: number;
+  rank?: number;          // 当前排名
   rankDelta?: number;      // 排名变化（正=上升）
   installsDelta?: number;  // 安装量变化
   installsRate?: number;   // 安装量变化率
@@ -64,17 +65,27 @@ function TrendColumn({
   const getValueDisplay = (skill: TrendingSkill) => {
     switch (type) {
       case 'rising':
+        // 计算上次排名: 当前排名 - 上升位次
+        const prevRankRising = (skill.rank || 0) - (skill.rankDelta || 0);
         return (
           <span className="flex items-center gap-1 font-mono text-xs font-bold text-green-600 dark:text-green-400">
             <TrendingUp className="h-3 w-3" />
-            +{skill.rankDelta}
+            {skill.rank}↑{skill.rankDelta}
+            <span className="text-[10px] text-muted-foreground font-normal">
+              ({prevRankRising})
+            </span>
           </span>
         );
       case 'declining':
+        // 计算上次排名: 当前排名 + 下降位次（rankDelta 是负数）
+        const prevRankDeclining = (skill.rank || 0) - (skill.rankDelta || 0);
         return (
           <span className="flex items-center gap-1 font-mono text-xs font-bold text-[#C41E3A]">
             <TrendingDown className="h-3 w-3" />
-            {skill.rankDelta}
+            {skill.rank}↓{Math.abs(skill.rankDelta || 0)}
+            <span className="text-[10px] text-muted-foreground font-normal">
+              ({prevRankDeclining})
+            </span>
           </span>
         );
       case 'new':

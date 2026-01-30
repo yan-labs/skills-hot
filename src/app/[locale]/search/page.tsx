@@ -2,13 +2,15 @@ import { createClient } from '@supabase/supabase-js';
 import { Header } from '@/components/Header';
 import { SearchBar } from '@/components/SearchBar';
 import { SkillCard } from '@/components/SkillCard';
+import { PlatformFilter } from '@/components/PlatformFilter';
 import { Search } from 'lucide-react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { Metadata } from 'next';
+import type { Platform } from '@/lib/supabase';
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; platform?: string }>;
 };
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
@@ -112,8 +114,8 @@ function generateSearchJsonLd(locale: string, query?: string, resultsCount?: num
   };
 }
 
-async function searchSkills(query: string) {
-  if (!query) return [];
+async function searchSkills(query: string, platform?: string) {
+  if (!query && !platform) return [];
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -124,13 +126,24 @@ async function searchSkills(query: string) {
 
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  const { data, error } = await supabase
+  let queryBuilder = supabase
     .from('skills')
     .select('*, skill_stats(*)')
-    .eq('is_private', false)
-    .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
+    .eq('is_private', false);
+
+  // Add text search filter
+  if (query) {
+    queryBuilder = queryBuilder.or(`name.ilike.%${query}%,description.ilike.%${query}%`);
+  }
+
+  // Add platform filter
+  if (platform && platform !== 'all') {
+    queryBuilder = queryBuilder.contains('platforms', [`"${platform}"`]);
+  }
+
+  const { data, error } = await queryBuilder
     .order('created_at', { ascending: false })
-    .limit(20);
+    .limit(50);
 
   if (error) {
     console.error('Error searching skills:', error);
@@ -145,9 +158,9 @@ export default async function SearchPage({ params, searchParams }: Props) {
   setRequestLocale(locale);
 
   const t = await getTranslations('search');
-  const { q } = await searchParams;
+  const { q, platform } = await searchParams;
   const query = q || '';
-  const skills = await searchSkills(query);
+  const skills = await searchSkills(query, platform);
 
   const jsonLd = generateSearchJsonLd(locale, query, skills.length);
 
@@ -169,6 +182,11 @@ export default async function SearchPage({ params, searchParams }: Props) {
         {/* Search */}
         <div className="mb-8 max-w-md">
           <SearchBar />
+        </div>
+
+        {/* Platform Filter */}
+        <div className="mb-8">
+          <PlatformFilter selectedPlatform={(platform || 'all') as Platform | 'all'} />
         </div>
 
         {/* Divider */}
@@ -195,6 +213,7 @@ export default async function SearchPage({ params, searchParams }: Props) {
                       author={skill.author}
                       category={skill.category}
                       tags={skill.tags}
+                      platforms={skill.platforms}
                       installs={skill.skill_stats?.[0]?.installs || 0}
                     />
                   </div>

@@ -293,4 +293,131 @@ describe('GET /api/skills/[slug]', () => {
     expect(data.source).toBe('github');
     expect(data.name).toBe('my-skill-name');
   });
+
+  describe('platforms field', () => {
+    it('should return platforms array for local skill', async () => {
+      mockSupabaseClient.single.mockResolvedValueOnce({
+        data: {
+          id: '1',
+          name: 'test-skill',
+          slug: 'test-skill',
+          description: 'Test description',
+          author: 'Test Author',
+          category: 'development',
+          tags: ['test'],
+          version: '1.0.0',
+          has_files: true,
+          is_private: false,
+          platforms: ['claudecode', 'cursor', 'windsurf'],
+          skill_stats: { installs: 100, views: 500 },
+          created_at: '2024-01-01',
+          updated_at: '2024-01-02',
+        },
+      });
+
+      const request = new NextRequest('http://localhost/api/skills/test-skill');
+      const response = await GET(request, { params: Promise.resolve({ slug: 'test-skill' }) });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.platforms).toEqual(['claudecode', 'cursor', 'windsurf']);
+    });
+
+    it('should return null platforms when not set', async () => {
+      mockSupabaseClient.single.mockResolvedValueOnce({
+        data: {
+          id: '1',
+          name: 'test-skill',
+          slug: 'test-skill',
+          description: 'Test description',
+          author: 'Test Author',
+          category: 'development',
+          tags: ['test'],
+          version: '1.0.0',
+          has_files: true,
+          is_private: false,
+          platforms: null,
+          skill_stats: { installs: 100, views: 500 },
+          created_at: '2024-01-01',
+          updated_at: '2024-01-02',
+        },
+      });
+
+      const request = new NextRequest('http://localhost/api/skills/test-skill');
+      const response = await GET(request, { params: Promise.resolve({ slug: 'test-skill' }) });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.platforms).toBeNull();
+    });
+
+    it('should return empty array when platforms is empty', async () => {
+      mockSupabaseClient.single.mockResolvedValueOnce({
+        data: {
+          id: '1',
+          name: 'test-skill',
+          slug: 'test-skill',
+          description: 'Test description',
+          author: 'Test Author',
+          category: 'development',
+          tags: ['test'],
+          version: '1.0.0',
+          has_files: true,
+          is_private: false,
+          platforms: [],
+          skill_stats: { installs: 100, views: 500 },
+          created_at: '2024-01-01',
+          updated_at: '2024-01-02',
+        },
+      });
+
+      const request = new NextRequest('http://localhost/api/skills/test-skill');
+      const response = await GET(request, { params: Promise.resolve({ slug: 'test-skill' }) });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.platforms).toEqual([]);
+    });
+
+    it('should return platforms array for external skill', async () => {
+      // Mock: local skills not found
+      mockSupabaseClient.single.mockResolvedValueOnce({
+        data: null,
+        error: { message: 'Not found' },
+      });
+      // Mock: external_skills found with platforms
+      mockSupabaseClient.single.mockResolvedValueOnce({
+        data: {
+          id: 'external-1',
+          name: 'github-skill',
+          slug: 'github-skill',
+          description: 'A skill from GitHub',
+          repo: 'owner/repo',
+          repo_path: 'skills/my-skill',
+          branch: 'main',
+          raw_url: 'https://raw.githubusercontent.com/owner/repo/main/skills/my-skill/SKILL.md',
+          github_owner: 'owner',
+          installs: 500,
+          stars: 25,
+          platforms: ['cline', 'copilot'],
+          author: {
+            id: 'author-1',
+            github_login: 'owner',
+            name: 'Skill Owner',
+            avatar_url: 'https://avatars.githubusercontent.com/u/12345',
+          },
+          created_at: '2024-01-01',
+          updated_at: '2024-01-02',
+        },
+        error: null,
+      });
+
+      const request = new NextRequest('http://localhost/api/skills/github-skill');
+      const response = await GET(request, { params: Promise.resolve({ slug: 'github-skill' }) });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.platforms).toEqual(['cline', 'copilot']);
+    });
+  });
 });
