@@ -103,9 +103,13 @@ export async function generateMetadata({ params }: Props) {
   }
 
   const name = author.name || author.github_login;
-  const title = `${name} - Skills Hot`;
+  const title = `${name} - AI Agent Skills Creator | Skills Hot`;
   const skillCount = author.external_skill_count + author.native_skill_count;
-  const description = author.bio || `${skillCount} skills by ${name} with ${author.total_installs.toLocaleString()} total installs`;
+  // Build a description that's at least 120 characters
+  const baseDescription = author.bio
+    ? `${author.bio} - ${skillCount} AI skills with ${author.total_installs.toLocaleString()} total installs on Skills Hot.`
+    : `Discover ${skillCount} AI agent skills by ${name} on Skills Hot. Total ${author.total_installs.toLocaleString()} installs across Claude Code, Cursor, and other coding agents.`;
+  const description = baseDescription;
   const url = `https://skills.hot/${locale}/authors/${login}`;
 
   // Get author's rank

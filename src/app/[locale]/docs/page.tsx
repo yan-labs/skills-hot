@@ -11,8 +11,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
 
   const title = locale === 'zh'
-    ? '文档 - Skills Hot CLI 使用指南'
-    : 'Documentation - Skills Hot CLI Guide';
+    ? '文档 - Skills Hot CLI 安装与使用完整指南'
+    : 'Documentation - Complete Skills Hot CLI Installation & Usage Guide';
 
   const description = locale === 'zh'
     ? '学习如何使用 Skills Hot CLI 安装、管理和发布 AI 代理技能。包含完整的命令参考、API 文档和 SKILL.md 格式说明。'

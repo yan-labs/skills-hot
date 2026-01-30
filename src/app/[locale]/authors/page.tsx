@@ -197,7 +197,9 @@ export default async function AuthorsPage({ params, searchParams }: Props) {
         {/* Header */}
         <div className="mb-8">
           <p className="section-label mb-2">{t('badge')}</p>
-          <h1 className="text-3xl sm:text-4xl">{t('title')}</h1>
+          <h1 className="text-3xl sm:text-4xl">
+            {locale === 'zh' ? 'AI 技能作者 - 发现技能创作者' : 'AI Skill Authors - Discover Skill Creators'}
+          </h1>
           <p className="byline mt-2">{t('subtitle')}</p>
         </div>
 

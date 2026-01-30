@@ -37,9 +37,9 @@ export function Header() {
         <div className="mx-auto flex h-12 max-w-6xl items-center justify-between px-4 sm:px-6">
           {/* Logo - editorial style */}
           <Link href="/" className="group">
-            <h1 className="text-xl tracking-tight sm:text-2xl">
+            <span className="text-xl font-bold tracking-tight sm:text-2xl">
               Skills Hot
-            </h1>
+            </span>
           </Link>
 
           {/* Right side utilities */}

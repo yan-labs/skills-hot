@@ -336,10 +336,7 @@ function generateHomeJsonLd(locale: string, stats: { totalSkills: number; totalI
           '@id': 'https://skills.hot/#organization',
           name: 'Skills Hot',
           url: 'https://skills.hot',
-          logo: {
-            '@type': 'ImageObject',
-            url: 'https://skills.hot/logo.png',
-          },
+          logo: 'https://skills.hot/logo.png',
           sameAs: ['https://github.com/yan-labs/skills-hot'],
           description: locale === 'zh'
             ? `AI 代理技能市场，拥有 ${stats.totalSkills.toLocaleString()} 个技能和 ${stats.totalInstalls.toLocaleString()} 次安装`
@@ -392,6 +389,10 @@ export default async function Home({ params }: Props) {
         />
       ))}
       <div className="min-h-screen bg-background">
+      {/* SEO H1 - visually hidden but accessible */}
+      <h1 className="sr-only">
+        {locale === 'zh' ? 'Skills Hot - AI 代理技能市场' : 'Skills Hot - AI Agent Skills Marketplace'}
+      </h1>
       {/* Combined Masthead: Header + Stats + Hero */}
       <header className="border-b border-border">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">

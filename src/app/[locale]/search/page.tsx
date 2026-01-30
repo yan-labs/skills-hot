@@ -15,10 +15,10 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const { locale } = await params;
   const { q } = await searchParams;
 
-  const baseTitle = locale === 'zh' ? '搜索技能' : 'Search Skills';
+  const baseTitle = locale === 'zh' ? '搜索 AI 代理技能' : 'Search AI Agent Skills';
   const title = q
-    ? `${q} - ${baseTitle} | Skills Hot`
-    : `${baseTitle} | Skills Hot`;
+    ? `${q} - ${baseTitle} | Skills Hot Marketplace`
+    : `${baseTitle} - Discover Skills for Claude Code & Cursor | Skills Hot`;
 
   const description = locale === 'zh'
     ? q
