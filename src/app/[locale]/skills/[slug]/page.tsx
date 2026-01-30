@@ -21,7 +21,8 @@ async function getSkill(slug: string): Promise<SkillDetail | null> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!supabaseUrl || !supabaseKey) {
+  // Skip during build time - return null to let the page handle 404 at runtime
+  if (!supabaseUrl || !supabaseKey || process.env.NODE_ENV === 'development' && process.env.CF_PAGES) {
     return null;
   }
 
