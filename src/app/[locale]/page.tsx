@@ -171,24 +171,28 @@ async function getHeadlineSkill() {
       }
     }
 
-    // Priority 5: 随机选择 Top 10 中的一个（避免永远同一个）
+    // Priority 5: 基于日期从 Top 10 中轮换选择（避免永远同一个）
     if (!topSkill) {
-      const { data: randomSkill } = await supabase
+      // 使用当前日期作为偏移量，每天选择 Top 10 中不同的一个
+      const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+      const rankOffset = (dayOfYear % 10) + 1; // 1-10 之间循环
+
+      const { data: rotatingSkill } = await supabase
         .from('skill_snapshots')
         .select('skill_name, skill_slug, installs, installs_delta, rank')
         .eq('snapshot_at', snapshotAt)
-        .lte('rank', 10)
+        .eq('rank', rankOffset)
         .maybeSingle();
 
-      if (randomSkill) {
+      if (rotatingSkill) {
         const { data: skill } = await supabase
           .from('external_skills')
           .select('*')
-          .eq('slug', randomSkill.skill_slug)
+          .eq('slug', rotatingSkill.skill_slug)
           .maybeSingle();
 
         if (skill) {
-          topSkill = { ...skill, installs_delta: randomSkill.installs_delta || 0 };
+          topSkill = { ...skill, installs_delta: rotatingSkill.installs_delta || 0 };
           headlineReason = 'top-ranked';
         }
       }
