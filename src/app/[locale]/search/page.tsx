@@ -1,4 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
 import { Header } from '@/components/Header';
 import { SearchBar } from '@/components/SearchBar';
 import { SkillCard } from '@/components/SkillCard';
@@ -124,6 +123,7 @@ async function searchSkills(query: string, platform?: string) {
     return [];
   }
 
+  const { createClient } = await import('@supabase/supabase-js');
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   let queryBuilder = supabase

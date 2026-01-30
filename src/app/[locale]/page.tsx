@@ -1,4 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
 import { SearchBar } from '@/components/SearchBar';
 import { HeadlineSkill } from '@/components/HeadlineSkill';
 import { TrendingBoard, TrendingSkill } from '@/components/TrendingBoard';
@@ -26,6 +25,7 @@ async function getStats() {
     return { totalSkills: 0, totalInstalls: 0, totalAuthors: 0 };
   }
 
+  const { createClient } = await import('@supabase/supabase-js');
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   // Get counts in parallel
@@ -53,6 +53,7 @@ async function getHeadlineSkill() {
     return null;
   }
 
+  const { createClient } = await import('@supabase/supabase-js');
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   // 获取最新快照时间
@@ -195,6 +196,7 @@ async function getLeaderboardSkills() {
     return { mostInstalled: [], mostStarred: [] };
   }
 
+  const { createClient } = await import('@supabase/supabase-js');
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   // Get most installed (skip the first one as it's the headline)
@@ -242,6 +244,7 @@ async function getTrendingData(): Promise<{
     return { rising: [], declining: [], newEntries: [], surging: [] };
   }
 
+  const { createClient } = await import('@supabase/supabase-js');
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   try {

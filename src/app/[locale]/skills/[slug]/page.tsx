@@ -1,4 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
 import { Header } from '@/components/Header';
 import { notFound } from 'next/navigation';
 import { ExternalLink, ArrowLeft, Github, Star, Download, Info } from 'lucide-react';
@@ -26,6 +25,7 @@ async function getSkill(slug: string): Promise<SkillDetail | null> {
     return null;
   }
 
+  const { createClient } = await import('@supabase/supabase-js');
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   const { data: localSkill } = await supabase
@@ -126,6 +126,7 @@ async function getSkillContent(skill: SkillDetail): Promise<string> {
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (skill.contentSource === 'database' && supabaseUrl && supabaseKey) {
+    const { createClient } = await import('@supabase/supabase-js');
     const supabase = createClient(supabaseUrl, supabaseKey);
     const { data } = await supabase
       .from('skills')
@@ -156,6 +157,7 @@ async function getSkillRank(skillId: string, source: string): Promise<number | n
 
   if (!supabaseUrl || !supabaseKey) return null;
 
+  const { createClient } = await import('@supabase/supabase-js');
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   // Get skills ordered by installs to find rank

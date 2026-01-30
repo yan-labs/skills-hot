@@ -1,4 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
 import { Header } from '@/components/Header';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, Github, Download, Package, Star } from 'lucide-react';
@@ -25,6 +24,7 @@ async function getAuthorByLogin(login: string): Promise<AuthorWithSkills | null>
     return null;
   }
 
+  const { createClient } = await import('@supabase/supabase-js');
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   // Get author
@@ -69,6 +69,7 @@ async function getAuthorRank(authorId: string): Promise<number | null> {
 
   if (!supabaseUrl || !supabaseKey) return null;
 
+  const { createClient } = await import('@supabase/supabase-js');
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   // Get all authors ordered by total_installs to find rank

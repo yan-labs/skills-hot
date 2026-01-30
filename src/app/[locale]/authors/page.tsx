@@ -1,4 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
 import { Header } from '@/components/Header';
 import { Link } from '@/i18n/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
@@ -29,6 +28,7 @@ async function getAuthors(
     return { authors: [], total: 0 };
   }
 
+  const { createClient } = await import('@supabase/supabase-js');
   const supabase = createClient(supabaseUrl, supabaseKey);
   const offset = (page - 1) * limit;
 
@@ -71,6 +71,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   let totalPages = 1;
 
   if (supabaseUrl && supabaseKey) {
+    const { createClient } = await import('@supabase/supabase-js');
     const supabase = createClient(supabaseUrl, supabaseKey);
     const { count } = await supabase
       .from('authors')

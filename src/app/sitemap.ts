@@ -1,5 +1,4 @@
 import { MetadataRoute } from 'next';
-import { createClient } from '@supabase/supabase-js';
 
 const BASE_URL = 'https://skills.hot';
 
@@ -32,6 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return staticPages;
   }
 
+  const { createClient } = await import('@supabase/supabase-js');
   const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
   const [{ data: skills }, { data: authors }] = await Promise.all([
