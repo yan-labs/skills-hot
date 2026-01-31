@@ -38,12 +38,15 @@ export async function GET(request: NextRequest, { params }: Props) {
       .eq('slug', slug)
       .single();
 
-    // 检查 external_skills
-    const { data: externalSkill } = await supabase
+    // 检查 external_skills（优先 skills.sh 来源）
+    const { data: externalSkills } = await supabase
       .from('external_skills')
       .select('name')
       .eq('slug', slug)
-      .single();
+      .order('source', { ascending: false })
+      .limit(1);
+
+    const externalSkill = externalSkills?.[0];
 
     const skillName = localSkill?.name || externalSkill?.name;
 

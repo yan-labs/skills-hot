@@ -48,52 +48,10 @@ export function HeadlineSkill({ skill, author }: HeadlineSkillProps) {
         </p>
       </div>
 
-      {/* Three-column layout */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[180px_1fr_200px] lg:gap-10">
-        {/* Left: Author Card */}
-        <div className="order-3 lg:order-1">
-          {author ? (
-            <Link
-              href={`/authors/${author.github_login}`}
-              className="group block border-t border-border pt-4"
-            >
-              <p className="section-label mb-3">Author</p>
-              <div className="flex items-center gap-3">
-                {author.avatar_url ? (
-                  <Image
-                    src={author.avatar_url}
-                    alt={author.name || author.github_login}
-                    width={40}
-                    height={40}
-                    unoptimized
-                    className="rounded-full grayscale transition-all group-hover:grayscale-0"
-                  />
-                ) : (
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-sm font-medium">
-                    {(author.name || author.github_login).charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <div>
-                  <p className="text-sm font-medium group-hover:underline">
-                    {author.name || author.github_login}
-                  </p>
-                  <p className="text-xs text-muted-foreground">@{author.github_login}</p>
-                </div>
-              </div>
-              <div className="mt-3 space-y-1 text-xs text-muted-foreground">
-                <p>{author.external_skill_count} {t('headline.skills')}</p>
-                <p>{formatNumber(author.total_installs)} {t('headline.totalInstalls')}</p>
-              </div>
-            </Link>
-          ) : (
-            <div className="border-t border-border pt-4">
-              <p className="text-sm text-muted-foreground">{t('headline.unknownAuthor')}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Center: Headline Skill */}
-        <div className="order-1 lg:order-2">
+      {/* Two-column layout */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_220px] lg:gap-10">
+        {/* Left: Headline Skill */}
+        <div className="order-1">
           <Link
             href={`/skills/${skill.slug}`}
             className="group block"
@@ -155,8 +113,9 @@ export function HeadlineSkill({ skill, author }: HeadlineSkillProps) {
           </Link>
         </div>
 
-        {/* Right: Stats Card */}
-        <div className="order-2 lg:order-3">
+        {/* Right Sidebar: Stats + Author */}
+        <div className="order-2">
+          {/* Stats Card */}
           <div className="border-t border-border pt-4">
             <p className="section-label mb-4">{t('headline.statistics')}</p>
 
@@ -195,17 +154,56 @@ export function HeadlineSkill({ skill, author }: HeadlineSkillProps) {
               )}
             </div>
 
-            {/* Divider */}
-            <div className="my-4 border-t border-border" />
-
             {/* Quick install hint */}
-            <p className="text-xs text-muted-foreground">
-              {t('headline.installHint')}
-            </p>
-            <code className="mt-2 block truncate bg-foreground px-2 py-1.5 text-xs text-background">
-              npx skills add {skill.name}
-            </code>
+            <div className="mt-4 border-t border-border pt-4">
+              <p className="text-xs text-muted-foreground">
+                {t('headline.installHint')}
+              </p>
+              <code className="mt-2 block truncate bg-foreground px-2 py-1.5 text-xs text-background">
+                npx skills add {skill.name}
+              </code>
+            </div>
           </div>
+
+          {/* Author Card */}
+          {author ? (
+            <Link
+              href={`/authors/${author.github_login}`}
+              className="group mt-6 block border-t border-border pt-4"
+            >
+              <p className="section-label mb-3">Author</p>
+              <div className="flex items-center gap-3">
+                {author.avatar_url ? (
+                  <Image
+                    src={author.avatar_url}
+                    alt={author.name || author.github_login}
+                    width={40}
+                    height={40}
+                    unoptimized
+                    className="rounded-full grayscale transition-all group-hover:grayscale-0"
+                  />
+                ) : (
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-sm font-medium">
+                    {(author.name || author.github_login).charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div>
+                  <p className="text-sm font-medium group-hover:underline">
+                    {author.name || author.github_login}
+                  </p>
+                  <p className="text-xs text-muted-foreground">@{author.github_login}</p>
+                </div>
+              </div>
+              <div className="mt-3 flex gap-4 text-xs text-muted-foreground">
+                <span>{author.external_skill_count} {t('headline.skills')}</span>
+                <span>{formatNumber(author.total_installs)} {t('headline.totalInstalls')}</span>
+              </div>
+            </Link>
+          ) : (
+            <div className="mt-6 border-t border-border pt-4">
+              <p className="text-sm text-muted-foreground">{t('headline.unknownAuthor')}</p>
+            </div>
+          )}
         </div>
       </div>
     </section>

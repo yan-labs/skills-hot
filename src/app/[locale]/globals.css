@@ -198,11 +198,17 @@
    EDITORIAL UTILITIES
    =========================================== */
 
-/* Section divider - thin horizontal rule */
+/* Section divider - subtle gradient fade */
 .divider {
   height: 1px;
-  background: var(--border);
-  margin: 2rem 0;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--border) 20%,
+    var(--border) 80%,
+    transparent
+  );
+  margin: 2.5rem 0;
 }
 
 /* Double line divider (like newspaper sections) */
@@ -217,7 +223,21 @@
     var(--foreground) 2px,
     var(--foreground) 3px
   );
-  margin: 2rem 0;
+  margin: 2.5rem 0;
+}
+
+/* Soft divider - even more subtle */
+.divider-soft {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--border) 30%,
+    var(--border) 70%,
+    transparent
+  );
+  margin: 1.5rem 0;
+  opacity: 0.5;
 }
 
 /* Section label (like "TECHNOLOGY" in newspapers) */

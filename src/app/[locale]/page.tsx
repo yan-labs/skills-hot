@@ -437,33 +437,40 @@ export default async function Home({ params }: Props) {
         {locale === 'zh' ? 'Skills Hot - AI 代理技能市场' : 'Skills Hot - AI Agent Skills Marketplace'}
       </h1>
       {/* Combined Masthead: Header + Stats + Hero */}
-      <header className="border-b border-border">
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          {/* Top row: Logo + Nav + Actions */}
+          {/* Single row: Logo + Nav + Actions */}
           <div className="flex h-14 items-center justify-between">
             <div className="flex items-center gap-8">
-              <Link href="/" className="text-xl font-bold">
-                Skills Hot
+              <Link href="/" className="group flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center bg-foreground text-background">
+                  <span className="font-serif text-lg font-bold">S</span>
+                </div>
+                <span className="hidden font-serif text-xl tracking-tight sm:inline">
+                  Skills Hot
+                </span>
               </Link>
-              <nav className="hidden items-center gap-6 text-sm md:flex">
-                <Link href="/authors" className="text-muted-foreground transition-colors hover:text-foreground">
+              <nav className="hidden items-center gap-5 md:flex">
+                <Link href="/authors" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
                   {t('header.authors')}
                 </Link>
-                <Link href="/docs" className="text-muted-foreground transition-colors hover:text-foreground">
+                <Link href="/docs" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
                   {t('header.docs')}
                 </Link>
               </nav>
             </div>
             <div className="flex items-center gap-3">
-              {/* Stats inline */}
-              <div className="hidden items-center gap-4 text-sm lg:flex">
-                <span className="font-mono font-medium">{formatNumber(stats.totalSkills)}</span>
-                <span className="text-muted-foreground">skills</span>
-                <span className="text-muted-foreground">·</span>
-                <span className="font-mono font-medium">{formatNumber(stats.totalInstalls)}</span>
-                <span className="text-muted-foreground">installs</span>
+              {/* Stats pills */}
+              <div className="hidden items-center gap-2 lg:flex">
+                <div className="flex items-center gap-1.5 rounded-full bg-muted/50 px-3 py-1">
+                  <span className="font-mono text-sm font-medium">{formatNumber(stats.totalSkills)}</span>
+                  <span className="text-xs text-muted-foreground">skills</span>
+                </div>
+                <div className="flex items-center gap-1.5 rounded-full bg-muted/50 px-3 py-1">
+                  <span className="font-mono text-sm font-medium">{formatNumber(stats.totalInstalls)}</span>
+                  <span className="text-xs text-muted-foreground">installs</span>
+                </div>
               </div>
-              <div className="h-4 w-px bg-border hidden lg:block" />
               <SearchBar compact />
               <ThemeToggle />
             </div>

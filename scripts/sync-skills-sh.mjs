@@ -168,41 +168,64 @@ function extractPlatforms(content) {
 
 /**
  * 从 GitHub 获取 SKILL.md 内容
+ * 返回 { content, actualPath } - actualPath 为 null 表示在根目录
  */
 async function fetchSkillContent(owner, repo, skillName, repoPath) {
-  const possibleUrls = [];
+  // 定义可能的路径，格式: { url, path }
+  // path 为 null 表示根目录
+  const possiblePaths = [];
 
-  // 1. 如果有 repoPath，先尝试 skills/{repoPath}
+  // 1. 如果有 repoPath，先尝试 skills/{repoPath} 和直接 {repoPath}
   if (repoPath) {
-    possibleUrls.push(`https://raw.githubusercontent.com/${owner}/${repo}/main/skills/${repoPath}/SKILL.md`);
-    possibleUrls.push(`https://raw.githubusercontent.com/${owner}/${repo}/main/${repoPath}/SKILL.md`);
+    possiblePaths.push({
+      url: `https://raw.githubusercontent.com/${owner}/${repo}/main/skills/${repoPath}/SKILL.md`,
+      path: `skills/${repoPath}`,
+    });
+    possiblePaths.push({
+      url: `https://raw.githubusercontent.com/${owner}/${repo}/main/${repoPath}/SKILL.md`,
+      path: repoPath,
+    });
   }
 
   // 2. 尝试 skills/{skillName}
-  possibleUrls.push(`https://raw.githubusercontent.com/${owner}/${repo}/main/skills/${skillName}/SKILL.md`);
+  possiblePaths.push({
+    url: `https://raw.githubusercontent.com/${owner}/${repo}/main/skills/${skillName}/SKILL.md`,
+    path: `skills/${skillName}`,
+  });
 
   // 3. 尝试直接的 {skillName}
-  possibleUrls.push(`https://raw.githubusercontent.com/${owner}/${repo}/main/${skillName}/SKILL.md`);
+  possiblePaths.push({
+    url: `https://raw.githubusercontent.com/${owner}/${repo}/main/${skillName}/SKILL.md`,
+    path: skillName,
+  });
 
   // 4. 尝试根目录
-  possibleUrls.push(`https://raw.githubusercontent.com/${owner}/${repo}/main/SKILL.md`);
+  possiblePaths.push({
+    url: `https://raw.githubusercontent.com/${owner}/${repo}/main/SKILL.md`,
+    path: null,
+  });
 
-  // 去重并尝试
-  for (const url of [...new Set(possibleUrls)]) {
+  // 去重（按 URL）并尝试
+  const seen = new Set();
+  for (const { url, path } of possiblePaths) {
+    if (seen.has(url)) continue;
+    seen.add(url);
+
     try {
       const response = await fetch(url, {
         headers: { 'User-Agent': 'SkillsHot/1.0', Accept: 'text/plain' },
       });
 
       if (response.ok) {
-        return await response.text();
+        const content = await response.text();
+        return { content, actualPath: path };
       }
     } catch {
       // 继续尝试下一个
     }
   }
 
-  return null;
+  return { content: null, actualPath: null };
 }
 
 /**
@@ -344,30 +367,7 @@ async function main() {
 
   console.log(`✅ authors 表同步完成, 共 ${authorMap.size} 个\n`);
 
-  // 4. 获取已存在 skills 的 repo_path（避免覆盖）
-  console.log('📂 获取已存在的 repo_path...');
-  const existingPathMap = new Map();
-  const skillNames = skillsWithParsed.map(s => s.name);
-
-  for (let i = 0; i < skillNames.length; i += 1000) {
-    const batch = skillNames.slice(i, i + 1000);
-    const { data: existing } = await supabase
-      .from('external_skills')
-      .select('source_id, repo_path')
-      .in('source_id', batch);
-
-    if (existing) {
-      for (const skill of existing) {
-        if (skill.repo_path) {
-          existingPathMap.set(skill.source_id, skill.repo_path);
-        }
-      }
-    }
-  }
-
-  console.log(`✅ 获取到 ${existingPathMap.size} 个已存在的路径\n`);
-
-  // 5. 批量 upsert external_skills（包含 platforms）
+  // 4. 批量 upsert external_skills（包含 platforms）
   console.log('💾 更新 external_skills 表（含 platforms）...');
   let inserted = 0;
   let errors = 0;
@@ -384,16 +384,15 @@ async function main() {
       const { owner, repo, path } = skill.parsed;
       const authorId = authorMap.get(owner) || null;
 
-      // 优先使用已存在的路径
-      const existingPath = existingPathMap.get(skill.name);
-      const effectivePath = existingPath || path || skill.name;
-
-      // 获取 platforms（从 SKILL.md）
+      // 获取 SKILL.md 内容和实际路径
       let platforms = ['universal'];
+      let actualPath = path; // 默认使用 topSource 解析出的路径
+
       try {
-        const content = await fetchSkillContent(owner, repo, skill.name, effectivePath);
-        if (content) {
-          platforms = extractPlatforms(content);
+        const result = await fetchSkillContent(owner, repo, skill.name, path);
+        if (result.content) {
+          platforms = extractPlatforms(result.content);
+          actualPath = result.actualPath; // 使用实际找到的路径
           platformsFetched++;
         }
       } catch {
@@ -406,9 +405,9 @@ async function main() {
         name: skill.name,
         slug: generateSlug(skill.name),
         repo: `${owner}/${repo}`,
-        repo_path: effectivePath,
+        repo_path: actualPath, // 可能为 null（表示根目录）
         branch: 'main',
-        raw_url: getGitHubRawUrl(owner, repo, 'main', effectivePath),
+        raw_url: getGitHubRawUrl(owner, repo, 'main', actualPath),
         author_id: authorId,
         github_owner: owner,
         installs: skill.installs || 0,
@@ -432,7 +431,7 @@ async function main() {
   console.log(`\n✅ external_skills 更新完成: ${inserted} 条`);
   console.log(`   成功解析 platforms: ${platformsFetched} 个\n`);
 
-  // 6. 更新 authors 统计
+  // 5. 更新 authors 统计
   console.log('📊 更新 authors 统计...');
   const uniqueAuthorIds = Array.from(new Set(Array.from(authorMap.values())));
 

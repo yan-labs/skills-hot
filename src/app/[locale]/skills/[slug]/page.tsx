@@ -7,7 +7,6 @@ import { ThirdPartyCopyButton } from '@/components/ThirdPartyCopyButton';
 import { SkillTracker } from '@/components/SkillTracker';
 import { PlatformBadge } from '@/components/PlatformBadge';
 import { MarkdownContent } from '@/components/MarkdownContent';
-import { AuthStats } from '@/components/AuthStats';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { fetchGitHubContent, fetchSkillContent, getGitHubRawUrl, parseTopSource } from '@/lib/github-content';
 import type { SkillDetail } from '@/lib/supabase';
@@ -58,11 +57,16 @@ async function getSkill(slug: string): Promise<SkillDetail | null> {
     };
   }
 
-  const { data: externalSkill } = await supabase
+  // 查询 external_skills，优先取 skills.sh 来源（有实时 installs 数据）
+  // 使用 order + limit 避免重复记录导致 .single() 失败
+  const { data: externalSkills } = await supabase
     .from('external_skills')
     .select('*, author:authors(*)')
     .eq('slug', slug)
-    .single();
+    .order('source', { ascending: false }) // skills.sh > github
+    .limit(1);
+
+  const externalSkill = externalSkills?.[0];
 
   if (externalSkill) {
     return {
@@ -88,11 +92,15 @@ async function getSkill(slug: string): Promise<SkillDetail | null> {
     };
   }
 
-  const { data: externalByName } = await supabase
+  // 备选：按 name 查询，同样处理重复记录
+  const { data: externalByNames } = await supabase
     .from('external_skills')
     .select('*, author:authors(*)')
     .eq('name', slug)
-    .single();
+    .order('source', { ascending: false })
+    .limit(1);
+
+  const externalByName = externalByNames?.[0];
 
   if (externalByName) {
     return {
@@ -329,11 +337,16 @@ export default async function SkillPage({ params }: Props) {
   const content = await getSkillContent(skill);
 
   // 使用数据库中存储的 repo_path 构建 GitHub URL
+  // repo_path 为 null 表示 SKILL.md 在根目录
   const githubUrl = skill.repo
     ? `https://github.com/${skill.repo}${skill.repo_path ? `/tree/main/${skill.repo_path}` : ''}`
     : null;
 
   const jsonLd = generateSkillJsonLd(skill, locale);
+
+  // Generate avatar URL for author
+  const authorAvatarUrl = skill.author_info?.avatar_url ||
+    (skill.author ? `https://github.com/${skill.author}.png?size=80` : null);
 
   return (
     <>
@@ -345,7 +358,7 @@ export default async function SkillPage({ params }: Props) {
       <SkillTracker skillSlug={skill.slug} />
       <Header />
 
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
         {/* Breadcrumb */}
         <Link
           href="/"
@@ -355,133 +368,152 @@ export default async function SkillPage({ params }: Props) {
           {t('backToHome')}
         </Link>
 
-        {/* Article layout */}
-        <article className="mt-8 grid gap-12 lg:grid-cols-[1fr,280px]">
-          {/* Main content */}
-          <div>
-            {/* Header */}
-            <header className="mb-8">
-              <p className="section-label mb-2">
-                {skill.source === 'local' ? 'Platform' : skill.source === 'github' ? 'GitHub' : 'SkillSMP'}
-              </p>
-              <h1 className="text-3xl sm:text-4xl">{skill.name}</h1>
-              {skill.description && (
-                <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
-                  {skill.description}
-                </p>
-              )}
-
-              {/* Byline */}
-              <div className="byline mt-4 flex flex-wrap items-center gap-3">
-                {skill.author && (
-                  <Link
-                    href={`/authors/${skill.author}`}
-                    className="hover:text-foreground transition-colors"
-                  >
-                    {skill.author}
-                  </Link>
-                )}
-                <span>·</span>
-                <span>{new Date(skill.created_at).toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                {skill.version && (
-                  <>
-                    <span>·</span>
-                    <span>v{skill.version}</span>
-                  </>
-                )}
-              </div>
-            </header>
-
-            {/* Divider */}
-            <div className="divider" />
-
-            {/* Info notices */}
-            {skill.source === 'github' && (
-              <div className="my-6 text-sm text-muted-foreground">
-                <Info className="mr-2 inline-block h-4 w-4" />
-                {t('fromGitHub')}
-                {githubUrl && (
-                  <a
-                    href={githubUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ml-2 text-foreground underline underline-offset-2"
-                  >
-                    {skill.repo}
-                  </a>
-                )}
-              </div>
-            )}
-
-            {skill.source === 'local' && skill.has_files && (
-              <div className="my-6 text-sm text-muted-foreground">
-                <Info className="mr-2 inline-block h-4 w-4" />
-                {t('hasFiles')}
-              </div>
-            )}
-
-            {/* Platforms */}
-            {skill.platforms && skill.platforms.length > 0 && (
-              <div className="my-6">
-                <PlatformBadge platforms={skill.platforms} showLabel={true} />
-              </div>
-            )}
-
-            {/* Tags */}
-            {skill.tags && skill.tags.length > 0 && (
-              <div className="my-6 flex flex-wrap gap-2">
-                {skill.tags.map((tag: string) => (
-                  <span
-                    key={tag}
-                    className="text-sm text-muted-foreground"
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Content */}
-            <div className="my-8">
-              <h2 className="mb-4 text-lg">SKILL.md</h2>
-              {content ? (
-                <div className="border border-border rounded-lg p-6 bg-card">
-                  <MarkdownContent content={content} />
-                </div>
-              ) : (
-                <p className="text-muted-foreground">{t('noContent')}</p>
+        {/* True left-right layout */}
+        <article className="mt-6 flex flex-col gap-6 md:flex-row md:gap-8">
+          {/* LEFT: Markdown content area */}
+          <div className="min-w-0 flex-1 order-2 md:order-1">
+            {/* Content header */}
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                SKILL.md
+              </span>
+              {githubUrl && (
+                <a
+                  href={githubUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <Github className="h-3.5 w-3.5" />
+                  View source
+                </a>
               )}
             </div>
+
+            {/* Markdown content */}
+            {content ? (
+              <div className="rounded-xl border border-border/50 bg-card p-6 shadow-sm sm:p-8">
+                <MarkdownContent content={content} />
+              </div>
+            ) : (
+              <div className="rounded-xl border border-border/50 bg-card p-8 text-center">
+                <p className="text-muted-foreground">{t('noContent')}</p>
+              </div>
+            )}
           </div>
 
-          {/* Sidebar */}
-          <aside className="space-y-8">
-            {/* Install */}
-            <div>
-              <h4 className="section-label mb-3">{t('install')}</h4>
+          {/* RIGHT: Info sidebar */}
+          <aside className="order-1 w-full flex-shrink-0 md:order-2 md:sticky md:top-20 md:w-[380px] md:self-start">
+            <div className="rounded-xl border border-border/50 bg-card">
+              {/* Header section */}
+              <div className="p-5">
+                {/* Source + Platforms */}
+                <div className="mb-3 flex flex-wrap items-center gap-2">
+                  <span className="rounded-full bg-muted px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
+                    {skill.source === 'local' ? 'Platform' : skill.source === 'github' ? 'GitHub' : 'SkillSMP'}
+                  </span>
+                  {skill.platforms && skill.platforms.length > 0 && (
+                    <PlatformBadge platforms={skill.platforms} showLabel={false} />
+                  )}
+                </div>
 
-              <div className="space-y-3">
-                <div>
-                  <p className="caption mb-1">Skills Hot CLI</p>
-                  <div className="flex items-center justify-between gap-2 border-b border-border py-2">
+                {/* Title */}
+                <h1 className="text-2xl font-semibold leading-tight">{skill.name}</h1>
+
+                {/* Description */}
+                {skill.description && (
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    {skill.description}
+                  </p>
+                )}
+
+                {/* Author */}
+                <Link
+                  href={skill.author ? `/authors/${skill.author}` : '#'}
+                  className="group mt-4 flex items-center gap-3"
+                >
+                  {authorAvatarUrl && (
+                    <img
+                      src={authorAvatarUrl}
+                      alt={skill.author_info?.name || skill.author || 'Author'}
+                      className="h-10 w-10 rounded-full transition-transform group-hover:scale-105"
+                    />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    {skill.author && (
+                      <span className="flex items-center gap-1 text-sm font-medium group-hover:underline">
+                        {skill.author_info?.name || skill.author}
+                        <ArrowUpRight className="h-3 w-3 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                      </span>
+                    )}
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <span>{new Date(skill.created_at).toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                      {skill.version && (
+                        <>
+                          <span>·</span>
+                          <span>v{skill.version}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+
+                {/* Tags */}
+                {skill.tags && skill.tags.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {skill.tags.map((tag: string) => (
+                      <span
+                        key={tag}
+                        className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Stats section */}
+              <div className="border-t border-border/50 px-5 py-4">
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-4">
+                    <div>
+                      <span className="font-semibold tabular-nums">{skill.installs.toLocaleString()}</span>
+                      <span className="ml-1.5 text-muted-foreground">{t('installs')}</span>
+                    </div>
+                    {skill.stars !== undefined && (
+                      <div>
+                        <span className="font-semibold tabular-nums">{skill.stars.toLocaleString()}</span>
+                        <span className="ml-1.5 text-muted-foreground">{t('stars')}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    {skill.views !== undefined && skill.views > 0 && (
+                      <span>{skill.views.toLocaleString()} views</span>
+                    )}
+                    {skill.copies !== undefined && skill.copies > 0 && (
+                      <span>{skill.copies.toLocaleString()} copies</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Install section */}
+              <div className="border-t border-border/50 px-5 py-4">
+                <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('install')}</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2 rounded-lg bg-muted px-3 py-2">
                     <code className="truncate text-sm">skb add {skill.slug}</code>
                     <CopyButton text={`skb add ${skill.slug}`} skillSlug={skill.slug} />
                   </div>
-                </div>
-
-                <div>
-                  <p className="caption mb-1">npx</p>
-                  <div className="flex items-center justify-between gap-2 border-b border-border py-2">
-                    <code className="truncate text-sm">npx @skills-hot/cli add {skill.slug}</code>
+                  <div className="flex items-center justify-between gap-2 rounded-lg bg-muted px-3 py-2">
+                    <code className="truncate text-xs">npx @skills-hot/cli add {skill.slug}</code>
                     <CopyButton text={`npx @skills-hot/cli add ${skill.slug}`} skillSlug={skill.slug} />
                   </div>
-                </div>
-
-                {skill.source === 'local' && (
-                  <div>
-                    <p className="caption mb-1">{t('thirdParty.label')}</p>
-                    <div className="flex items-center justify-between gap-2 border-b border-border py-2">
-                      <code className="truncate text-sm text-muted-foreground">
+                  {skill.source === 'local' && (
+                    <div className="flex items-center justify-between gap-2 rounded-lg bg-muted px-3 py-2">
+                      <code className="truncate text-xs text-muted-foreground">
                         {t('thirdParty.placeholder')}
                       </code>
                       <ThirdPartyCopyButton
@@ -490,74 +522,44 @@ export default async function SkillPage({ params }: Props) {
                         isPrivate={skill.is_private}
                       />
                     </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Stats */}
-            <div>
-              <h4 className="section-label mb-3">{t('statistics')}</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">{t('installs')}</span>
-                  <span>{skill.installs.toLocaleString()}</span>
-                </div>
-                {skill.stars !== undefined && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">{t('stars')}</span>
-                    <span>{skill.stars.toLocaleString()}</span>
-                  </div>
-                )}
-                <AuthStats views={skill.views} copies={skill.copies} />
-              </div>
-            </div>
-
-            {/* Author */}
-            {skill.author_info && (
-              <div>
-                <h4 className="section-label mb-3">Author</h4>
-                <Link
-                  href={`/authors/${skill.author_info.github_login}`}
-                  className="flex items-center gap-3 transition-opacity hover:opacity-80"
-                >
-                  {skill.author_info.avatar_url && (
-                    <img
-                      src={skill.author_info.avatar_url}
-                      alt={skill.author_info.name || skill.author_info.github_login}
-                      className="h-10 w-10 rounded-full"
-                    />
                   )}
-                  <div>
-                    <div className="text-sm">{skill.author_info.name || skill.author_info.github_login}</div>
-                    <div className="text-xs text-muted-foreground">@{skill.author_info.github_login}</div>
-                  </div>
-                </Link>
+                </div>
               </div>
-            )}
 
-            {/* Links */}
-            <div className="space-y-2">
-              {githubUrl && (
-                <a
-                  href={githubUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  <Github className="h-4 w-4" />
-                  {t('viewOnGitHub')}
-                </a>
+              {/* Info notice for local skills with files */}
+              {skill.source === 'local' && skill.has_files && (
+                <div className="border-t border-border/50 px-5 py-4">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Info className="h-4 w-4 text-amber-500" />
+                    <span className="text-muted-foreground">{t('hasFiles')}</span>
+                  </div>
+                </div>
               )}
 
-              {skill.source === 'local' && (
-                <Link
-                  href={`/api/skills/${skill.slug}/raw`}
-                  className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  {t('viewSource')}
-                </Link>
+              {/* Links */}
+              {(githubUrl || skill.source === 'local') && (
+                <div className="flex gap-2 border-t border-border/50 p-4">
+                  {githubUrl && (
+                    <a
+                      href={githubUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-muted px-4 py-2.5 text-sm transition-colors hover:bg-muted/70"
+                    >
+                      <Github className="h-4 w-4" />
+                      GitHub
+                    </a>
+                  )}
+                  {skill.source === 'local' && (
+                    <Link
+                      href={`/api/skills/${skill.slug}/raw`}
+                      className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-muted px-4 py-2.5 text-sm transition-colors hover:bg-muted/70"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      {t('viewSource')}
+                    </Link>
+                  )}
+                </div>
               )}
             </div>
           </aside>

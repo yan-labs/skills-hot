@@ -85,12 +85,15 @@ export async function GET(request: NextRequest, { params }: Props) {
       return NextResponse.json(response);
     }
 
-    // 2. Try external_skills table
-    const { data: externalSkill } = await supabase
+    // 2. Try external_skills table (优先 skills.sh 来源)
+    const { data: externalSkills } = await supabase
       .from('external_skills')
       .select('*, author:authors(*)')
       .eq('slug', slug)
-      .single();
+      .order('source', { ascending: false })
+      .limit(1);
+
+    const externalSkill = externalSkills?.[0];
 
     if (externalSkill) {
       const response: SkillDetail = {
@@ -119,11 +122,14 @@ export async function GET(request: NextRequest, { params }: Props) {
     }
 
     // 3. Also try to match by name in external_skills
-    const { data: externalByName } = await supabase
+    const { data: externalByNames } = await supabase
       .from('external_skills')
       .select('*, author:authors(*)')
       .eq('name', slug)
-      .single();
+      .order('source', { ascending: false })
+      .limit(1);
+
+    const externalByName = externalByNames?.[0];
 
     if (externalByName) {
       const response: SkillDetail = {

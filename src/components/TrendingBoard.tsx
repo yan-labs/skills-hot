@@ -62,38 +62,29 @@ function TrendColumn({
   const getValueDisplay = (skill: TrendingSkill) => {
     switch (type) {
       case 'rising':
-        // 计算上次排名: 当前排名 - 上升位次
         const prevRankRising = (skill.rank || 0) - (skill.rankDelta || 0);
         return (
           <span className="flex items-center gap-1 font-mono text-xs font-bold text-green-600 dark:text-green-400">
             <TrendingUp className="h-3 w-3" />
-            {skill.rank}↑{skill.rankDelta}
-            <span className="text-[10px] text-muted-foreground font-normal">
-              ({prevRankRising})
-            </span>
+            +{skill.rankDelta}
           </span>
         );
       case 'declining':
-        // 计算上次排名: 当前排名 + 下降位次（rankDelta 是负数）
-        const prevRankDeclining = (skill.rank || 0) - (skill.rankDelta || 0);
         return (
           <span className="flex items-center gap-1 font-mono text-xs font-bold text-[#C41E3A]">
             <TrendingDown className="h-3 w-3" />
-            {skill.rank}↓{Math.abs(skill.rankDelta || 0)}
-            <span className="text-[10px] text-muted-foreground font-normal">
-              ({prevRankDeclining})
-            </span>
+            {skill.rankDelta}
           </span>
         );
       case 'new':
         return (
-          <span className="font-mono text-xs font-bold text-blue-600 dark:text-blue-400">
+          <span className="rounded-full bg-blue-500/10 px-2 py-0.5 font-mono text-[10px] font-bold text-blue-600 dark:text-blue-400">
             NEW
           </span>
         );
       case 'surging':
         return (
-          <span className="font-mono text-xs font-bold text-orange-600 dark:text-orange-400">
+          <span className="rounded-full bg-orange-500/10 px-2 py-0.5 font-mono text-[10px] font-bold text-orange-600 dark:text-orange-400">
             {formatPercent(skill.installsRate || 0)}
           </span>
         );
@@ -103,15 +94,17 @@ function TrendColumn({
   };
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col rounded-lg bg-muted/30 p-4">
       {/* Column header */}
-      <div
-        className="mb-3 flex items-center gap-2 border-b-2 pb-2"
-        style={{ borderColor: accentColor }}
-      >
-        <Icon className="h-4 w-4" style={{ color: accentColor }} />
+      <div className="mb-3 flex items-center gap-2">
+        <div
+          className="flex h-7 w-7 items-center justify-center rounded-md"
+          style={{ backgroundColor: `${accentColor}15` }}
+        >
+          <Icon className="h-3.5 w-3.5" style={{ color: accentColor }} />
+        </div>
         <h4
-          className="text-xs font-bold uppercase tracking-wider"
+          className="text-xs font-semibold uppercase tracking-wider"
           style={{ color: accentColor }}
         >
           {title}
@@ -119,32 +112,41 @@ function TrendColumn({
       </div>
 
       {/* Skills list */}
-      <div className="flex-1 space-y-0 divide-y divide-border">
+      <div className="flex-1 space-y-1">
         {skills.length === 0 ? (
           <p className="py-3 text-xs text-muted-foreground italic">{emptyText}</p>
         ) : (
-          skills.slice(0, 5).map((skill) => (
-            <Link
-              key={skill.slug}
-              href={`/skills/${skill.slug}`}
-              className="group flex items-center justify-between gap-2 py-2.5 transition-colors hover:bg-muted/30"
-            >
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium group-hover:underline">
-                  {skill.name}
-                </p>
-                {skill.author && (
-                  <p className="truncate text-xs text-muted-foreground">
-                    {skill.author}
-                  </p>
+          skills.slice(0, 5).map((skill) => {
+            const avatarUrl = skill.author ? `https://github.com/${skill.author}.png?size=32` : null;
+
+            return (
+              <Link
+                key={skill.slug}
+                href={`/skills/${skill.slug}`}
+                className="group flex items-center gap-2.5 rounded-md px-2 py-2 transition-colors hover:bg-background/80"
+              >
+                {/* Avatar */}
+                {avatarUrl && (
+                  <img
+                    src={avatarUrl}
+                    alt={skill.author || ''}
+                    className="h-6 w-6 rounded-full"
+                  />
                 )}
-              </div>
-              <div className="flex items-center gap-2">
-                {getValueDisplay(skill)}
-                <ArrowUpRight className="h-3 w-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-              </div>
-            </Link>
-          ))
+
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium group-hover:underline">
+                    {skill.name}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  {getValueDisplay(skill)}
+                  <ArrowUpRight className="h-3 w-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                </div>
+              </Link>
+            );
+          })
         )}
       </div>
     </div>
@@ -170,17 +172,14 @@ export function TrendingBoard({
 
   return (
     <section className={`py-8 ${className}`}>
-      {/* Section header - 报纸风格 */}
-      <div className="mb-6">
-        <div className="mb-4 flex items-center gap-4">
-          <div className="h-px flex-1 bg-foreground" />
-          <h3 className="font-serif text-sm font-medium uppercase tracking-[0.3em]">
-            {t('title')}
-          </h3>
-          <div className="h-px flex-1 bg-foreground" />
+      {/* Section header */}
+      <div className="mb-6 flex items-end justify-between">
+        <div>
+          <p className="section-label mb-1">{t('title')}</p>
+          <h3 className="text-2xl sm:text-3xl">{t('subtitle')}</h3>
         </div>
-        <p className="text-center text-xs text-muted-foreground">
-          {t('subtitle')}
+        <p className="hidden text-xs text-muted-foreground sm:block">
+          24h rolling window
         </p>
       </div>
 
@@ -299,12 +298,6 @@ export function TrendingBoard({
         </div>
       </div>
 
-      {/* Footer note */}
-      <div className="mt-6 text-center">
-        <p className="text-xs text-muted-foreground">
-          {t('updateNote')}
-        </p>
-      </div>
     </section>
   );
 }

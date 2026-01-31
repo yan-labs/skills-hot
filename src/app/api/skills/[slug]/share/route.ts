@@ -96,20 +96,26 @@ export async function POST(request: NextRequest, { params }: Props) {
     if (localSkill) {
       skill = { ...localSkill, source: 'local' as const };
     } else {
-      // 再查 external_skills 表
-      const { data: externalSkill } = await supabase
+      // 再查 external_skills 表（优先 skills.sh 来源）
+      const { data: externalSkills } = await supabase
         .from('external_skills')
         .select('id, slug, name')
         .eq('slug', slug)
-        .single();
+        .order('source', { ascending: false })
+        .limit(1);
+
+      const externalSkill = externalSkills?.[0];
 
       if (!externalSkill) {
         // 最后尝试用 name 匹配 external_skills
-        const { data: externalByName } = await supabase
+        const { data: externalByNames } = await supabase
           .from('external_skills')
           .select('id, slug, name')
           .eq('name', slug)
-          .single();
+          .order('source', { ascending: false })
+          .limit(1);
+
+        const externalByName = externalByNames?.[0];
 
         if (externalByName) {
           skill = {
