@@ -165,11 +165,21 @@ export default async function SearchPage({ params, searchParams }: Props) {
   setRequestLocale(locale);
 
   const t = await getTranslations('search');
+  const tSeo = await getTranslations('seo.search');
   const { q, platform } = await searchParams;
   const query = q || '';
   const skills = await searchSkills(query, platform);
 
-  const jsonLd = generateSearchJsonLd(locale, query, skills.length);
+  const jsonLd = generateSearchJsonLd(
+    locale,
+    {
+      name: tSeo('jsonLdName'),
+      description: tSeo('jsonLdDescription'),
+      breadcrumb: tSeo('breadcrumb'),
+    },
+    query,
+    skills.length
+  );
 
   return (
     <div className="min-h-screen bg-background">

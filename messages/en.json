@@ -287,9 +287,11 @@
     },
     "docs": {
       "title": "Documentation",
+      "metaTitle": "Documentation - Complete Skills Hot CLI Installation & Usage Guide",
+      "metaDescription": "Learn how to use Skills Hot CLI to install, manage, and publish AI agent skills. Includes complete command reference, API documentation, and SKILL.md format guide.",
       "subtitle": "Skills Hot CLI Guide",
       "fullTitle": "Skills Hot CLI Documentation",
-      "description": "Learn how to use Skills Hot CLI to install, manage, and create skills for AI coding agents like Claude Code and Cursor.",
+      "jsonLdDescription": "Learn how to use Skills Hot CLI to install, manage, and publish AI agent skills",
       "breadcrumb": "Documentation"
     },
     "og": {

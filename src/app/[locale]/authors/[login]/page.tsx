@@ -97,6 +97,7 @@ function formatNumber(num: number): string {
 
 export async function generateMetadata({ params }: Props) {
   const { locale, login } = await params;
+  const tSeo = await getTranslations('seo');
   const author = await getAuthorByLogin(login);
 
   if (!author) {
@@ -147,7 +148,7 @@ export async function generateMetadata({ params }: Props) {
       url,
       siteName: 'Skills Hot',
       type: 'profile',
-      locale: locale === 'zh' ? 'zh_CN' : 'en_US',
+      locale: tSeo('locale'),
       images: [{
         url: ogUrl,
         width: 1200,

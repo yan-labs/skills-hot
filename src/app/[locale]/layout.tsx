@@ -45,6 +45,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const messages = (await import(`../../../messages/${locale}.json`)).default;
   const t = messages.metadata;
+  const seo = messages.seo;
 
   const baseUrl = "https://skills.hot";
 
@@ -64,7 +65,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: t.description,
       url: baseUrl,
       siteName: "Skills Hot",
-      locale: locale === "zh" ? "zh_CN" : "en_US",
+      locale: seo.locale,
       type: "website",
       images: [{
         url: `${baseUrl}/api/og?title=${encodeURIComponent(t.title)}&locale=${locale}`,

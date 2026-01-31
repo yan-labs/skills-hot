@@ -321,6 +321,7 @@ async function getSkillFiles(skill: SkillDetail): Promise<SkillFilesResult> {
 
 export async function generateMetadata({ params }: Props) {
   const { locale, slug } = await params;
+  const tSeo = await getTranslations('seo');
 
   // During build time on Cloudflare Pages, env vars may not be available
   // Return a generic metadata and let the page handle 404 at runtime
@@ -340,6 +341,7 @@ export async function generateMetadata({ params }: Props) {
   const title = `${skill.name} - Skills Hot`;
   const description = skill.description || `Install ${skill.name} skill for your AI coding agent`;
   const url = `https://skills.hot/${locale}/skills/${slug}`;
+  const ogLocale = tSeo('locale');
 
   // Get skill rank (only show for top 10)
   const rank = await getSkillRank(skill.id, skill.source);
@@ -375,7 +377,7 @@ export async function generateMetadata({ params }: Props) {
       url,
       siteName: 'Skills Hot',
       type: 'website',
-      locale: locale === 'zh' ? 'zh_CN' : 'en_US',
+      locale: ogLocale,
       images: [{
         url: ogUrl,
         width: 1200,

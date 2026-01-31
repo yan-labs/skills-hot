@@ -9,14 +9,11 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
+  const t = await getTranslations('seo.docs');
+  const tSeo = await getTranslations('seo');
 
-  const title = locale === 'zh'
-    ? '文档 - Skills Hot CLI 安装与使用完整指南'
-    : 'Documentation - Complete Skills Hot CLI Installation & Usage Guide';
-
-  const description = locale === 'zh'
-    ? '学习如何使用 Skills Hot CLI 安装、管理和发布 AI 代理技能。包含完整的命令参考、API 文档和 SKILL.md 格式说明。'
-    : 'Learn how to use Skills Hot CLI to install, manage, and publish AI agent skills. Includes complete command reference, API documentation, and SKILL.md format guide.';
+  const title = t('metaTitle');
+  const description = t('metaDescription');
 
   return {
     title,
@@ -34,9 +31,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: `https://skills.hot/${locale}/docs`,
       siteName: 'Skills Hot',
       type: 'article',
-      locale: locale === 'zh' ? 'zh_CN' : 'en_US',
+      locale: tSeo('locale'),
       images: [{
-        url: `https://skills.hot/api/og?title=${encodeURIComponent(locale === 'zh' ? '文档' : 'Documentation')}&subtitle=${encodeURIComponent(locale === 'zh' ? 'Skills Hot CLI 使用指南' : 'Skills Hot CLI Guide')}&type=docs&locale=${locale}`,
+        url: `https://skills.hot/api/og?title=${encodeURIComponent(t('title'))}&subtitle=${encodeURIComponent(t('subtitle'))}&type=docs&locale=${locale}`,
         width: 1200,
         height: 630,
         alt: title,
@@ -46,21 +43,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: 'summary_large_image',
       title,
       description,
-      images: [`https://skills.hot/api/og?title=${encodeURIComponent(locale === 'zh' ? '文档' : 'Documentation')}&subtitle=${encodeURIComponent(locale === 'zh' ? 'Skills Hot CLI 使用指南' : 'Skills Hot CLI Guide')}&type=docs&locale=${locale}`],
+      images: [`https://skills.hot/api/og?title=${encodeURIComponent(t('title'))}&subtitle=${encodeURIComponent(t('subtitle'))}&type=docs&locale=${locale}`],
     },
   };
 }
 
-function generateDocsJsonLd(locale: string) {
+interface DocsJsonLdTranslations {
+  fullTitle: string;
+  jsonLdDescription: string;
+  inLanguage: string;
+  breadcrumb: string;
+}
+
+function generateDocsJsonLd(locale: string, t: DocsJsonLdTranslations) {
   return {
     '@context': 'https://schema.org',
     '@type': 'TechArticle',
-    headline: locale === 'zh' ? 'Skills Hot CLI 文档' : 'Skills Hot CLI Documentation',
-    description: locale === 'zh'
-      ? '学习如何使用 Skills Hot CLI 安装、管理和发布 AI 代理技能'
-      : 'Learn how to use Skills Hot CLI to install, manage, and publish AI agent skills',
+    headline: t.fullTitle,
+    description: t.jsonLdDescription,
     url: `https://skills.hot/${locale}/docs`,
-    inLanguage: locale === 'zh' ? 'zh-CN' : 'en-US',
+    inLanguage: t.inLanguage,
     isPartOf: {
       '@type': 'WebSite',
       '@id': 'https://skills.hot/#website',
@@ -83,7 +85,7 @@ function generateDocsJsonLd(locale: string) {
         {
           '@type': 'ListItem',
           position: 2,
-          name: locale === 'zh' ? '文档' : 'Documentation',
+          name: t.breadcrumb,
           item: `https://skills.hot/${locale}/docs`,
         },
       ],
@@ -102,8 +104,15 @@ export default async function DocsPage({ params }: Props) {
   setRequestLocale(locale);
 
   const t = await getTranslations('docs');
+  const tSeo = await getTranslations('seo.docs');
+  const tSeoRoot = await getTranslations('seo');
 
-  const jsonLd = generateDocsJsonLd(locale);
+  const jsonLd = generateDocsJsonLd(locale, {
+    fullTitle: tSeo('fullTitle'),
+    jsonLdDescription: tSeo('jsonLdDescription'),
+    inLanguage: tSeoRoot('inLanguage'),
+    breadcrumb: tSeo('breadcrumb'),
+  });
 
   return (
     <div className="min-h-screen bg-background">

@@ -1,7 +1,12 @@
 import { ImageResponse } from 'next/og';
 import { NextRequest } from 'next/server';
+import enMessages from '../../../../messages/en.json';
+import zhMessages from '../../../../messages/zh.json';
 
 export const runtime = 'edge';
+
+const messages = { en: enMessages, zh: zhMessages } as const;
+type Locale = keyof typeof messages;
 
 // Newspaper theme colors
 const COLORS = {
@@ -51,10 +56,11 @@ export async function GET(request: NextRequest) {
 
   const colors = COLORS[theme];
   const isTopOne = rank === '1';
+  const loc = (locale === 'zh' ? 'zh' : 'en') as Locale;
+  const t = messages[loc].seo.og;
+  const tMetadata = messages[loc].metadata;
 
-  const tagline = locale === 'zh'
-    ? 'AI 代理技能市场'
-    : 'AI Agent Skills Marketplace';
+  const tagline = tMetadata.description.split('.')[0]; // Use first sentence of description
 
   // Get section label based on type
   const getSectionLabel = () => {
@@ -65,7 +71,7 @@ export async function GET(request: NextRequest) {
       docs: { en: 'DOCUMENTATION', zh: '文档' },
       search: { en: 'SEARCH', zh: '搜索' },
     };
-    return locale === 'zh' ? labels[type].zh : labels[type].en;
+    return loc === 'zh' ? labels[type].zh : labels[type].en;
   };
 
   // Skill page with stats
@@ -157,7 +163,7 @@ export async function GET(request: NextRequest) {
                   letterSpacing: '0.05em',
                 }}
               >
-                🔥 {locale === 'zh' ? '热门技能' : 'TRENDING'}
+                🔥 {t.trending}
               </div>
             )}
           </div>
@@ -192,7 +198,7 @@ export async function GET(request: NextRequest) {
                   color: isTopOne ? colors.accent : colors.muted,
                 }}
               >
-                {isTopOne ? (locale === 'zh' ? '🔥 热门技能' : '🔥 TRENDING SKILL') : getSectionLabel()}
+                {isTopOne ? (`🔥 ${t.trendingSkill}`) : getSectionLabel()}
               </span>
               <div style={{ height: '1px', flex: 1, background: colors.border }} />
             </div>
@@ -271,7 +277,7 @@ export async function GET(request: NextRequest) {
                     marginTop: '4px',
                   }}
                 >
-                  {locale === 'zh' ? '安装' : 'INSTALLS'}
+                  {t.installs}
                 </span>
               </div>
 
@@ -306,7 +312,7 @@ export async function GET(request: NextRequest) {
                       marginTop: '4px',
                     }}
                   >
-                    ⭐ {locale === 'zh' ? '星标' : 'STARS'}
+                    ⭐ {t.stars}
                   </span>
                 </div>
               )}
@@ -344,7 +350,7 @@ export async function GET(request: NextRequest) {
                       opacity: 0.9,
                     }}
                   >
-                    {locale === 'zh' ? '排名' : 'RANK'}
+                    {t.rank}
                   </span>
                 </div>
               )}
@@ -368,7 +374,7 @@ export async function GET(request: NextRequest) {
                       color: colors.muted,
                     }}
                   >
-                    {locale === 'zh' ? '作者' : 'by'}
+                    {t.by}
                   </span>
                   <span
                     style={{
@@ -477,7 +483,7 @@ export async function GET(request: NextRequest) {
                   letterSpacing: '0.05em',
                 }}
               >
-                🏆 {locale === 'zh' ? '榜首作者' : 'TOP CONTRIBUTOR'}
+                🏆 {t.topContributor}
               </div>
             )}
           </div>
@@ -546,7 +552,7 @@ export async function GET(request: NextRequest) {
                   color: isTopOne ? colors.gold : colors.muted,
                 }}
               >
-                {isTopOne ? (locale === 'zh' ? '🏆 今日榜首' : '🏆 #1 TODAY') : getSectionLabel()}
+                {isTopOne ? (`🏆 ${t.topToday}`) : getSectionLabel()}
               </span>
 
               {/* Name */}
@@ -617,7 +623,7 @@ export async function GET(request: NextRequest) {
                         marginTop: '4px',
                       }}
                     >
-                      {locale === 'zh' ? '技能' : 'SKILLS'}
+                      {t.skills}
                     </span>
                   </div>
                 )}
@@ -653,7 +659,7 @@ export async function GET(request: NextRequest) {
                         marginTop: '4px',
                       }}
                     >
-                      {locale === 'zh' ? '安装' : 'INSTALLS'}
+                      {t.installs}
                     </span>
                   </div>
                 )}
@@ -689,7 +695,7 @@ export async function GET(request: NextRequest) {
                         marginTop: '4px',
                       }}
                     >
-                      {locale === 'zh' ? '星标' : 'STARS'}
+                      {t.stars}
                     </span>
                   </div>
                 )}
@@ -727,7 +733,7 @@ export async function GET(request: NextRequest) {
                         opacity: 0.8,
                       }}
                     >
-                      {locale === 'zh' ? '排名' : 'RANK'}
+                      {t.rank}
                     </span>
                   </div>
                 )}

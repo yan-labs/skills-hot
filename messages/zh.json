@@ -287,9 +287,11 @@
     },
     "docs": {
       "title": "文档",
+      "metaTitle": "文档 - Skills Hot CLI 安装与使用完整指南",
+      "metaDescription": "学习如何使用 Skills Hot CLI 安装、管理和发布 AI 代理技能。包含完整的命令参考、API 文档和 SKILL.md 格式说明。",
       "subtitle": "Skills Hot CLI 使用指南",
       "fullTitle": "Skills Hot CLI 文档",
-      "description": "学习如何使用 Skills Hot CLI 安装、管理和创建 Claude Code 和 Cursor 等 AI 编程代理的技能。",
+      "jsonLdDescription": "学习如何使用 Skills Hot CLI 安装、管理和发布 AI 代理技能",
       "breadcrumb": "文档"
     },
     "og": {
