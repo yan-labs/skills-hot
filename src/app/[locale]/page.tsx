@@ -220,16 +220,17 @@ async function getLeaderboardSkills() {
 // Get trending data from skill_snapshots table
 // 方案 B：24 小时滚动窗口
 // New = 最近 24 小时内首次上榜的
-async function getTrendingData(): Promise<{
+// fastestGrowing = 24h 安装增量最多（排除热门榜）
+async function getTrendingData(excludeSlugs: string[] = []): Promise<{
   rising: TrendingSkill[];
-  declining: TrendingSkill[];
+  fastestGrowing: TrendingSkill[];
   newEntries: TrendingSkill[];
 }> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
-    return { rising: [], declining: [], newEntries: [] };
+    return { rising: [], fastestGrowing: [], newEntries: [] };
   }
 
   const { createClient } = await import('@supabase/supabase-js');
@@ -245,14 +246,14 @@ async function getTrendingData(): Promise<{
       .single();
 
     if (!latestSnapshot) {
-      return { rising: [], declining: [], newEntries: [] };
+      return { rising: [], fastestGrowing: [], newEntries: [] };
     }
 
     const snapshotAt = latestSnapshot.snapshot_at;
     const twentyFourHoursAgo = new Date(new Date(snapshotAt).getTime() - 24 * 60 * 60 * 1000).toISOString();
 
     // 并行获取基础数据
-    const [risingRes, decliningRes, currentSnapshotRes, oldSnapshotsRes] = await Promise.all([
+    const [risingRes, currentSnapshotRes, oldSnapshotsRes] = await Promise.all([
       // 上升 Top 5
       supabase
         .from('skill_snapshots')
@@ -262,33 +263,50 @@ async function getTrendingData(): Promise<{
         .order('rank_delta', { ascending: false })
         .limit(5),
 
-      // 下降 Top 5
-      supabase
-        .from('skill_snapshots')
-        .select('skill_name, skill_slug, github_owner, installs, rank, rank_delta')
-        .eq('snapshot_at', snapshotAt)
-        .lt('rank_delta', 0)
-        .order('rank_delta', { ascending: true })
-        .limit(5),
-
-      // 当前快照的所有技能（用于计算 New）
+      // 当前快照的所有技能（用于计算 New 和 fastestGrowing）
       supabase
         .from('skill_snapshots')
         .select('skill_name, skill_slug, github_owner, installs, rank')
         .eq('snapshot_at', snapshotAt)
         .order('rank', { ascending: true }),
 
-      // 24 小时前的快照（用于计算 New）
+      // 24 小时前的快照（用于计算 New 和 fastestGrowing）
       supabase
         .from('skill_snapshots')
-        .select('skill_name')
+        .select('skill_name, installs')
         .gte('snapshot_at', twentyFourHoursAgo)
         .lt('snapshot_at', snapshotAt),
     ]);
 
+    // 构建 24h 前的 installs 映射（取该技能在 24h 窗口内的最早值）
+    const oldInstallsMap = new Map<string, number>();
+    const oldSkillsNames = new Set<string>();
+    if (oldSnapshotsRes.data) {
+      for (const s of oldSnapshotsRes.data) {
+        oldSkillsNames.add(s.skill_name);
+        if (!oldInstallsMap.has(s.skill_name)) {
+          oldInstallsMap.set(s.skill_name, s.installs);
+        }
+      }
+    }
+
+    // 计算每个 skill 的 24h 安装增量
+    const currentSkills = currentSnapshotRes.data || [];
+    const skillsWithDelta = currentSkills.map(s => {
+      const oldInstalls = oldInstallsMap.get(s.skill_name);
+      const installsDelta = oldInstalls !== undefined ? s.installs - oldInstalls : 0;
+      return { ...s, installsDelta };
+    });
+
+    // fastestGrowing: 24h 安装增量最多，排除热门榜的 slugs
+    const excludeSet = new Set(excludeSlugs);
+    const fastestGrowing = skillsWithDelta
+      .filter(s => !excludeSet.has(s.skill_slug) && s.installsDelta > 0)
+      .sort((a, b) => b.installsDelta - a.installsDelta)
+      .slice(0, 5);
+
     // New: 在当前快照中，但 24 小时前的任何快照中都不存在
-    const oldSkillsNames = new Set((oldSnapshotsRes.data || []).map(s => s.skill_name));
-    const newEntries = (currentSnapshotRes.data || [])
+    const newEntries = currentSkills
       .filter(s => !oldSkillsNames.has(s.skill_name))
       .slice(0, 5);
 
@@ -299,7 +317,7 @@ async function getTrendingData(): Promise<{
       installs: number;
       rank_delta?: number;
       rank?: number;
-      installs_rate?: number;
+      installsDelta?: number;
     }): TrendingSkill => ({
       name: s.skill_name,
       slug: s.skill_slug,
@@ -307,17 +325,17 @@ async function getTrendingData(): Promise<{
       installs: s.installs,
       rank: s.rank,
       rankDelta: s.rank_delta,
-      installsRate: s.installs_rate,
+      installsDelta: s.installsDelta,
     });
 
     return {
       rising: (risingRes.data || []).map(formatSkill),
-      declining: (decliningRes.data || []).map(formatSkill),
+      fastestGrowing: fastestGrowing.map(formatSkill),
       newEntries: newEntries.map(formatSkill),
     };
   } catch (error) {
     console.error('Failed to fetch trending data:', error);
-    return { rising: [], declining: [], newEntries: [] };
+    return { rising: [], fastestGrowing: [], newEntries: [] };
   }
 }
 
@@ -397,13 +415,16 @@ export default async function Home({ params }: Props) {
   const tSeo = await getTranslations('seo');
   const tHome = await getTranslations('seo.home');
 
-  // Fetch all data in parallel
-  const [stats, headline, leaderboard, trending] = await Promise.all([
+  // Fetch all data in parallel (leaderboard first to get exclude slugs)
+  const [stats, headline, leaderboard] = await Promise.all([
     getStats(),
     getHeadlineSkill(),
     getLeaderboardSkills(),
-    getTrendingData(),
   ]);
+
+  // 获取 trending 数据，排除热门榜的 slugs
+  const excludeSlugs = leaderboard.mostInstalled.map(s => s.slug);
+  const trending = await getTrendingData(excludeSlugs);
 
   const jsonLdArray = generateHomeJsonLd(locale, stats, {
     inLanguage: tSeo('inLanguage'),
@@ -446,7 +467,7 @@ export default async function Home({ params }: Props) {
         {/* Trending Board - Market Movers */}
         <TrendingBoard
           rising={trending.rising}
-          declining={trending.declining}
+          fastestGrowing={trending.fastestGrowing}
           newEntries={trending.newEntries}
         />
 

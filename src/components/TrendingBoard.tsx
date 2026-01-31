@@ -4,9 +4,10 @@ import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import {
   TrendingUp,
-  TrendingDown,
+  Flame,
   Sparkles,
-  ArrowUpRight
+  ArrowUpRight,
+  Download
 } from 'lucide-react';
 
 export type TrendingSkill = {
@@ -21,9 +22,9 @@ export type TrendingSkill = {
 };
 
 type TrendingBoardProps = {
-  rising: TrendingSkill[];      // 排名上升最多
-  declining: TrendingSkill[];   // 排名下降最多
-  newEntries: TrendingSkill[];  // 新晋榜单
+  rising: TrendingSkill[];         // 排名上升最多
+  fastestGrowing: TrendingSkill[]; // 24h 安装增量最多
+  newEntries: TrendingSkill[];     // 新晋榜单
   className?: string;
 };
 
@@ -53,31 +54,47 @@ function TrendColumn({
   title: string;
   icon: React.ElementType;
   skills: TrendingSkill[];
-  type: 'rising' | 'declining' | 'new';
+  type: 'rising' | 'fastestGrowing' | 'new';
   emptyText: string;
   accentColor: string;
 }) {
   const getValueDisplay = (skill: TrendingSkill) => {
+    // 当前排名显示（带 installs icon）
+    const rankDisplay = skill.rank ? (
+      <span className="flex items-center gap-0.5 font-mono text-xs text-muted-foreground">
+        <Download className="h-3 w-3" />
+        #{skill.rank}
+      </span>
+    ) : null;
+
     switch (type) {
       case 'rising':
-        const prevRankRising = (skill.rank || 0) - (skill.rankDelta || 0);
         return (
-          <span className="flex items-center gap-1 font-mono text-xs font-bold text-green-600 dark:text-green-400">
-            <TrendingUp className="h-3 w-3" />
-            +{skill.rankDelta}
+          <span className="flex items-center gap-2">
+            {rankDisplay}
+            <span className="flex items-center gap-0.5 font-mono text-xs font-bold text-green-600 dark:text-green-400">
+              <TrendingUp className="h-3 w-3" />
+              +{skill.rankDelta}
+            </span>
           </span>
         );
-      case 'declining':
+      case 'fastestGrowing':
         return (
-          <span className="flex items-center gap-1 font-mono text-xs font-bold text-[#C41E3A]">
-            <TrendingDown className="h-3 w-3" />
-            {skill.rankDelta}
+          <span className="flex items-center gap-2">
+            {rankDisplay}
+            <span className="flex items-center gap-0.5 font-mono text-xs font-bold text-orange-600 dark:text-orange-400">
+              <Download className="h-3 w-3" />
+              +{skill.installsDelta}
+            </span>
           </span>
         );
       case 'new':
         return (
-          <span className="rounded-full bg-blue-500/10 px-2 py-0.5 font-mono text-[10px] font-bold text-blue-600 dark:text-blue-400">
-            NEW
+          <span className="flex items-center gap-2">
+            {rankDisplay}
+            <span className="rounded-full bg-blue-500/10 px-2 py-0.5 font-mono text-[10px] font-bold text-blue-600 dark:text-blue-400">
+              NEW
+            </span>
           </span>
         );
       default:
@@ -147,7 +164,7 @@ function TrendColumn({
 
 export function TrendingBoard({
   rising,
-  declining,
+  fastestGrowing,
   newEntries,
   className = '',
 }: TrendingBoardProps) {
@@ -155,9 +172,9 @@ export function TrendingBoard({
 
   // 颜色定义
   const colors = {
-    rising: '#16A34A',    // green-600
-    declining: '#C41E3A', // accent red
-    new: '#2563EB',       // blue-600
+    rising: '#16A34A',        // green-600
+    fastestGrowing: '#EA580C', // orange-600
+    new: '#2563EB',           // blue-600
   };
 
   return (
@@ -184,12 +201,12 @@ export function TrendingBoard({
           accentColor={colors.rising}
         />
         <TrendColumn
-          title={t('declining')}
-          icon={TrendingDown}
-          skills={declining}
-          type="declining"
-          emptyText={t('noDeclining')}
-          accentColor={colors.declining}
+          title={t('surging')}
+          icon={Flame}
+          skills={fastestGrowing}
+          type="fastestGrowing"
+          emptyText={t('noSurging')}
+          accentColor={colors.fastestGrowing}
         />
         <TrendColumn
           title={t('new')}
@@ -212,12 +229,12 @@ export function TrendingBoard({
           accentColor={colors.rising}
         />
         <TrendColumn
-          title={t('declining')}
-          icon={TrendingDown}
-          skills={declining}
-          type="declining"
-          emptyText={t('noDeclining')}
-          accentColor={colors.declining}
+          title={t('surging')}
+          icon={Flame}
+          skills={fastestGrowing}
+          type="fastestGrowing"
+          emptyText={t('noSurging')}
+          accentColor={colors.fastestGrowing}
         />
         <TrendColumn
           title={t('new')}
@@ -240,12 +257,12 @@ export function TrendingBoard({
           accentColor={colors.rising}
         />
         <TrendColumn
-          title={t('declining')}
-          icon={TrendingDown}
-          skills={declining}
-          type="declining"
-          emptyText={t('noDeclining')}
-          accentColor={colors.declining}
+          title={t('surging')}
+          icon={Flame}
+          skills={fastestGrowing}
+          type="fastestGrowing"
+          emptyText={t('noSurging')}
+          accentColor={colors.fastestGrowing}
         />
         <TrendColumn
           title={t('new')}
