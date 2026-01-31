@@ -1,15 +1,14 @@
 import { Header } from '@/components/Header';
 import { SearchBar } from '@/components/SearchBar';
-import { SkillCard } from '@/components/SkillCard';
+import { SearchTabs } from '@/components/SearchTabs';
 import { PlatformFilter } from '@/components/PlatformFilter';
-import { Search } from 'lucide-react';
+import { SkillsInfiniteList } from '@/components/SkillsInfiniteList';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { Metadata } from 'next';
-import type { Platform } from '@/lib/supabase';
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ q?: string; platform?: string }>;
+  searchParams: Promise<{ q?: string; platform?: string; type?: string }>;
 };
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
@@ -120,55 +119,15 @@ function generateSearchJsonLd(
   };
 }
 
-async function searchSkills(query: string, platform?: string) {
-  if (!query && !platform) return [];
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    return [];
-  }
-
-  const { createClient } = await import('@supabase/supabase-js');
-  const supabase = createClient(supabaseUrl, supabaseKey);
-
-  let queryBuilder = supabase
-    .from('skills')
-    .select('*, skill_stats(*)')
-    .eq('is_private', false);
-
-  // Add text search filter
-  if (query) {
-    queryBuilder = queryBuilder.or(`name.ilike.%${query}%,description.ilike.%${query}%`);
-  }
-
-  // Add platform filter
-  if (platform && platform !== 'all') {
-    queryBuilder = queryBuilder.contains('platforms', [`"${platform}"`]);
-  }
-
-  const { data, error } = await queryBuilder
-    .order('created_at', { ascending: false })
-    .limit(50);
-
-  if (error) {
-    console.error('Error searching skills:', error);
-    return [];
-  }
-
-  return data || [];
-}
-
 export default async function SearchPage({ params, searchParams }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
 
   const t = await getTranslations('search');
   const tSeo = await getTranslations('seo.search');
-  const { q, platform } = await searchParams;
+  const { q, type } = await searchParams;
   const query = q || '';
-  const skills = await searchSkills(query, platform);
+  const searchType = type || 'skills';
 
   const jsonLd = generateSearchJsonLd(
     locale,
@@ -177,8 +136,7 @@ export default async function SearchPage({ params, searchParams }: Props) {
       description: tSeo('jsonLdDescription'),
       breadcrumb: tSeo('breadcrumb'),
     },
-    query,
-    skills.length
+    query
   );
 
   return (
@@ -192,69 +150,29 @@ export default async function SearchPage({ params, searchParams }: Props) {
       <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
         {/* Header */}
         <div className="mb-8">
-          <p className="section-label mb-2">Search</p>
+          <p className="section-label mb-2">{t('label')}</p>
           <h1 className="text-3xl sm:text-4xl">{t('title')}</h1>
         </div>
 
         {/* Search */}
-        <div className="mb-8 max-w-md">
+        <div className="mb-6 max-w-md">
           <SearchBar />
         </div>
 
-        {/* Platform Filter */}
-        <div className="mb-8">
-          <PlatformFilter selectedPlatform={(platform || 'all') as Platform | 'all'} />
+        {/* Search Type Tabs */}
+        <div className="mb-6">
+          <SearchTabs />
         </div>
 
-        {/* Divider */}
-        <div className="divider" />
-
-        {/* Results */}
-        {query ? (
-          <div className="py-8">
-            <p className="byline mb-6">
-              {t('results', { count: skills.length, query })}
-            </p>
-
-            {skills.length > 0 ? (
-              <div className="stagger">
-                {skills.map((skill, index) => (
-                  <div
-                    key={skill.id}
-                    className={index < skills.length - 1 ? 'border-b border-border' : ''}
-                  >
-                    <SkillCard
-                      name={skill.name}
-                      slug={skill.slug}
-                      description={skill.description}
-                      author={skill.author}
-                      category={skill.category}
-                      tags={skill.tags}
-                      platforms={skill.platforms}
-                      installs={skill.skill_stats?.[0]?.installs || 0}
-                    />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="py-16 text-center">
-                <Search className="mx-auto mb-4 h-8 w-8 text-muted-foreground" />
-                <h3 className="text-lg">{t('noResults')}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t('noResultsHint')}
-                </p>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="py-16 text-center">
-            <Search className="mx-auto mb-4 h-8 w-8 text-muted-foreground" />
-            <h3 className="text-lg">{t('enterTerm')}</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {t('enterTermHint')}
-            </p>
+        {/* Platform Filter - only show for skills */}
+        {searchType === 'skills' && (
+          <div className="mb-6">
+            <PlatformFilter />
           </div>
         )}
+
+        {/* Results with infinite scroll */}
+        <SkillsInfiniteList />
       </main>
     </div>
   );

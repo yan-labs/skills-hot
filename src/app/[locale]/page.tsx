@@ -224,13 +224,12 @@ async function getTrendingData(): Promise<{
   rising: TrendingSkill[];
   declining: TrendingSkill[];
   newEntries: TrendingSkill[];
-  surging: TrendingSkill[];
 }> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
-    return { rising: [], declining: [], newEntries: [], surging: [] };
+    return { rising: [], declining: [], newEntries: [] };
   }
 
   const { createClient } = await import('@supabase/supabase-js');
@@ -246,14 +245,14 @@ async function getTrendingData(): Promise<{
       .single();
 
     if (!latestSnapshot) {
-      return { rising: [], declining: [], newEntries: [], surging: [] };
+      return { rising: [], declining: [], newEntries: [] };
     }
 
     const snapshotAt = latestSnapshot.snapshot_at;
     const twentyFourHoursAgo = new Date(new Date(snapshotAt).getTime() - 24 * 60 * 60 * 1000).toISOString();
 
     // 并行获取基础数据
-    const [risingRes, decliningRes, currentSnapshotRes, oldSnapshotsRes, surgingRes] = await Promise.all([
+    const [risingRes, decliningRes, currentSnapshotRes, oldSnapshotsRes] = await Promise.all([
       // 上升 Top 5
       supabase
         .from('skill_snapshots')
@@ -285,15 +284,6 @@ async function getTrendingData(): Promise<{
         .select('skill_name')
         .gte('snapshot_at', twentyFourHoursAgo)
         .lt('snapshot_at', snapshotAt),
-
-      // 暴涨 Top 5
-      supabase
-        .from('skill_snapshots')
-        .select('skill_name, skill_slug, github_owner, installs, installs_rate')
-        .eq('snapshot_at', snapshotAt)
-        .gte('installs_rate', 0.2)
-        .order('installs_rate', { ascending: false })
-        .limit(5),
     ]);
 
     // New: 在当前快照中，但 24 小时前的任何快照中都不存在
@@ -324,11 +314,10 @@ async function getTrendingData(): Promise<{
       rising: (risingRes.data || []).map(formatSkill),
       declining: (decliningRes.data || []).map(formatSkill),
       newEntries: newEntries.map(formatSkill),
-      surging: (surgingRes.data || []).map(formatSkill),
     };
   } catch (error) {
     console.error('Failed to fetch trending data:', error);
-    return { rising: [], declining: [], newEntries: [], surging: [] };
+    return { rising: [], declining: [], newEntries: [] };
   }
 }
 
@@ -459,7 +448,6 @@ export default async function Home({ params }: Props) {
           rising={trending.rising}
           declining={trending.declining}
           newEntries={trending.newEntries}
-          surging={trending.surging}
         />
 
         <div className="divider" />
@@ -470,59 +458,11 @@ export default async function Home({ params }: Props) {
           mostStarred={leaderboard.mostStarred}
         />
 
-        {/* Divider */}
-        <div className="divider" />
-
-        {/* Features - simple text layout */}
-        <section className="py-8">
-          <p className="section-label mb-6">{t('features.cliFirst.title').toUpperCase()}</p>
-
-          <div className="grid gap-8 sm:grid-cols-3 sm:gap-12">
-            <div>
-              <h3 className="text-lg">{t('features.cliFirst.title')}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                {t('features.cliFirst.description')}
-              </p>
-            </div>
-            <div>
-              <h3 className="text-lg">{t('features.openSecure.title')}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                {t('features.openSecure.description')}
-              </p>
-            </div>
-            <div>
-              <h3 className="text-lg">{t('features.universal.title')}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                {t('features.universal.description')}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Divider */}
-        <div className="divider" />
-
         {/* Footer */}
         <footer className="py-8">
-          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-            <div className="flex flex-col gap-1">
-              <p className="text-sm text-muted-foreground">{t('footer.copyright')}</p>
-              <p className="text-xs text-muted-foreground">Annals, Inc.</p>
-            </div>
-            <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <Link href="/docs" className="transition-colors hover:text-foreground">
-                {t('header.docs')}
-              </Link>
-              <a
-                href="https://github.com/yan-labs/skills-hot"
-                className="transition-colors hover:text-foreground"
-              >
-                {t('header.github')}
-              </a>
-              <Link href="/api" className="transition-colors hover:text-foreground">
-                {t('footer.api')}
-              </Link>
-            </div>
+          <div className="flex flex-col gap-1">
+            <p className="text-sm text-muted-foreground">{t('footer.copyright')}</p>
+            <p className="text-xs text-muted-foreground">Annals, Inc.</p>
           </div>
         </footer>
       </main>

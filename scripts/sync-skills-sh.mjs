@@ -24,6 +24,9 @@ const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const SKILLS_SH_API = 'https://skills.sh/api/skills?limit=50000';
 
+// 缓存仓库真实名称（处理重命名）
+const repoNameCache = new Map();
+
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
   console.error('❌ 需要设置 SUPABASE_URL 和 SUPABASE_SERVICE_ROLE_KEY 环境变量');
   process.exit(1);
@@ -168,40 +171,71 @@ function extractPlatforms(content) {
 
 /**
  * 从 GitHub 获取 SKILL.md 内容
- * 返回 { content, actualPath } - actualPath 为 null 表示在根目录
+ * 返回 { content, actualPath, actualRepo } - actualPath 为 null 表示在根目录
  */
 async function fetchSkillContent(owner, repo, skillName, repoPath) {
+  // 1. 首先获取仓库的真实名称（处理重命名）
+  const actualRepoName = await getActualRepoName(owner, repo);
+  const [actualOwner, actualRepo] = actualRepoName.split('/');
+
   // 定义可能的路径，格式: { url, path }
   // path 为 null 表示根目录
   const possiblePaths = [];
 
-  // 1. 如果有 repoPath，先尝试 skills/{repoPath} 和直接 {repoPath}
+  // 2. 如果有 GITHUB_TOKEN，先使用搜索 API 找到精确路径
+  if (GITHUB_TOKEN) {
+    const searchResults = await searchSkillMdInRepo(actualOwner, actualRepo, skillName);
+    for (const searchPath of searchResults) {
+      possiblePaths.push({
+        url: `https://raw.githubusercontent.com/${actualOwner}/${actualRepo}/main/${searchPath}/SKILL.md`,
+        path: searchPath,
+      });
+    }
+  }
+
+  // 3. 常见的深层路径模式（如 prompts.chat 的结构）
+  const deepPaths = [
+    `plugins/claude/${actualRepo}/skills/${skillName}`,
+    `plugins/claude/${repo}/skills/${skillName}`,
+    `.claude/skills/${skillName}`,
+    `.windsurf/skills/${skillName}`,
+    `.cursor/skills/${skillName}`,
+  ];
+
+  for (const deepPath of deepPaths) {
+    possiblePaths.push({
+      url: `https://raw.githubusercontent.com/${actualOwner}/${actualRepo}/main/${deepPath}/SKILL.md`,
+      path: deepPath,
+    });
+  }
+
+  // 4. 如果有 repoPath，先尝试 skills/{repoPath} 和直接 {repoPath}
   if (repoPath) {
     possiblePaths.push({
-      url: `https://raw.githubusercontent.com/${owner}/${repo}/main/skills/${repoPath}/SKILL.md`,
+      url: `https://raw.githubusercontent.com/${actualOwner}/${actualRepo}/main/skills/${repoPath}/SKILL.md`,
       path: `skills/${repoPath}`,
     });
     possiblePaths.push({
-      url: `https://raw.githubusercontent.com/${owner}/${repo}/main/${repoPath}/SKILL.md`,
+      url: `https://raw.githubusercontent.com/${actualOwner}/${actualRepo}/main/${repoPath}/SKILL.md`,
       path: repoPath,
     });
   }
 
-  // 2. 尝试 skills/{skillName}
+  // 5. 尝试 skills/{skillName}
   possiblePaths.push({
-    url: `https://raw.githubusercontent.com/${owner}/${repo}/main/skills/${skillName}/SKILL.md`,
+    url: `https://raw.githubusercontent.com/${actualOwner}/${actualRepo}/main/skills/${skillName}/SKILL.md`,
     path: `skills/${skillName}`,
   });
 
-  // 3. 尝试直接的 {skillName}
+  // 6. 尝试直接的 {skillName}
   possiblePaths.push({
-    url: `https://raw.githubusercontent.com/${owner}/${repo}/main/${skillName}/SKILL.md`,
+    url: `https://raw.githubusercontent.com/${actualOwner}/${actualRepo}/main/${skillName}/SKILL.md`,
     path: skillName,
   });
 
-  // 4. 尝试根目录
+  // 7. 尝试根目录
   possiblePaths.push({
-    url: `https://raw.githubusercontent.com/${owner}/${repo}/main/SKILL.md`,
+    url: `https://raw.githubusercontent.com/${actualOwner}/${actualRepo}/main/SKILL.md`,
     path: null,
   });
 
@@ -218,14 +252,14 @@ async function fetchSkillContent(owner, repo, skillName, repoPath) {
 
       if (response.ok) {
         const content = await response.text();
-        return { content, actualPath: path };
+        return { content, actualPath: path, actualRepo: actualRepoName };
       }
     } catch {
       // 继续尝试下一个
     }
   }
 
-  return { content: null, actualPath: null };
+  return { content: null, actualPath: null, actualRepo: actualRepoName };
 }
 
 /**
@@ -269,6 +303,80 @@ async function fetchGitHubUser(username) {
  */
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * 获取仓库的真实名称（处理重命名）
+ * GitHub API 会返回重定向后的真实仓库信息
+ */
+async function getActualRepoName(owner, repo) {
+  const cacheKey = `${owner}/${repo}`;
+  if (repoNameCache.has(cacheKey)) {
+    return repoNameCache.get(cacheKey);
+  }
+
+  try {
+    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+      headers: {
+        'User-Agent': 'SkillsHot/1.0',
+        Accept: 'application/vnd.github.v3+json',
+        ...(GITHUB_TOKEN && { Authorization: `Bearer ${GITHUB_TOKEN}` }),
+      },
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const actualName = data.full_name; // e.g., "f/prompts.chat"
+      repoNameCache.set(cacheKey, actualName);
+      return actualName;
+    }
+  } catch {
+    // 失败时返回原始名称
+  }
+
+  repoNameCache.set(cacheKey, cacheKey);
+  return cacheKey;
+}
+
+/**
+ * 使用 GitHub Search API 在仓库中搜索 SKILL.md 文件
+ * 返回找到的文件路径列表
+ */
+async function searchSkillMdInRepo(owner, repo, skillName) {
+  if (!GITHUB_TOKEN) {
+    return [];
+  }
+
+  try {
+    // 搜索包含 skill name 的 SKILL.md 文件
+    const query = encodeURIComponent(`filename:SKILL.md repo:${owner}/${repo} path:${skillName}`);
+    const response = await fetch(
+      `https://api.github.com/search/code?q=${query}`,
+      {
+        headers: {
+          'User-Agent': 'SkillsHot/1.0',
+          Accept: 'application/vnd.github.v3+json',
+          Authorization: `Bearer ${GITHUB_TOKEN}`,
+        },
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.items && data.items.length > 0) {
+        // 返回所有匹配的路径
+        return data.items.map(item => {
+          // 从 path 中提取目录路径（去掉 SKILL.md）
+          const dir = item.path.replace(/\/SKILL\.md$/, '');
+          return dir;
+        });
+      }
+    }
+  } catch {
+    // 搜索失败时返回空
+  }
+
+  return [];
 }
 
 // ============ 主逻辑 ============
@@ -370,6 +478,7 @@ async function main() {
   // 4. 批量 upsert external_skills（包含 platforms）
   console.log('💾 更新 external_skills 表（含 platforms）...');
   let inserted = 0;
+  let skipped = 0;
   let errors = 0;
   let platformsFetched = 0;
 
@@ -380,41 +489,59 @@ async function main() {
 
     process.stdout.write(`\r  [${Math.min(i + 2000, skillsWithParsed.length)}/${skillsWithParsed.length}] Batch ${batchNum}/${totalBatches}`);
 
-    const records = await Promise.all(batch.map(async (skill) => {
+    const recordsWithNull = await Promise.all(batch.map(async (skill) => {
       const { owner, repo, path } = skill.parsed;
-      const authorId = authorMap.get(owner) || null;
 
       // 获取 SKILL.md 内容和实际路径
       let platforms = ['universal'];
       let actualPath = path; // 默认使用 topSource 解析出的路径
+      let actualRepo = `${owner}/${repo}`;
 
       try {
         const result = await fetchSkillContent(owner, repo, skill.name, path);
         if (result.content) {
           platforms = extractPlatforms(result.content);
           actualPath = result.actualPath; // 使用实际找到的路径
+          actualRepo = result.actualRepo || actualRepo; // 使用真实仓库名
           platformsFetched++;
+        } else {
+          // 没有找到 SKILL.md，跳过这个 skill
+          skipped++;
+          return null;
         }
       } catch {
-        // 失败时使用默认值
+        // 失败时跳过
+        skipped++;
+        return null;
       }
+
+      // 从 actualRepo 解析真实的 owner
+      const [realOwner] = actualRepo.split('/');
+      const authorId = authorMap.get(realOwner) || authorMap.get(owner) || null;
 
       return {
         source: 'skills.sh',
         source_id: skill.name,
         name: skill.name,
         slug: generateSlug(skill.name),
-        repo: `${owner}/${repo}`,
+        repo: actualRepo, // 使用真实仓库名
         repo_path: actualPath, // 可能为 null（表示根目录）
         branch: 'main',
-        raw_url: getGitHubRawUrl(owner, repo, 'main', actualPath),
+        raw_url: getGitHubRawUrl(realOwner, actualRepo.split('/')[1], 'main', actualPath),
         author_id: authorId,
-        github_owner: owner,
+        github_owner: realOwner,
         installs: skill.installs || 0,
         platforms,
         synced_at: new Date().toISOString(),
       };
     }));
+
+    // 过滤掉 null（跳过的 skill）
+    const records = recordsWithNull.filter(r => r !== null);
+
+    if (records.length === 0) {
+      continue;
+    }
 
     const { error, count } = await supabase
       .from('external_skills')
@@ -429,7 +556,8 @@ async function main() {
   }
 
   console.log(`\n✅ external_skills 更新完成: ${inserted} 条`);
-  console.log(`   成功解析 platforms: ${platformsFetched} 个\n`);
+  console.log(`   成功解析 platforms: ${platformsFetched} 个`);
+  console.log(`   跳过无 SKILL.md: ${skipped} 个\n`);
 
   // 5. 更新 authors 统计
   console.log('📊 更新 authors 统计...');

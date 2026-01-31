@@ -94,8 +94,8 @@ export function SkillCard({
 
         {/* Bottom row: Platforms + Meta */}
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-          {/* Platforms */}
-          {platforms && platforms.length > 0 && (
+          {/* Platforms - only show if NOT universal-only */}
+          {platforms && platforms.length > 0 && !(platforms.length === 1 && platforms[0] === 'universal') && (
             <PlatformBadge platforms={platforms} showLabel={false} />
           )}
 

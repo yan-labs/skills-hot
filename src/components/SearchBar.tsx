@@ -1,8 +1,9 @@
 'use client';
 
 import { Search } from 'lucide-react';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from '@/i18n/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
 type SearchBarProps = {
@@ -10,9 +11,16 @@ type SearchBarProps = {
 };
 
 export function SearchBar({ compact = false }: SearchBarProps) {
-  const [query, setQuery] = useState('');
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get('q') || '';
+  const [query, setQuery] = useState(initialQuery);
   const router = useRouter();
   const t = useTranslations('search');
+
+  // Sync with URL changes
+  useEffect(() => {
+    setQuery(searchParams.get('q') || '');
+  }, [searchParams]);
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {

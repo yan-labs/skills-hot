@@ -166,7 +166,7 @@ export function Leaderboard({ mostInstalled, mostStarred, className = '' }: Lead
           <h2 className="text-2xl sm:text-3xl">{t('leaderboard.title')}</h2>
         </div>
         <p className="hidden text-xs text-muted-foreground sm:block">
-          Updated hourly
+          {t('leaderboard.updatedHourly')}
         </p>
       </div>
 

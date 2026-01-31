@@ -1,10 +1,11 @@
 'use client';
 
-import { Github, User, LogOut, UserCircle, Terminal, ChevronDown } from 'lucide-react';
+import { User, LogOut, UserCircle, Terminal, ChevronDown } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { ThemeToggle } from './ThemeToggle';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { SearchBar } from './SearchBar';
 import { useAuth } from './AuthProvider';
 import { useState, useRef, useEffect } from 'react';
 
@@ -33,15 +34,10 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-sm">
       <div className="mx-auto flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Left: Logo + Nav */}
+        {/* Left: Name + Nav */}
         <div className="flex items-center gap-6 sm:gap-8">
-          <Link href="/" className="group flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center bg-foreground text-background transition-transform group-hover:scale-105">
-              <span className="font-serif text-lg font-bold">S</span>
-            </div>
-            <span className="hidden font-serif text-xl tracking-tight sm:inline">
-              Skills Hot
-            </span>
+          <Link href="/" className="font-serif text-xl tracking-tight hover:opacity-80 transition-opacity">
+            Skills Hot
           </Link>
 
           {/* Nav links */}
@@ -59,29 +55,14 @@ export function Header() {
             >
               {t('authors')}
             </Link>
-            <Link
-              href="/docs"
-              className="px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              {t('docs')}
-            </Link>
           </nav>
         </div>
 
-        {/* Right: Actions */}
+        {/* Right: Search + Actions */}
         <div className="flex items-center gap-1 sm:gap-2">
-          <a
-            href="https://github.com/yan-labs/skills-hot"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex h-9 w-9 items-center justify-center text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            aria-label="GitHub"
-          >
-            <Github className="h-4 w-4" />
-          </a>
-
-          <div className="mx-1 h-4 w-px bg-border/50" />
-
+          <div className="hidden sm:block">
+            <SearchBar compact />
+          </div>
           <LanguageSwitcher />
           <ThemeToggle />
 

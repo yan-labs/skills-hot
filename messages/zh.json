@@ -42,17 +42,25 @@
     }
   },
   "footer": {
-    "copyright": "© 2025 Skills Hot. MIT 开源协议。",
+    "copyright": "© 2026 Skills Hot. 保留所有权利。",
     "api": "API"
   },
   "search": {
-    "title": "搜索技能",
+    "title": "搜索",
+    "label": "搜索",
+    "platform": "平台：",
+    "all": "全部",
     "placeholder": "git, testing, api...",
     "results": "\"{query}\" 的搜索结果：{count} 个",
-    "noResults": "未找到技能",
-    "noResultsHint": "尝试其他关键词或浏览所有技能",
-    "enterTerm": "输入搜索词",
-    "enterTermHint": "按名称、描述或标签搜索技能"
+    "hotSkills": "热门技能",
+    "hotSkillsHint": "按安装量排序",
+    "noResults": "未找到结果",
+    "noResultsHint": "尝试其他关键词",
+    "tabs": {
+      "skills": "技能",
+      "authors": "作者",
+      "repos": "仓库"
+    }
   },
   "skill": {
     "backToSkills": "返回技能列表",
@@ -97,7 +105,8 @@
   },
   "common": {
     "by": "作者",
-    "private": "私密"
+    "private": "私密",
+    "loading": "加载中..."
   },
   "skills": {
     "title": "所有技能",
@@ -176,7 +185,13 @@
     "invalidEmail": "请输入有效的邮箱",
     "passwordTooShort": "密码至少需要 6 个字符",
     "profile": "个人资料",
-    "settings": "设置"
+    "settings": "设置",
+    "back": "返回",
+    "account": "账号",
+    "signInDescription": "登录以发布技能、管理账号等。",
+    "continueWithGitHub": "使用 GitHub 继续",
+    "continueWithGoogle": "使用 Google 继续",
+    "termsNotice": "继续即表示你同意我们的服务条款和隐私政策。"
   },
   "author": {
     "title": "{name} 的技能",
@@ -216,7 +231,8 @@
     "mostStarred": "星标最多",
     "installs": "安装量",
     "stars": "星标",
-    "viewAll": "查看全部技能 →"
+    "viewAll": "查看全部技能 →",
+    "updatedHourly": "每小时更新"
   },
   "statsBar": {
     "skills": "个技能",
@@ -255,7 +271,8 @@
     "noNew": "暂无新晋技能",
     "noDropped": "暂无掉榜技能",
     "noSurging": "暂无暴涨技能",
-    "updateNote": "每 1 小时更新一次"
+    "updateNote": "每 1 小时更新一次",
+    "rollingWindow": "24 小时滚动窗口"
   },
   "seo": {
     "locale": "zh_CN",

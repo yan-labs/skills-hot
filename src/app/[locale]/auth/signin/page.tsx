@@ -64,14 +64,14 @@ export default function SignInPage() {
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-3 w-3" />
-          Back
+          {t('back')}
         </Link>
 
         <div className="mt-8">
-          <p className="section-label mb-2">Account</p>
+          <p className="section-label mb-2">{t('account')}</p>
           <h1 className="text-3xl">{t('signIn')}</h1>
           <p className="mt-4 text-sm text-muted-foreground">
-            Sign in to publish skills, manage your account, and more.
+            {t('signInDescription')}
           </p>
 
           {error && (
@@ -87,7 +87,7 @@ export default function SignInPage() {
               className="flex w-full items-center justify-center gap-2 border border-foreground bg-foreground py-2.5 text-sm font-medium text-background transition-colors hover:bg-foreground/90 disabled:opacity-50"
             >
               <Github className="h-4 w-4" />
-              {loading === 'github' ? 'Signing in...' : 'Continue with GitHub'}
+              {loading === 'github' ? t('signingIn') : t('continueWithGitHub')}
             </button>
 
             <button
@@ -96,12 +96,12 @@ export default function SignInPage() {
               className="flex w-full items-center justify-center gap-2 border border-border bg-background py-2.5 text-sm font-medium transition-colors hover:bg-muted disabled:opacity-50"
             >
               <GoogleIcon className="h-4 w-4" />
-              {loading === 'google' ? 'Signing in...' : 'Continue with Google'}
+              {loading === 'google' ? t('signingIn') : t('continueWithGoogle')}
             </button>
           </div>
 
           <p className="mt-8 text-center text-xs text-muted-foreground">
-            By continuing, you agree to our Terms of Service and Privacy Policy.
+            {t('termsNotice')}
           </p>
         </div>
       </main>

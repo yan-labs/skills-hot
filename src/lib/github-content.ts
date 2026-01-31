@@ -189,6 +189,34 @@ export async function fetchGitHubContent(rawUrl: string): Promise<string> {
 }
 
 /**
+ * 获取仓库的真实名称（处理重命名）
+ * GitHub API 会返回重定向后的真实仓库信息
+ */
+async function getActualRepoName(owner: string, repo: string): Promise<string> {
+  try {
+    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+      headers: {
+        'User-Agent': 'SkillsHot/1.0',
+        Accept: 'application/vnd.github.v3+json',
+        ...(process.env.GITHUB_TOKEN && {
+          Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        }),
+      },
+      next: { revalidate: 86400 }, // 缓存 24 小时
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data.full_name; // e.g., "f/prompts.chat"
+    }
+  } catch {
+    // 失败时返回原始名称
+  }
+
+  return `${owner}/${repo}`;
+}
+
+/**
  * 智能获取 SKILL.md 内容，尝试多种可能的路径
  * @param owner - 仓库所有者
  * @param repo - 仓库名
@@ -202,9 +230,35 @@ export async function fetchSkillContent(
   skillName: string,
   repoPath?: string | null
 ): Promise<string> {
+  // 1. 获取仓库的真实名称（处理重命名）
+  const actualRepoName = await getActualRepoName(owner, repo);
+  const [actualOwner, actualRepo] = actualRepoName.split('/');
+
   // 构建可能的 URL 列表（按优先级排序）
   const possibleUrls: string[] = [];
   const branch = 'main';
+
+  // 2. 如果有 repoPath，最优先尝试（数据库中存储的路径应该是正确的）
+  if (repoPath) {
+    possibleUrls.push(
+      `https://raw.githubusercontent.com/${actualOwner}/${actualRepo}/${branch}/${repoPath}/SKILL.md`
+    );
+  }
+
+  // 3. 深层路径模式（如 prompts.chat 的结构）
+  const deepPaths = [
+    `plugins/claude/${actualRepo}/skills/${skillName}`,
+    `plugins/claude/${repo}/skills/${skillName}`,
+    `.claude/skills/${skillName}`,
+    `.windsurf/skills/${skillName}`,
+    `.cursor/skills/${skillName}`,
+  ];
+
+  for (const deepPath of deepPaths) {
+    possibleUrls.push(
+      `https://raw.githubusercontent.com/${actualOwner}/${actualRepo}/${branch}/${deepPath}/SKILL.md`
+    );
+  }
 
   // 从 skillName 中移除可能的前缀（如 vercel-react-best-practices -> react-best-practices）
   const ownerFirstPart = owner.split('-')[0];
@@ -213,36 +267,33 @@ export async function fetchSkillContent(
     .replace(new RegExp(`^${ownerFirstPart}-`, 'i'), '')
     .replace(new RegExp(`^${repo}-`, 'i'), '');
 
-  // 1. 优先尝试去除前缀的名称
+  // 4. 优先尝试去除前缀的名称
   if (strippedName !== skillName) {
     possibleUrls.push(
-      `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/skills/${strippedName}/SKILL.md`
+      `https://raw.githubusercontent.com/${actualOwner}/${actualRepo}/${branch}/skills/${strippedName}/SKILL.md`
     );
   }
 
-  // 2. 如果有 repoPath，先尝试 skills/{repoPath}（常见的 monorepo 结构）
+  // 5. 如果有 repoPath，尝试 skills/{repoPath}
   if (repoPath) {
     possibleUrls.push(
-      `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/skills/${repoPath}/SKILL.md`
-    );
-    possibleUrls.push(
-      `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${repoPath}/SKILL.md`
+      `https://raw.githubusercontent.com/${actualOwner}/${actualRepo}/${branch}/skills/${repoPath}/SKILL.md`
     );
   }
 
-  // 3. 尝试 skills/{skillName}
+  // 6. 尝试 skills/{skillName}
   possibleUrls.push(
-    `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/skills/${skillName}/SKILL.md`
+    `https://raw.githubusercontent.com/${actualOwner}/${actualRepo}/${branch}/skills/${skillName}/SKILL.md`
   );
 
-  // 4. 尝试直接的 {skillName}
+  // 7. 尝试直接的 {skillName}
   possibleUrls.push(
-    `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${skillName}/SKILL.md`
+    `https://raw.githubusercontent.com/${actualOwner}/${actualRepo}/${branch}/${skillName}/SKILL.md`
   );
 
-  // 5. 尝试根目录 SKILL.md
+  // 8. 尝试根目录 SKILL.md
   possibleUrls.push(
-    `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/SKILL.md`
+    `https://raw.githubusercontent.com/${actualOwner}/${actualRepo}/${branch}/SKILL.md`
   );
 
   // 去重

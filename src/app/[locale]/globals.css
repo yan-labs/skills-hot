@@ -155,6 +155,10 @@
     @apply border-border outline-ring/50;
   }
 
+  html {
+    overflow-y: scroll; /* Prevent layout shift when scrollbar appears/disappears */
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans), system-ui, sans-serif;
