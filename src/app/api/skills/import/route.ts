@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { verifyToken } from '@/lib/auth-middleware';
-import { fetchGitHubContent, fetchGitHubDirectory, getGitHubRawUrl, parseTopSource } from '@/lib/github-content';
+import { fetchGitHubContent, fetchGitHubDirectory, fetchSkillContent, parseTopSource } from '@/lib/github-content';
 
 /**
  * POST /api/skills/import
@@ -66,14 +66,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 4. Fetch content from GitHub
+    // 4. Fetch content from GitHub（智能获取，尝试多个路径）
     let content = '';
     if (externalSkill.raw_url) {
       content = await fetchGitHubContent(externalSkill.raw_url);
     } else if (externalSkill.repo) {
       const { owner, repo } = parseTopSource(externalSkill.repo);
-      const rawUrl = getGitHubRawUrl(owner, repo, externalSkill.branch || 'main', externalSkill.repo_path);
-      content = await fetchGitHubContent(rawUrl);
+      content = await fetchSkillContent(owner, repo, externalSkill.name, externalSkill.repo_path);
     }
 
     if (!content || content.includes('Content Unavailable')) {

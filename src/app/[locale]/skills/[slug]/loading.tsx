@@ -5,7 +5,7 @@ export default function SkillLoading() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="mx-auto max-w-5xl px-6 py-12">
+      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
         {/* Breadcrumb skeleton */}
         <div className="mb-8 h-4 w-24 animate-pulse rounded bg-muted" />
 

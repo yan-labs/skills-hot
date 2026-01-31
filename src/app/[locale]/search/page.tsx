@@ -15,19 +15,17 @@ type Props = {
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { locale } = await params;
   const { q } = await searchParams;
+  const t = await getTranslations('seo.search');
+  const tSeo = await getTranslations('seo');
 
-  const baseTitle = locale === 'zh' ? '搜索 AI 代理技能' : 'Search AI Agent Skills';
+  const baseTitle = t('title');
   const title = q
-    ? `${q} - ${baseTitle} | Skills Hot Marketplace`
-    : `${baseTitle} - Discover Skills for Claude Code & Cursor | Skills Hot`;
+    ? `${t('titleWithQuery', { query: q })} | Skills Hot Marketplace`
+    : `${t('fullTitle')} | Skills Hot`;
 
-  const description = locale === 'zh'
-    ? q
-      ? `搜索 "${q}" 的 AI 代理技能结果 - 在 Skills Hot 发现适合 Claude Code、Cursor 等的技能`
-      : '搜索 AI 代理技能 - 在 Skills Hot 发现适合 Claude Code、Cursor、Windsurf 等编程代理的技能'
-    : q
-      ? `Search results for "${q}" AI agent skills - Discover skills for Claude Code, Cursor and more on Skills Hot`
-      : 'Search AI agent skills - Discover skills for Claude Code, Cursor, Windsurf and other coding agents on Skills Hot';
+  const description = q
+    ? t('descriptionWithQuery', { query: q })
+    : t('description');
 
   const url = q
     ? `https://skills.hot/${locale}/search?q=${encodeURIComponent(q)}`
@@ -49,9 +47,9 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       url,
       siteName: 'Skills Hot',
       type: 'website',
-      locale: locale === 'zh' ? 'zh_CN' : 'en_US',
+      locale: tSeo('locale'),
       images: [{
-        url: `https://skills.hot/api/og?title=${encodeURIComponent(baseTitle)}&subtitle=${encodeURIComponent(locale === 'zh' ? '发现 AI 代理技能' : 'Discover AI Agent Skills')}&type=search&locale=${locale}`,
+        url: `https://skills.hot/api/og?title=${encodeURIComponent(baseTitle)}&subtitle=${encodeURIComponent(t('subtitle'))}&type=search&locale=${locale}`,
         width: 1200,
         height: 630,
         alt: title,
@@ -61,7 +59,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       card: 'summary_large_image',
       title,
       description,
-      images: [`https://skills.hot/api/og?title=${encodeURIComponent(baseTitle)}&subtitle=${encodeURIComponent(locale === 'zh' ? '发现 AI 代理技能' : 'Discover AI Agent Skills')}&type=search&locale=${locale}`],
+      images: [`https://skills.hot/api/og?title=${encodeURIComponent(baseTitle)}&subtitle=${encodeURIComponent(t('subtitle'))}&type=search&locale=${locale}`],
     },
     robots: {
       index: !q, // Don't index search result pages, only the main search page
@@ -70,14 +68,23 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   };
 }
 
-function generateSearchJsonLd(locale: string, query?: string, resultsCount?: number) {
+interface SearchJsonLdTranslations {
+  name: string;
+  description: string;
+  breadcrumb: string;
+}
+
+function generateSearchJsonLd(
+  locale: string,
+  t: SearchJsonLdTranslations,
+  query?: string,
+  resultsCount?: number
+) {
   return {
     '@context': 'https://schema.org',
     '@type': 'SearchResultsPage',
-    name: locale === 'zh' ? '搜索技能' : 'Search Skills',
-    description: locale === 'zh'
-      ? 'AI 代理技能搜索页面'
-      : 'AI agent skills search page',
+    name: t.name,
+    description: t.description,
     url: query
       ? `https://skills.hot/${locale}/search?q=${encodeURIComponent(query)}`
       : `https://skills.hot/${locale}/search`,
@@ -105,7 +112,7 @@ function generateSearchJsonLd(locale: string, query?: string, resultsCount?: num
         {
           '@type': 'ListItem',
           position: 2,
-          name: locale === 'zh' ? '搜索' : 'Search',
+          name: t.breadcrumb,
           item: `https://skills.hot/${locale}/search`,
         },
       ],

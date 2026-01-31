@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { verifyToken } from '@/lib/auth-middleware';
-import { fetchGitHubContent, getGitHubRawUrl, parseTopSource } from '@/lib/github-content';
+import { fetchGitHubContent, fetchSkillContent, parseTopSource } from '@/lib/github-content';
 
 const SKILLSMP_API_URL = 'https://skillsmp.com/api/v1';
 const SKILLSMP_API_KEY = process.env.SKILLSMP_API_KEY;
@@ -95,16 +95,17 @@ export async function GET(request: NextRequest, { params }: Props) {
     const externalSkill = externalSkills?.[0];
 
     if (externalSkill) {
-      let rawUrl = externalSkill.raw_url;
-
-      // If no raw_url stored, construct it from repo info
-      if (!rawUrl && externalSkill.repo) {
-        const { owner, repo } = parseTopSource(externalSkill.repo);
-        rawUrl = getGitHubRawUrl(owner, repo, externalSkill.branch || 'main', externalSkill.repo_path);
+      // 优先使用 raw_url，否则智能获取
+      if (externalSkill.raw_url) {
+        const content = await fetchGitHubContent(externalSkill.raw_url);
+        return new NextResponse(content, {
+          headers: { 'Content-Type': 'text/markdown; charset=utf-8' },
+        });
       }
 
-      if (rawUrl) {
-        const content = await fetchGitHubContent(rawUrl);
+      if (externalSkill.repo) {
+        const { owner, repo } = parseTopSource(externalSkill.repo);
+        const content = await fetchSkillContent(owner, repo, slug, externalSkill.repo_path);
         return new NextResponse(content, {
           headers: { 'Content-Type': 'text/markdown; charset=utf-8' },
         });
@@ -122,15 +123,17 @@ export async function GET(request: NextRequest, { params }: Props) {
     const externalByName = externalByNames?.[0];
 
     if (externalByName) {
-      let rawUrl = externalByName.raw_url;
-
-      if (!rawUrl && externalByName.repo) {
-        const { owner, repo } = parseTopSource(externalByName.repo);
-        rawUrl = getGitHubRawUrl(owner, repo, externalByName.branch || 'main', externalByName.repo_path);
+      // 优先使用 raw_url，否则智能获取
+      if (externalByName.raw_url) {
+        const content = await fetchGitHubContent(externalByName.raw_url);
+        return new NextResponse(content, {
+          headers: { 'Content-Type': 'text/markdown; charset=utf-8' },
+        });
       }
 
-      if (rawUrl) {
-        const content = await fetchGitHubContent(rawUrl);
+      if (externalByName.repo) {
+        const { owner, repo } = parseTopSource(externalByName.repo);
+        const content = await fetchSkillContent(owner, repo, slug, externalByName.repo_path);
         return new NextResponse(content, {
           headers: { 'Content-Type': 'text/markdown; charset=utf-8' },
         });

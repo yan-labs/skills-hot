@@ -89,7 +89,11 @@
     "viewOnGitHub": "View on GitHub",
     "stars": "Stars",
     "importToPlatform": "Import to Platform",
-    "moreFromAuthor": "More from this author"
+    "moreFromAuthor": "More from this author",
+    "viewAllFromAuthor": "View all",
+    "createdAt": "Created",
+    "lastUpdated": "Updated",
+    "files": "files"
   },
   "common": {
     "by": "by",
@@ -227,10 +231,12 @@
     "totalAuthors": "authors",
     "skills": "Skills",
     "installs": "Installs",
+    "stars": "Stars",
     "noAuthors": "No authors found",
     "sort": {
       "installs": "Most Installs",
-      "skills": "Most Skills"
+      "skills": "Most Skills",
+      "stars": "Most Stars"
     },
     "prev": "Previous",
     "next": "Next",
@@ -250,5 +256,52 @@
     "noDropped": "No dropped skills",
     "noSurging": "No surging skills",
     "updateNote": "Updated every 1 hour"
+  },
+  "seo": {
+    "locale": "en_US",
+    "inLanguage": "en-US",
+    "home": {
+      "h1": "Skills Hot - AI Agent Skills Marketplace",
+      "jsonLdDescription": "AI Agent Skill Marketplace - Install skills for Claude Code, Cursor, Windsurf and other AI coding agents",
+      "jsonLdOrgDescription": "AI Agent Skill Marketplace with {skills} skills and {installs} total installs"
+    },
+    "authors": {
+      "title": "AI Skill Authors",
+      "titleWithPage": "AI Skill Authors - Page {page}",
+      "subtitle": "Discover Skill Creators",
+      "fullTitle": "AI Skill Authors - Discover Skill Creators",
+      "description": "Browse creators of AI agent skills. Discover their skills for Claude Code, Cursor, and other coding agents",
+      "totalDescription": "Browse {total} AI agent skill creators",
+      "breadcrumb": "Authors"
+    },
+    "search": {
+      "title": "Search AI Agent Skills",
+      "titleWithQuery": "{query} - Search AI Agent Skills",
+      "fullTitle": "Search AI Agent Skills - Discover Skills for Claude Code & Cursor",
+      "subtitle": "Discover AI Agent Skills",
+      "description": "Search and discover AI agent skills for Claude Code, Cursor, and other coding agents. Find the perfect skill for your needs.",
+      "descriptionWithQuery": "Search results for \"{query}\" AI agent skills - Discover skills for Claude Code, Cursor and more on Skills Hot",
+      "jsonLdName": "Search Skills",
+      "jsonLdDescription": "AI agent skills search page",
+      "breadcrumb": "Search"
+    },
+    "docs": {
+      "title": "Documentation",
+      "subtitle": "Skills Hot CLI Guide",
+      "fullTitle": "Skills Hot CLI Documentation",
+      "description": "Learn how to use Skills Hot CLI to install, manage, and create skills for AI coding agents like Claude Code and Cursor.",
+      "breadcrumb": "Documentation"
+    },
+    "og": {
+      "trending": "TRENDING",
+      "trendingSkill": "TRENDING SKILL",
+      "topContributor": "TOP CONTRIBUTOR",
+      "topToday": "#1 TODAY",
+      "installs": "INSTALLS",
+      "stars": "STARS",
+      "skills": "SKILLS",
+      "rank": "RANK",
+      "by": "by"
+    }
   }
 }

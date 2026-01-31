@@ -1,9 +1,17 @@
-'use client';
+"use client";
 
-import { Link } from '@/i18n/navigation';
-import { useTranslations } from 'next-intl';
-import { ArrowUpRight, TrendingUp, Star, Download } from 'lucide-react';
-import Image from 'next/image';
+import { useState } from "react";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
+import {
+  ArrowUpRight,
+  TrendingUp,
+  Star,
+  Download,
+  Check,
+  Copy,
+} from "lucide-react";
+import Image from "next/image";
 
 type Author = {
   github_login: string;
@@ -28,184 +36,178 @@ type HeadlineSkillProps = {
 
 function formatNumber(num: number): string {
   if (num >= 1000000) {
-    return (num / 1000000).toFixed(1) + 'M';
+    return (num / 1000000).toFixed(1) + "M";
   }
   if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'K';
+    return (num / 1000).toFixed(1) + "K";
   }
   return num.toString();
 }
 
 export function HeadlineSkill({ skill, author }: HeadlineSkillProps) {
   const t = useTranslations();
+  const [copied, setCopied] = useState(false);
+
+  const installCommand = `npx skills add ${skill.name}`;
+
+  const handleCopy = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    await navigator.clipboard.writeText(installCommand);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
-    <section className="py-8 sm:py-12">
+    <section className=''>
       {/* Section header - 报纸风格横幅 */}
-      <div className="mb-8 border-y-2 border-foreground py-2">
-        <p className="text-center font-serif text-sm font-medium uppercase tracking-[0.3em]">
-          {t('headline.badge')}
+      <div className='mb-12 border-y-2 border-foreground py-2'>
+        <p className='text-center font-serif text-sm font-medium uppercase tracking-[0.3em]'>
+          {t("headline.badge")}
         </p>
       </div>
 
-      {/* Two-column layout */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_220px] lg:gap-10">
-        {/* Left: Headline Skill */}
-        <div className="order-1">
-          <Link
-            href={`/skills/${skill.slug}`}
-            className="group block"
-          >
-            {/* Growth badge - 红色醒目数字 */}
+      {/* Unified Poster Card */}
+      <Link href={`/skills/${skill.slug}`} className='group block'>
+        <div className='relative'>
+          {/* Top row: Growth number + Author */}
+          <div className='flex items-start justify-between gap-6 mb-6'>
+            {/* Left: Growth badge */}
             {skill.installs_delta && skill.installs_delta > 0 ? (
-              <div className="mb-4 flex items-start gap-4">
-                <div className="relative">
-                  <span
-                    className="font-serif text-[5rem] font-black leading-none tracking-tighter text-[#C41E3A] sm:text-[6rem] lg:text-[7rem]"
-                  >
+              <div className='flex items-start gap-4'>
+                <div className='relative'>
+                  <span className='font-serif text-[4.5rem] font-black leading-none tracking-tighter text-[#C41E3A] sm:text-[5.5rem] lg:text-[6.5rem]'>
                     +{formatNumber(skill.installs_delta)}
                   </span>
-                  {/* 装饰性下划线 */}
-                  <div className="absolute -bottom-1 left-0 h-1 w-full bg-[#C41E3A]" />
+                  <div className='absolute -bottom-1 left-0 h-1 w-full bg-[#C41E3A]' />
                 </div>
-                <div className="mt-4 flex flex-col">
-                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C41E3A]">
-                    <TrendingUp className="inline h-3 w-3 mr-1" />
+                <div className='mt-3 flex flex-col'>
+                  <span className='text-xs font-bold uppercase tracking-[0.2em] text-[#C41E3A]'>
+                    <TrendingUp className='inline h-3 w-3 mr-1' />
                     24H
                   </span>
-                  <span className="mt-1 text-sm font-medium uppercase tracking-wider">
-                    {t('headline.fastestGrowing')}
+                  <span className='mt-1 text-sm font-medium uppercase tracking-wider'>
+                    {t("headline.fastestGrowing")}
                   </span>
                 </div>
               </div>
             ) : (
-              <div className="mb-4">
-                <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C41E3A]">
-                  {t('headline.topSkill')}
+              <div>
+                <span className='text-xs font-bold uppercase tracking-[0.2em] text-[#C41E3A]'>
+                  {t("headline.topSkill")}
                 </span>
               </div>
             )}
 
-            {/* Skill name - 报纸标题风格 */}
-            <h2 className="font-serif text-3xl font-normal leading-tight sm:text-4xl md:text-5xl lg:text-[3.5rem] group-hover:underline decoration-1 underline-offset-4">
-              {skill.name}
-            </h2>
-
-            {/* Description - 副标题 */}
-            {skill.description && (
-              <p className="mt-4 max-w-2xl text-lg leading-relaxed text-muted-foreground">
-                {skill.description}
-              </p>
-            )}
-
-            {/* Repo info */}
-            {skill.repo && (
-              <p className="byline mt-3">
-                {skill.repo}
-              </p>
-            )}
-
-            {/* CTA */}
-            <div className="mt-6 inline-flex items-center gap-2 border border-foreground px-4 py-2 transition-all group-hover:bg-foreground group-hover:text-background">
-              <span className="text-sm font-medium">{t('headline.viewSkill')}</span>
-              <ArrowUpRight className="h-4 w-4" />
-            </div>
-          </Link>
-        </div>
-
-        {/* Right Sidebar: Stats + Author */}
-        <div className="order-2">
-          {/* Stats Card */}
-          <div className="border-t border-border pt-4">
-            <p className="section-label mb-4">{t('headline.statistics')}</p>
-
-            <div className="space-y-3">
-              {/* Installs */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Download className="h-4 w-4" />
-                  <span className="text-xs">{t('headline.installs')}</span>
-                </div>
-                <span className="font-mono text-base font-bold">{formatNumber(skill.installs)}</span>
-              </div>
-
-              {/* Stars */}
-              {skill.stars !== undefined && (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Star className="h-4 w-4" />
-                    <span className="text-xs">{t('headline.stars')}</span>
-                  </div>
-                  <span className="font-mono text-base font-bold">{formatNumber(skill.stars)}</span>
-                </div>
-              )}
-
-              {/* 24h Growth */}
-              {skill.installs_delta !== undefined && skill.installs_delta > 0 && (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <TrendingUp className="h-4 w-4" />
-                    <span className="text-xs">{t('headline.growth24h')}</span>
-                  </div>
-                  <span className="font-mono text-base font-bold text-[#C41E3A]">
-                    +{formatNumber(skill.installs_delta)}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Quick install hint */}
-            <div className="mt-4 border-t border-border pt-4">
-              <p className="text-xs text-muted-foreground">
-                {t('headline.installHint')}
-              </p>
-              <code className="mt-2 block truncate bg-foreground px-2 py-1.5 text-xs text-background">
-                npx skills add {skill.name}
-              </code>
-            </div>
-          </div>
-
-          {/* Author Card */}
-          {author ? (
-            <Link
-              href={`/authors/${author.github_login}`}
-              className="group mt-6 block border-t border-border pt-4"
-            >
-              <p className="section-label mb-3">Author</p>
-              <div className="flex items-center gap-3">
+            {/* Right: Author (integrated into poster) */}
+            {author && (
+              <div
+                className='flex items-center gap-3 px-4 py-3 bg-muted/50 rounded-lg transition-colors group-hover:bg-muted'
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  window.location.href = `/authors/${author.github_login}`;
+                }}
+              >
                 {author.avatar_url ? (
                   <Image
                     src={author.avatar_url}
                     alt={author.name || author.github_login}
-                    width={40}
-                    height={40}
+                    width={44}
+                    height={44}
                     unoptimized
-                    className="rounded-full grayscale transition-all group-hover:grayscale-0"
+                    className='rounded-full ring-2 ring-background shadow-sm'
                   />
                 ) : (
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-sm font-medium">
-                    {(author.name || author.github_login).charAt(0).toUpperCase()}
+                  <div className='flex h-11 w-11 items-center justify-center rounded-full bg-foreground/10 text-sm font-semibold ring-2 ring-background'>
+                    {(author.name || author.github_login)
+                      .charAt(0)
+                      .toUpperCase()}
                   </div>
                 )}
-                <div>
-                  <p className="text-sm font-medium group-hover:underline">
+                <div className='text-right'>
+                  <p className='text-sm font-semibold hover:underline'>
                     {author.name || author.github_login}
                   </p>
-                  <p className="text-xs text-muted-foreground">@{author.github_login}</p>
+                  <p className='text-xs text-muted-foreground'>
+                    {author.external_skill_count} {t("headline.skills")} ·{" "}
+                    {formatNumber(author.total_installs)} installs
+                  </p>
                 </div>
               </div>
-              <div className="mt-3 flex gap-4 text-xs text-muted-foreground">
-                <span>{author.external_skill_count} {t('headline.skills')}</span>
-                <span>{formatNumber(author.total_installs)} {t('headline.totalInstalls')}</span>
-              </div>
-            </Link>
-          ) : (
-            <div className="mt-6 border-t border-border pt-4">
-              <p className="text-sm text-muted-foreground">{t('headline.unknownAuthor')}</p>
-            </div>
+            )}
+          </div>
+
+          {/* Skill name - 报纸标题风格 */}
+          <h2 className='font-serif text-3xl font-normal leading-tight sm:text-4xl md:text-5xl lg:text-[3.5rem] group-hover:underline decoration-1 underline-offset-4'>
+            {skill.name}
+          </h2>
+
+          {/* Description */}
+          {skill.description && (
+            <p className='mt-4 max-w-3xl text-lg leading-relaxed text-muted-foreground'>
+              {skill.description}
+            </p>
           )}
+
+          {/* Bottom row: Stats + Install command + CTA */}
+          <div className='mt-8 flex flex-wrap items-end justify-between gap-6'>
+            {/* Stats inline */}
+            <div className='flex items-center gap-6 text-sm'>
+              <div className='flex items-center gap-1.5'>
+                <Download className='h-4 w-4 text-muted-foreground' />
+                <span className='font-mono font-bold'>
+                  {formatNumber(skill.installs)}
+                </span>
+                <span className='text-muted-foreground'>
+                  {t("headline.installs")}
+                </span>
+              </div>
+              {skill.stars !== undefined && skill.stars > 0 && (
+                <div className='flex items-center gap-1.5'>
+                  <Star className='h-4 w-4 text-muted-foreground' />
+                  <span className='font-mono font-bold'>
+                    {formatNumber(skill.stars)}
+                  </span>
+                  <span className='text-muted-foreground'>
+                    {t("headline.stars")}
+                  </span>
+                </div>
+              )}
+              {skill.repo && (
+                <span className='text-muted-foreground hidden sm:inline'>
+                  {skill.repo}
+                </span>
+              )}
+            </div>
+
+            {/* Install command + CTA */}
+            <div className='flex items-center gap-4'>
+              {/* Quick install */}
+              <button
+                onClick={handleCopy}
+                className='group/copy hidden sm:flex items-center gap-2 py-2 px-3 text-xs font-mono bg-neutral-900 text-neutral-100 rounded transition-all hover:bg-neutral-800'
+              >
+                <span className='text-neutral-500'>$</span>
+                <span className='truncate max-w-[200px]'>{installCommand}</span>
+                {copied ? (
+                  <Check className='h-3.5 w-3.5 text-green-400 flex-shrink-0' />
+                ) : (
+                  <Copy className='h-3.5 w-3.5 text-neutral-500 group-hover/copy:text-neutral-300 flex-shrink-0' />
+                )}
+              </button>
+
+              {/* CTA */}
+              <div className='inline-flex items-center gap-2 border border-foreground px-4 py-2 transition-all group-hover:bg-foreground group-hover:text-background'>
+                <span className='text-sm font-medium'>
+                  {t("headline.viewSkill")}
+                </span>
+                <ArrowUpRight className='h-4 w-4' />
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </Link>
     </section>
   );
 }

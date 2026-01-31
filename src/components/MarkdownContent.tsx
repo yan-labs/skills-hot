@@ -5,8 +5,19 @@ interface MarkdownContentProps {
   className?: string;
 }
 
+/**
+ * 移除 YAML frontmatter（--- 之间的内容）
+ * skills.sh 也是这样处理的 - frontmatter 用于元数据，不在正文显示
+ */
+function stripFrontmatter(content: string): string {
+  const frontmatterRegex = /^---\s*\n[\s\S]*?\n---\s*\n/;
+  return content.replace(frontmatterRegex, '').trim();
+}
+
 export function MarkdownContent({ content, className = '' }: MarkdownContentProps) {
-  const html = marked.parse(content, { gfm: true, breaks: true }) as string;
+  // 移除 frontmatter，只渲染正文内容
+  const cleanContent = stripFrontmatter(content);
+  const html = marked.parse(cleanContent, { gfm: true, breaks: true }) as string;
 
   return (
     <div

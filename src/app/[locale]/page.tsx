@@ -1,20 +1,9 @@
-import { SearchBar } from '@/components/SearchBar';
+import { Header } from '@/components/Header';
 import { HeadlineSkill } from '@/components/HeadlineSkill';
 import { TrendingBoard, TrendingSkill } from '@/components/TrendingBoard';
 import { Leaderboard } from '@/components/Leaderboard';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
-
-function formatNumber(num: number): string {
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1) + 'M';
-  }
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'K';
-  }
-  return num.toLocaleString();
-}
 
 // Get stats for the stats bar
 async function getStats() {
@@ -347,7 +336,17 @@ type Props = {
   params: Promise<{ locale: string }>;
 };
 
-function generateHomeJsonLd(locale: string, stats: { totalSkills: number; totalInstalls: number }) {
+interface HomeJsonLdTranslations {
+  inLanguage: string;
+  jsonLdDescription: string;
+  jsonLdOrgDescription: string;
+}
+
+function generateHomeJsonLd(
+  locale: string,
+  stats: { totalSkills: number; totalInstalls: number },
+  t: HomeJsonLdTranslations
+) {
   // Use a single graph with @id references for better schema validation
   return [
     {
@@ -359,10 +358,8 @@ function generateHomeJsonLd(locale: string, stats: { totalSkills: number; totalI
           '@id': 'https://skills.hot/#website',
           name: 'Skills Hot',
           url: 'https://skills.hot',
-          description: locale === 'zh'
-            ? 'AI 代理技能市场 - 为 Claude Code、Cursor、Windsurf 等 AI 编程代理安装技能'
-            : 'AI Agent Skill Marketplace - Install skills for Claude Code, Cursor, Windsurf and other AI coding agents',
-          inLanguage: locale === 'zh' ? 'zh-CN' : 'en-US',
+          description: t.jsonLdDescription,
+          inLanguage: t.inLanguage,
           publisher: { '@id': 'https://skills.hot/#organization' },
           potentialAction: {
             '@type': 'SearchAction',
@@ -381,9 +378,7 @@ function generateHomeJsonLd(locale: string, stats: { totalSkills: number; totalI
           url: 'https://skills.hot',
           logo: 'https://skills.hot/logo.png',
           sameAs: ['https://github.com/yan-labs/skills-hot'],
-          description: locale === 'zh'
-            ? `AI 代理技能市场，拥有 ${stats.totalSkills.toLocaleString()} 个技能和 ${stats.totalInstalls.toLocaleString()} 次安装`
-            : `AI Agent Skill Marketplace with ${stats.totalSkills.toLocaleString()} skills and ${stats.totalInstalls.toLocaleString()} total installs`,
+          description: t.jsonLdOrgDescription,
         },
         // SoftwareApplication (the CLI tool)
         {
@@ -410,6 +405,8 @@ export default async function Home({ params }: Props) {
   setRequestLocale(locale);
 
   const t = await getTranslations();
+  const tSeo = await getTranslations('seo');
+  const tHome = await getTranslations('seo.home');
 
   // Fetch all data in parallel
   const [stats, headline, leaderboard, trending] = await Promise.all([
@@ -419,7 +416,14 @@ export default async function Home({ params }: Props) {
     getTrendingData(),
   ]);
 
-  const jsonLdArray = generateHomeJsonLd(locale, stats);
+  const jsonLdArray = generateHomeJsonLd(locale, stats, {
+    inLanguage: tSeo('inLanguage'),
+    jsonLdDescription: tHome('jsonLdDescription'),
+    jsonLdOrgDescription: tHome('jsonLdOrgDescription', {
+      skills: stats.totalSkills.toLocaleString(),
+      installs: stats.totalInstalls.toLocaleString(),
+    }),
+  });
 
   return (
     <>
@@ -434,49 +438,9 @@ export default async function Home({ params }: Props) {
       <div className="min-h-screen bg-background">
       {/* SEO H1 - visually hidden but accessible */}
       <h1 className="sr-only">
-        {locale === 'zh' ? 'Skills Hot - AI 代理技能市场' : 'Skills Hot - AI Agent Skills Marketplace'}
+        {tHome('h1')}
       </h1>
-      {/* Combined Masthead: Header + Stats + Hero */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          {/* Single row: Logo + Nav + Actions */}
-          <div className="flex h-14 items-center justify-between">
-            <div className="flex items-center gap-8">
-              <Link href="/" className="group flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center bg-foreground text-background">
-                  <span className="font-serif text-lg font-bold">S</span>
-                </div>
-                <span className="hidden font-serif text-xl tracking-tight sm:inline">
-                  Skills Hot
-                </span>
-              </Link>
-              <nav className="hidden items-center gap-5 md:flex">
-                <Link href="/authors" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-                  {t('header.authors')}
-                </Link>
-                <Link href="/docs" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-                  {t('header.docs')}
-                </Link>
-              </nav>
-            </div>
-            <div className="flex items-center gap-3">
-              {/* Stats pills */}
-              <div className="hidden items-center gap-2 lg:flex">
-                <div className="flex items-center gap-1.5 rounded-full bg-muted/50 px-3 py-1">
-                  <span className="font-mono text-sm font-medium">{formatNumber(stats.totalSkills)}</span>
-                  <span className="text-xs text-muted-foreground">skills</span>
-                </div>
-                <div className="flex items-center gap-1.5 rounded-full bg-muted/50 px-3 py-1">
-                  <span className="font-mono text-sm font-medium">{formatNumber(stats.totalInstalls)}</span>
-                  <span className="text-xs text-muted-foreground">installs</span>
-                </div>
-              </div>
-              <SearchBar compact />
-              <ThemeToggle />
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <main className="mx-auto max-w-6xl px-4 sm:px-6">
         {/* Headline Skill Section - directly after header */}

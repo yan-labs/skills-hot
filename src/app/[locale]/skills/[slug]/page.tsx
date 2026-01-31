@@ -1,14 +1,14 @@
 import { Header } from '@/components/Header';
 import { notFound } from 'next/navigation';
-import { ExternalLink, ArrowLeft, ArrowUpRight, Github, Download } from 'lucide-react';
+import { ExternalLink, ArrowLeft, ArrowUpRight, Download, Info } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { CopyButton } from '@/components/CopyButton';
-import { ThirdPartyCopyButton } from '@/components/ThirdPartyCopyButton';
 import { SkillTracker } from '@/components/SkillTracker';
 import { PlatformBadge } from '@/components/PlatformBadge';
 import { MarkdownContent } from '@/components/MarkdownContent';
+import { SkillFiles } from '@/components/SkillFiles';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { fetchGitHubContent, fetchSkillContent, getGitHubRawUrl, parseTopSource } from '@/lib/github-content';
+import { fetchGitHubContent, fetchSkillContent, getGitHubRawUrl, parseTopSource, fetchGitHubDirectory } from '@/lib/github-content';
 import type { SkillDetail } from '@/lib/supabase';
 
 type Props = {
@@ -180,14 +180,14 @@ async function getAuthorOtherSkills(
   const { createClient } = await import('@supabase/supabase-js');
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  // 获取作者的所有技能（排除当前技能）
+  // 获取作者的所有技能（排除当前技能，最多显示6个）
   const { data: skills, count } = await supabase
     .from('external_skills')
     .select('name, slug, description, installs', { count: 'exact' })
     .ilike('github_owner', authorLogin)
     .neq('slug', currentSkillSlug)
     .order('installs', { ascending: false })
-    .limit(3);
+    .limit(6);
 
   return {
     totalCount: (count || 0) + 1, // +1 包含当前技能
@@ -251,6 +251,72 @@ function formatNumber(num: number): string {
     return (num / 1000).toFixed(1) + 'K';
   }
   return num.toString();
+}
+
+type FileItem = {
+  name: string;
+  path: string;
+  type: 'file' | 'dir';
+  download_url: string | null;
+};
+
+type SkillFilesResult = {
+  files: FileItem[];
+  resolvedPath: string | null;  // 实际找到文件的路径
+};
+
+async function getSkillFiles(skill: SkillDetail): Promise<SkillFilesResult> {
+  // 只对 GitHub 来源的 skills 获取文件列表
+  if (!skill.repo) {
+    return { files: [], resolvedPath: null };
+  }
+
+  const { owner, repo } = parseTopSource(skill.repo);
+
+  // 尝试多种可能的路径
+  const possiblePaths: (string | null)[] = [];
+
+  // 从 skillName 中移除可能的前缀（如 vercel-react-best-practices -> react-best-practices）
+  const ownerFirstPart = owner.split('-')[0];
+  const strippedName = skill.name
+    .replace(new RegExp(`^${owner}-`, 'i'), '')
+    .replace(new RegExp(`^${ownerFirstPart}-`, 'i'), '')
+    .replace(new RegExp(`^${repo}-`, 'i'), '');
+
+  // 1. 优先尝试去除前缀的名称
+  if (strippedName !== skill.name) {
+    possiblePaths.push(`skills/${strippedName}`);
+  }
+
+  // 2. 使用 repo_path（如果有）
+  if (skill.repo_path) {
+    possiblePaths.push(`skills/${skill.repo_path}`);
+    possiblePaths.push(skill.repo_path);
+  }
+
+  // 3. 尝试 skills/{name}
+  possiblePaths.push(`skills/${skill.name}`);
+
+  // 4. 尝试根目录
+  possiblePaths.push(null);
+
+  for (const path of possiblePaths) {
+    const files = await fetchGitHubDirectory(owner, repo, path);
+    // 如果找到了 SKILL.md，说明找对了目录
+    if (files.some(f => f.name === 'SKILL.md')) {
+      return {
+        files: files.map(f => ({
+          name: f.name,
+          path: f.path,
+          type: f.type as 'file' | 'dir',
+          download_url: f.download_url,
+        })),
+        resolvedPath: path,
+      };
+    }
+  }
+
+  return { files: [], resolvedPath: null };
 }
 
 export async function generateMetadata({ params }: Props) {
@@ -375,16 +441,19 @@ export default async function SkillPage({ params }: Props) {
     notFound();
   }
 
-  const [content, authorData] = await Promise.all([
+  const [content, authorData, skillFilesResult] = await Promise.all([
     getSkillContent(skill),
     getAuthorOtherSkills(skill.author, slug),
+    getSkillFiles(skill),
   ]);
 
-  // 使用数据库中存储的 repo_path 构建 GitHub URL
-  // repo_path 为 null 表示 SKILL.md 在根目录
+  const { files: skillFiles, resolvedPath } = skillFilesResult;
+
+  // 使用实际找到文件的路径构建 GitHub URL
   const githubUrl = skill.repo
-    ? `https://github.com/${skill.repo}${skill.repo_path ? `/tree/main/${skill.repo_path}` : ''}`
+    ? `https://github.com/${skill.repo}${resolvedPath ? `/tree/main/${resolvedPath}` : ''}`
     : null;
+
 
   const jsonLd = generateSkillJsonLd(skill, locale);
 
@@ -402,7 +471,7 @@ export default async function SkillPage({ params }: Props) {
       <SkillTracker skillSlug={skill.slug} />
       <Header />
 
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
         {/* Breadcrumb */}
         <Link
           href="/"
@@ -416,24 +485,6 @@ export default async function SkillPage({ params }: Props) {
         <article className="mt-6 flex flex-col gap-6 md:flex-row md:gap-8">
           {/* LEFT: Markdown content area */}
           <div className="min-w-0 flex-1 order-2 md:order-1">
-            {/* Content header */}
-            <div className="mb-4 flex items-center justify-between">
-              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                SKILL.md
-              </span>
-              {githubUrl && (
-                <a
-                  href={githubUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  <Github className="h-3.5 w-3.5" />
-                  View source
-                </a>
-              )}
-            </div>
-
             {/* Markdown content */}
             {content ? (
               <div className="rounded-xl border border-border/50 bg-card p-6 shadow-sm sm:p-8">
@@ -450,17 +501,7 @@ export default async function SkillPage({ params }: Props) {
           <aside className="order-1 w-full flex-shrink-0 md:order-2 md:sticky md:top-20 md:w-[380px] md:self-start">
             <div className="rounded-xl border border-border/50 bg-card">
               {/* Header section */}
-              <div className="p-5">
-                {/* Title */}
-                <h1 className="text-2xl font-semibold leading-tight">{skill.name}</h1>
-
-                {/* Description */}
-                {skill.description && (
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    {skill.description}
-                  </p>
-                )}
-
+              <div className="px-5 py-0">
                 {/* Author */}
                 <Link
                   href={skill.author ? `/authors/${skill.author}` : '#'}
@@ -508,58 +549,36 @@ export default async function SkillPage({ params }: Props) {
                 )}
               </div>
 
-              {/* Stats section */}
+              {/* Install section with stats */}
               <div className="border-t border-border/50 px-5 py-4">
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-4">
-                    <div>
+                {/* Stats inline with title */}
+                <div className="mb-3 flex items-center justify-between">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('install')}</h4>
+                  <div className="flex items-center gap-3 text-xs">
+                    <span>
                       <span className="font-semibold tabular-nums">{skill.installs.toLocaleString()}</span>
-                      <span className="ml-1.5 text-muted-foreground">{t('installs')}</span>
-                    </div>
-                    {skill.stars !== undefined && (
-                      <div>
+                      <span className="ml-1 text-muted-foreground">{t('installs')}</span>
+                    </span>
+                    {skill.stars !== undefined && skill.stars > 0 && (
+                      <span>
                         <span className="font-semibold tabular-nums">{skill.stars.toLocaleString()}</span>
-                        <span className="ml-1.5 text-muted-foreground">{t('stars')}</span>
-                      </div>
+                        <span className="ml-1 text-muted-foreground">{t('stars')}</span>
+                      </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    {skill.views !== undefined && skill.views > 0 && (
-                      <span>{skill.views.toLocaleString()} views</span>
-                    )}
-                    {skill.copies !== undefined && skill.copies > 0 && (
-                      <span>{skill.copies.toLocaleString()} copies</span>
-                    )}
-                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-2 rounded-lg bg-muted px-3 py-2">
+                  <code className="truncate text-sm">npx skills add {skill.name}</code>
+                  <CopyButton text={`npx skills add ${skill.name}`} skillSlug={skill.slug} />
                 </div>
               </div>
 
-              {/* Install section */}
-              <div className="border-t border-border/50 px-5 py-4">
-                <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('install')}</h4>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between gap-2 rounded-lg bg-muted px-3 py-2">
-                    <code className="truncate text-sm">skb add {skill.slug}</code>
-                    <CopyButton text={`skb add ${skill.slug}`} skillSlug={skill.slug} />
-                  </div>
-                  <div className="flex items-center justify-between gap-2 rounded-lg bg-muted px-3 py-2">
-                    <code className="truncate text-xs">npx @skills-hot/cli add {skill.slug}</code>
-                    <CopyButton text={`npx @skills-hot/cli add ${skill.slug}`} skillSlug={skill.slug} />
-                  </div>
-                  {skill.source === 'local' && (
-                    <div className="flex items-center justify-between gap-2 rounded-lg bg-muted px-3 py-2">
-                      <code className="truncate text-xs text-muted-foreground">
-                        {t('thirdParty.placeholder')}
-                      </code>
-                      <ThirdPartyCopyButton
-                        skillSlug={skill.slug}
-                        skillId={skill.id}
-                        isPrivate={skill.is_private}
-                      />
-                    </div>
-                  )}
+              {/* Skill files - 项目文件结构 */}
+              {skillFiles.length > 0 && (
+                <div className="border-t border-border/50">
+                  <SkillFiles files={skillFiles} githubUrl={githubUrl} />
                 </div>
-              </div>
+              )}
 
               {/* Info notice for local skills with files */}
               {skill.source === 'local' && skill.has_files && (
@@ -572,28 +591,15 @@ export default async function SkillPage({ params }: Props) {
               )}
 
               {/* Links */}
-              {(githubUrl || skill.source === 'local') && (
+              {skill.source === 'local' && (
                 <div className="flex gap-2 border-t border-border/50 p-4">
-                  {githubUrl && (
-                    <a
-                      href={githubUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-muted px-4 py-2.5 text-sm transition-colors hover:bg-muted/70"
-                    >
-                      <Github className="h-4 w-4" />
-                      GitHub
-                    </a>
-                  )}
-                  {skill.source === 'local' && (
-                    <Link
-                      href={`/api/skills/${skill.slug}/raw`}
-                      className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-muted px-4 py-2.5 text-sm transition-colors hover:bg-muted/70"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      {t('viewSource')}
-                    </Link>
-                  )}
+                  <Link
+                    href={`/api/skills/${skill.slug}/raw`}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-muted px-4 py-2.5 text-sm transition-colors hover:bg-muted/70"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    {t('viewSource')}
+                  </Link>
                 </div>
               )}
             </div>
@@ -601,15 +607,23 @@ export default async function SkillPage({ params }: Props) {
             {/* Author's other skills - 单独区域 */}
             {authorData.skills.length > 0 && (
               <div className="mt-4 rounded-xl border border-border/50 bg-card p-4">
-                <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  {t('moreFromAuthor')}
-                </h4>
+                <div className="mb-3 flex items-center justify-between">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t('moreFromAuthor')}
+                  </h4>
+                  <Link
+                    href={`/authors/${skill.author}`}
+                    className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    {t('viewAllFromAuthor')} →
+                  </Link>
+                </div>
                 <div className="space-y-2">
                   {authorData.skills.map((s) => (
                     <Link
                       key={s.slug}
                       href={`/skills/${s.slug}`}
-                      className="group/item flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2 transition-colors hover:bg-muted"
+                      className="group/item flex items-center justify-between rounded-lg px-3 py-2 transition-colors hover:bg-muted"
                     >
                       <span className="truncate text-sm group-hover/item:underline">{s.name}</span>
                       <span className="flex items-center gap-1 text-xs text-muted-foreground">

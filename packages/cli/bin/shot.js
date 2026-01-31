@@ -2,7 +2,7 @@
 
 /**
  * Skills Hot CLI wrapper
- * Downloads and runs the native skb binary
+ * Downloads and runs the native shot binary
  */
 
 import { existsSync } from 'node:fs';
@@ -152,7 +152,7 @@ async function downloadBinary(version, platform) {
   const binaryName = getBinaryName();
   const versionDir = join(CACHE_DIR, version);
   const binaryPath = join(versionDir, binaryName);
-  // The binary in tarball is named skb-{platform}
+  // The binary in tarball is named shot-{platform}
   const extractedBinaryName = `shot-${platform}`;
   const extractedBinaryPath = join(versionDir, extractedBinaryName);
 

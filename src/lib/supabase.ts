@@ -126,6 +126,7 @@ export type Author = {
   external_skill_count: number;
   native_skill_count: number;
   total_installs: number;
+  total_stars: number;
   created_at: string;
   updated_at: string;
 };

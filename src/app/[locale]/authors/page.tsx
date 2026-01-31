@@ -1,7 +1,7 @@
 import { Header } from '@/components/Header';
 import { Link } from '@/i18n/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { Download, Package, Users } from 'lucide-react';
+import { Download, Package, Star, Users } from 'lucide-react';
 import type { Author } from '@/lib/supabase';
 import type { Metadata } from 'next';
 
@@ -17,7 +17,7 @@ interface AuthorWithStats extends Author {
 }
 
 async function getAuthors(
-  sort: string = 'installs',
+  sort: string = 'stars',
   page: number = 1,
   limit: number = 50
 ): Promise<{ authors: AuthorWithStats[]; total: number }> {
@@ -38,7 +38,11 @@ async function getAuthors(
     .select('*', { count: 'exact', head: true });
 
   // Get authors with sorting
-  const orderColumn = sort === 'skills' ? 'external_skill_count' : 'total_installs';
+  const orderColumn = sort === 'skills'
+    ? 'external_skill_count'
+    : sort === 'stars'
+      ? 'total_stars'
+      : 'total_installs';
 
   const { data: authors, error } = await supabase
     .from('authors')
@@ -62,8 +66,10 @@ async function getAuthors(
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { locale } = await params;
-  const { sort = 'installs', page = '1' } = await searchParams;
+  const { sort = 'stars', page = '1' } = await searchParams;
   const currentPage = parseInt(page, 10) || 1;
+  const t = await getTranslations('seo.authors');
+  const tSeo = await getTranslations('seo');
 
   // Get total count for pagination metadata
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -79,14 +85,12 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     totalPages = Math.ceil((count || 0) / ITEMS_PER_PAGE);
   }
 
-  const baseTitle = locale === 'zh' ? 'AI 技能作者' : 'AI Skill Authors';
+  const baseTitle = t('title');
   const title = currentPage > 1
-    ? `${baseTitle} - ${locale === 'zh' ? `第 ${currentPage} 页` : `Page ${currentPage}`} | Skills Hot`
-    : `${baseTitle} - ${locale === 'zh' ? '发现技能创作者' : 'Discover Skill Creators'} | Skills Hot`;
+    ? `${t('titleWithPage', { page: currentPage })} | Skills Hot`
+    : `${t('fullTitle')} | Skills Hot`;
 
-  const description = locale === 'zh'
-    ? '浏览 AI 代理技能的创作者，发现他们为 Claude Code、Cursor 和其他编程代理创建的技能'
-    : 'Browse creators of AI agent skills. Discover their skills for Claude Code, Cursor, and other coding agents';
+  const description = t('description');
 
   const baseUrl = `https://skills.hot/${locale}/authors`;
   const currentUrl = currentPage > 1 ? `${baseUrl}?sort=${sort}&page=${currentPage}` : baseUrl;
@@ -95,7 +99,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const paginationLinks: { prev?: string; next?: string } = {};
   if (currentPage > 1) {
     paginationLinks.prev = currentPage === 2
-      ? `/${locale}/authors${sort !== 'installs' ? `?sort=${sort}` : ''}`
+      ? `/${locale}/authors${sort !== 'stars' ? `?sort=${sort}` : ''}`
       : `/${locale}/authors?sort=${sort}&page=${currentPage - 1}`;
   }
   if (currentPage < totalPages) {
@@ -118,9 +122,9 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       url: currentUrl,
       siteName: 'Skills Hot',
       type: 'website',
-      locale: locale === 'zh' ? 'zh_CN' : 'en_US',
+      locale: tSeo('locale'),
       images: [{
-        url: `https://skills.hot/api/og?title=${encodeURIComponent(baseTitle)}&subtitle=${encodeURIComponent(locale === 'zh' ? '发现技能创作者' : 'Discover Skill Creators')}&type=author&locale=${locale}`,
+        url: `https://skills.hot/api/og?title=${encodeURIComponent(baseTitle)}&subtitle=${encodeURIComponent(t('subtitle'))}&type=author&locale=${locale}`,
         width: 1200,
         height: 630,
         alt: title,
@@ -130,7 +134,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       card: 'summary_large_image',
       title,
       description,
-      images: [`https://skills.hot/api/og?title=${encodeURIComponent(baseTitle)}&subtitle=${encodeURIComponent(locale === 'zh' ? '发现技能创作者' : 'Discover Skill Creators')}&type=author&locale=${locale}`],
+      images: [`https://skills.hot/api/og?title=${encodeURIComponent(baseTitle)}&subtitle=${encodeURIComponent(t('subtitle'))}&type=author&locale=${locale}`],
     },
     other: {
       ...(paginationLinks.prev && { 'link:prev': paginationLinks.prev }),
@@ -139,14 +143,18 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   };
 }
 
-function generateAuthorsJsonLd(locale: string, total: number) {
+interface JsonLdTranslations {
+  title: string;
+  totalDescription: string;
+  breadcrumb: string;
+}
+
+function generateAuthorsJsonLd(locale: string, total: number, t: JsonLdTranslations) {
   return {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: locale === 'zh' ? 'AI 技能作者' : 'AI Skill Authors',
-    description: locale === 'zh'
-      ? `浏览 ${total} 位 AI 代理技能创作者`
-      : `Browse ${total} AI agent skill creators`,
+    name: t.title,
+    description: t.totalDescription,
     url: `https://skills.hot/${locale}/authors`,
     isPartOf: {
       '@type': 'WebSite',
@@ -165,7 +173,7 @@ function generateAuthorsJsonLd(locale: string, total: number) {
         {
           '@type': 'ListItem',
           position: 2,
-          name: locale === 'zh' ? '作者' : 'Authors',
+          name: t.breadcrumb,
           item: `https://skills.hot/${locale}/authors`,
         },
       ],
@@ -175,15 +183,20 @@ function generateAuthorsJsonLd(locale: string, total: number) {
 
 export default async function AuthorsPage({ params, searchParams }: Props) {
   const { locale } = await params;
-  const { sort = 'installs', page = '1' } = await searchParams;
+  const { sort = 'stars', page = '1' } = await searchParams;
   setRequestLocale(locale);
 
   const t = await getTranslations('authors');
+  const tSeo = await getTranslations('seo.authors');
   const currentPage = parseInt(page, 10) || 1;
   const { authors, total } = await getAuthors(sort, currentPage);
 
   const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
-  const jsonLd = generateAuthorsJsonLd(locale, total);
+  const jsonLd = generateAuthorsJsonLd(locale, total, {
+    title: tSeo('title'),
+    totalDescription: tSeo('totalDescription', { total }),
+    breadcrumb: tSeo('breadcrumb'),
+  });
 
   return (
     <>
@@ -199,7 +212,7 @@ export default async function AuthorsPage({ params, searchParams }: Props) {
         <div className="mb-8">
           <p className="section-label mb-2">{t('badge')}</p>
           <h1 className="text-3xl sm:text-4xl">
-            {locale === 'zh' ? 'AI 技能作者 - 发现技能创作者' : 'AI Skill Authors - Discover Skill Creators'}
+            {tSeo('fullTitle')}
           </h1>
           <p className="byline mt-2">{t('subtitle')}</p>
         </div>
@@ -213,9 +226,19 @@ export default async function AuthorsPage({ params, searchParams }: Props) {
         </div>
 
         {/* Sort Tabs */}
-        <div className="flex gap-4 py-4 border-b border-border">
+        <div className="flex gap-4 py-4">
           <Link
             href="/authors"
+            className={`text-sm transition-colors ${
+              sort === 'stars'
+                ? 'text-foreground underline underline-offset-4'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {t('sort.stars')}
+          </Link>
+          <Link
+            href="/authors?sort=installs"
             className={`text-sm transition-colors ${
               sort === 'installs'
                 ? 'text-foreground underline underline-offset-4'
@@ -283,14 +306,18 @@ export default async function AuthorsPage({ params, searchParams }: Props) {
                 </div>
 
                 {/* Stats */}
-                <div className="flex items-center gap-6 text-sm text-muted-foreground flex-shrink-0">
+                <div className="flex items-center gap-4 sm:gap-6 text-sm text-muted-foreground flex-shrink-0">
                   <div className="flex items-center gap-1.5" title={t('skills')}>
                     <Package className="h-4 w-4" />
                     <span>{author.skill_count}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 min-w-[80px] justify-end" title={t('installs')}>
+                  <div className="flex items-center gap-1.5" title={t('installs')}>
                     <Download className="h-4 w-4" />
                     <span>{author.total_installs.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 min-w-[60px] justify-end" title={t('stars')}>
+                    <Star className="h-4 w-4" />
+                    <span>{(author.total_stars || 0).toLocaleString()}</span>
                   </div>
                 </div>
               </Link>

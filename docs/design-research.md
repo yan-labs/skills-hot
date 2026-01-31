@@ -129,16 +129,16 @@
 
 | 命令 | 功能 |
 |------|------|
-| `skb search <query>` | 搜索技能（普通 + AI） |
-| `skb add <name>` | 安装技能 |
-| `skb list` | 列出已安装技能 |
-| `skb remove <name>` | 删除技能 |
-| `skb update [name]` | 更新技能 |
-| `skb info <name>` | 查看技能详情 |
-| `skb publish [path]` | 发布技能 |
-| `skb login` | OAuth 登录 |
-| `skb logout` | 登出 |
-| `skb whoami` | 查看当前用户 |
+| `shot search <query>` | 搜索技能（普通 + AI） |
+| `shot add <name>` | 安装技能 |
+| `shot list` | 列出已安装技能 |
+| `shot remove <name>` | 删除技能 |
+| `shot update [name]` | 更新技能 |
+| `shot info <name>` | 查看技能详情 |
+| `shot publish [path]` | 发布技能 |
+| `shot login` | OAuth 登录 |
+| `shot logout` | 登出 |
+| `shot whoami` | 查看当前用户 |
 
 ### WebUI 页面
 

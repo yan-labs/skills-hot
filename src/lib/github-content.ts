@@ -206,12 +206,25 @@ export async function fetchSkillContent(
   const possibleUrls: string[] = [];
   const branch = 'main';
 
-  // 1. 如果有 repoPath，先尝试 skills/{repoPath}（常见的 monorepo 结构）
+  // 从 skillName 中移除可能的前缀（如 vercel-react-best-practices -> react-best-practices）
+  const ownerFirstPart = owner.split('-')[0];
+  const strippedName = skillName
+    .replace(new RegExp(`^${owner}-`, 'i'), '')
+    .replace(new RegExp(`^${ownerFirstPart}-`, 'i'), '')
+    .replace(new RegExp(`^${repo}-`, 'i'), '');
+
+  // 1. 优先尝试去除前缀的名称
+  if (strippedName !== skillName) {
+    possibleUrls.push(
+      `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/skills/${strippedName}/SKILL.md`
+    );
+  }
+
+  // 2. 如果有 repoPath，先尝试 skills/{repoPath}（常见的 monorepo 结构）
   if (repoPath) {
     possibleUrls.push(
       `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/skills/${repoPath}/SKILL.md`
     );
-    // 2. 尝试直接的 {repoPath}
     possibleUrls.push(
       `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${repoPath}/SKILL.md`
     );
@@ -290,10 +303,14 @@ export async function fetchGitHubDirectory(
           Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
         }),
       },
+      next: { revalidate: 3600 }, // Cache for 1 hour
     });
 
     if (!response.ok) {
-      console.error(`GitHub API failed: ${response.status}`);
+      // 404 是预期的（尝试多个路径时），其他错误才打印
+      if (response.status !== 404) {
+        console.error(`GitHub API failed: ${response.status} for ${url}`);
+      }
       return [];
     }
 
@@ -334,6 +351,7 @@ export async function fetchGitHubRepo(owner: string, repo: string): Promise<{
           Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
         }),
       },
+      next: { revalidate: 3600 }, // Cache for 1 hour
     });
 
     if (!response.ok) {

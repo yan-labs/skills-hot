@@ -89,7 +89,11 @@
     "viewOnGitHub": "在 GitHub 查看",
     "stars": "星标",
     "importToPlatform": "导入到平台",
-    "moreFromAuthor": "作者的其他技能"
+    "moreFromAuthor": "作者的其他技能",
+    "viewAllFromAuthor": "查看全部",
+    "createdAt": "创建于",
+    "lastUpdated": "更新于",
+    "files": "个文件"
   },
   "common": {
     "by": "作者",
@@ -227,10 +231,12 @@
     "totalAuthors": "位作者",
     "skills": "技能",
     "installs": "安装",
+    "stars": "星标",
     "noAuthors": "暂无作者",
     "sort": {
       "installs": "安装量最多",
-      "skills": "技能数最多"
+      "skills": "技能数最多",
+      "stars": "星标最多"
     },
     "prev": "上一页",
     "next": "下一页",
@@ -250,5 +256,52 @@
     "noDropped": "暂无掉榜技能",
     "noSurging": "暂无暴涨技能",
     "updateNote": "每 1 小时更新一次"
+  },
+  "seo": {
+    "locale": "zh_CN",
+    "inLanguage": "zh-CN",
+    "home": {
+      "h1": "Skills Hot - AI 代理技能市场",
+      "jsonLdDescription": "AI 代理技能市场 - 为 Claude Code、Cursor、Windsurf 等 AI 编程代理安装技能",
+      "jsonLdOrgDescription": "AI 代理技能市场，拥有 {skills} 个技能和 {installs} 次安装"
+    },
+    "authors": {
+      "title": "AI 技能作者",
+      "titleWithPage": "AI 技能作者 - 第 {page} 页",
+      "subtitle": "发现技能创作者",
+      "fullTitle": "AI 技能作者 - 发现技能创作者",
+      "description": "浏览 AI 代理技能的创作者，发现他们为 Claude Code、Cursor 和其他编程代理创建的技能",
+      "totalDescription": "浏览 {total} 位 AI 代理技能创作者",
+      "breadcrumb": "作者"
+    },
+    "search": {
+      "title": "搜索 AI 代理技能",
+      "titleWithQuery": "{query} - 搜索 AI 代理技能",
+      "fullTitle": "搜索 AI 代理技能 - 发现 Claude Code 和 Cursor 技能",
+      "subtitle": "发现 AI 代理技能",
+      "description": "搜索和发现 Claude Code、Cursor 等编程代理的 AI 技能。找到满足您需求的完美技能。",
+      "descriptionWithQuery": "搜索 \"{query}\" 的 AI 代理技能结果 - 在 Skills Hot 发现适合 Claude Code、Cursor 等的技能",
+      "jsonLdName": "搜索技能",
+      "jsonLdDescription": "AI 代理技能搜索页面",
+      "breadcrumb": "搜索"
+    },
+    "docs": {
+      "title": "文档",
+      "subtitle": "Skills Hot CLI 使用指南",
+      "fullTitle": "Skills Hot CLI 文档",
+      "description": "学习如何使用 Skills Hot CLI 安装、管理和创建 Claude Code 和 Cursor 等 AI 编程代理的技能。",
+      "breadcrumb": "文档"
+    },
+    "og": {
+      "trending": "热门技能",
+      "trendingSkill": "热门技能",
+      "topContributor": "榜首作者",
+      "topToday": "今日榜首",
+      "installs": "安装",
+      "stars": "星标",
+      "skills": "技能",
+      "rank": "排名",
+      "by": "作者"
+    }
   }
 }
