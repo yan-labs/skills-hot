@@ -232,7 +232,9 @@
     "installs": "安装量",
     "stars": "星标",
     "viewAll": "查看全部技能 →",
-    "updatedHourly": "每小时更新"
+    "updatedHourly": "每小时更新",
+    "loadMore": "加载更多",
+    "loading": "加载中..."
   },
   "statsBar": {
     "skills": "个技能",

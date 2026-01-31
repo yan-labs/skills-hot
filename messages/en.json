@@ -232,7 +232,9 @@
     "installs": "INSTALLS",
     "stars": "STARS",
     "viewAll": "View all skills →",
-    "updatedHourly": "Updated hourly"
+    "updatedHourly": "Updated hourly",
+    "loadMore": "Load more",
+    "loading": "Loading..."
   },
   "statsBar": {
     "skills": "Skills",

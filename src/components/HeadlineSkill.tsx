@@ -74,22 +74,20 @@ export function HeadlineSkill({ skill, author }: HeadlineSkillProps) {
           <div className='flex items-start justify-between gap-6 mb-6'>
             {/* Left: Growth badge */}
             {skill.installs_delta && skill.installs_delta > 0 ? (
-              <div className='flex items-start gap-4'>
-                <div className='relative'>
+              <div className='flex flex-col'>
+                <div className='flex items-center gap-2 mb-1'>
+                  <TrendingUp className='h-4 w-4 text-[#C41E3A]' />
+                  <span className='text-xs font-bold uppercase tracking-[0.2em] text-[#C41E3A]'>
+                    {t("headline.fastestGrowing")} · 24H
+                  </span>
+                </div>
+                <div className='relative flex items-baseline gap-3'>
+                  <Download className='h-8 w-8 text-[#C41E3A] sm:h-10 sm:w-10' />
                   <span className='font-serif text-[4.5rem] font-black leading-none tracking-tighter text-[#C41E3A] sm:text-[5.5rem] lg:text-[6.5rem]'>
                     +{formatNumber(skill.installs_delta)}
                   </span>
-                  <div className='absolute -bottom-1 left-0 h-1 w-full bg-[#C41E3A]' />
                 </div>
-                <div className='mt-3 flex flex-col'>
-                  <span className='text-xs font-bold uppercase tracking-[0.2em] text-[#C41E3A]'>
-                    <TrendingUp className='inline h-3 w-3 mr-1' />
-                    24H
-                  </span>
-                  <span className='mt-1 text-sm font-medium uppercase tracking-wider'>
-                    {t("headline.fastestGrowing")}
-                  </span>
-                </div>
+                <div className='mt-1 h-1 w-full bg-[#C41E3A]' />
               </div>
             ) : (
               <div>
@@ -129,9 +127,15 @@ export function HeadlineSkill({ skill, author }: HeadlineSkillProps) {
                   <p className='text-sm font-semibold hover:underline'>
                     {author.name || author.github_login}
                   </p>
-                  <p className='text-xs text-muted-foreground'>
-                    {author.external_skill_count} {t("headline.skills")} ·{" "}
-                    {formatNumber(author.total_installs)} installs
+                  <p className='text-xs text-muted-foreground flex items-center gap-3 justify-end'>
+                    <span className='flex items-center gap-1'>
+                      <Star className='h-3 w-3' />
+                      {author.external_skill_count} {t("headline.skills")}
+                    </span>
+                    <span className='flex items-center gap-1'>
+                      <Download className='h-3 w-3' />
+                      {formatNumber(author.total_installs)}
+                    </span>
                   </p>
                 </div>
               </div>

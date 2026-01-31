@@ -37,7 +37,7 @@ export function Header() {
         {/* Left: Name + Nav */}
         <div className="flex items-center gap-6 sm:gap-8">
           <Link href="/" className="font-serif text-xl tracking-tight hover:opacity-80 transition-opacity">
-            Skills Hot
+            Skills<span className="text-red-500">.hot</span>
           </Link>
 
           {/* Nav links */}
