@@ -27,6 +27,7 @@ export const supabase = new Proxy({} as SupabaseClient, {
 
 // Runtime platform enum (aligned with skills.sh)
 export type Platform =
+  | 'aider'
   | 'amp'
   | 'antigravity'
   | 'claudecode'
@@ -42,6 +43,7 @@ export type Platform =
   | 'kiro-cli'
   | 'manus'
   | 'moltbot'
+  | 'openclaw'
   | 'opencode'
   | 'roo'
   | 'trae'
@@ -49,6 +51,7 @@ export type Platform =
   | 'windsurf';
 
 export const PLATFORMS: Record<Platform, string> = {
+  aider: 'Aider',
   amp: 'AMP',
   antigravity: 'Antigravity',
   claudecode: 'Claude Code',
@@ -64,6 +67,7 @@ export const PLATFORMS: Record<Platform, string> = {
   'kiro-cli': 'Kiro CLI',
   manus: 'Manus',
   moltbot: 'MoltBot',
+  openclaw: 'OpenClaw',
   opencode: 'OpenCode',
   roo: 'Roo',
   trae: 'Trae',

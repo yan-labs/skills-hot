@@ -88,7 +88,8 @@
     "hasFiles": "此技能包含附属文件，将一并下载",
     "viewOnGitHub": "在 GitHub 查看",
     "stars": "星标",
-    "importToPlatform": "导入到平台"
+    "importToPlatform": "导入到平台",
+    "moreFromAuthor": "作者的其他技能"
   },
   "common": {
     "by": "作者",

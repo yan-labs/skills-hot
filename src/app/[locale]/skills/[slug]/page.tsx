@@ -1,6 +1,6 @@
 import { Header } from '@/components/Header';
 import { notFound } from 'next/navigation';
-import { ExternalLink, ArrowLeft, Github, Star, Download, Info } from 'lucide-react';
+import { ExternalLink, ArrowLeft, ArrowUpRight, Github, Download } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { CopyButton } from '@/components/CopyButton';
 import { ThirdPartyCopyButton } from '@/components/ThirdPartyCopyButton';
@@ -157,6 +157,47 @@ async function getSkillContent(skill: SkillDetail): Promise<string> {
   }
 
   return '';
+}
+
+type AuthorSkill = {
+  name: string;
+  slug: string;
+  description: string | null;
+  installs: number;
+};
+
+async function getAuthorOtherSkills(
+  authorLogin: string | null,
+  currentSkillSlug: string
+): Promise<{ totalCount: number; skills: AuthorSkill[] }> {
+  if (!authorLogin) return { totalCount: 0, skills: [] };
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) return { totalCount: 0, skills: [] };
+
+  const { createClient } = await import('@supabase/supabase-js');
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  // 获取作者的所有技能（排除当前技能）
+  const { data: skills, count } = await supabase
+    .from('external_skills')
+    .select('name, slug, description, installs', { count: 'exact' })
+    .ilike('github_owner', authorLogin)
+    .neq('slug', currentSkillSlug)
+    .order('installs', { ascending: false })
+    .limit(3);
+
+  return {
+    totalCount: (count || 0) + 1, // +1 包含当前技能
+    skills: (skills || []).map(s => ({
+      name: s.name,
+      slug: s.slug,
+      description: s.description,
+      installs: s.installs,
+    })),
+  };
 }
 
 async function getSkillRank(skillId: string, source: string): Promise<number | null> {
@@ -334,7 +375,10 @@ export default async function SkillPage({ params }: Props) {
     notFound();
   }
 
-  const content = await getSkillContent(skill);
+  const [content, authorData] = await Promise.all([
+    getSkillContent(skill),
+    getAuthorOtherSkills(skill.author, slug),
+  ]);
 
   // 使用数据库中存储的 repo_path 构建 GitHub URL
   // repo_path 为 null 表示 SKILL.md 在根目录
@@ -407,16 +451,6 @@ export default async function SkillPage({ params }: Props) {
             <div className="rounded-xl border border-border/50 bg-card">
               {/* Header section */}
               <div className="p-5">
-                {/* Source + Platforms */}
-                <div className="mb-3 flex flex-wrap items-center gap-2">
-                  <span className="rounded-full bg-muted px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
-                    {skill.source === 'local' ? 'Platform' : skill.source === 'github' ? 'GitHub' : 'SkillSMP'}
-                  </span>
-                  {skill.platforms && skill.platforms.length > 0 && (
-                    <PlatformBadge platforms={skill.platforms} showLabel={false} />
-                  )}
-                </div>
-
                 {/* Title */}
                 <h1 className="text-2xl font-semibold leading-tight">{skill.name}</h1>
 
@@ -447,16 +481,17 @@ export default async function SkillPage({ params }: Props) {
                       </span>
                     )}
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <span>{new Date(skill.created_at).toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-                      {skill.version && (
-                        <>
-                          <span>·</span>
-                          <span>v{skill.version}</span>
-                        </>
-                      )}
+                      <span>{authorData.totalCount} {authorData.totalCount === 1 ? 'skill' : 'skills'}</span>
                     </div>
                   </div>
                 </Link>
+
+                {/* Platforms */}
+                {skill.platforms && skill.platforms.length > 0 && (
+                  <div className="mt-4 -mx-5 bg-black">
+                    <PlatformBadge platforms={skill.platforms} showLabel={false} size="lg" scrollable />
+                  </div>
+                )}
 
                 {/* Tags */}
                 {skill.tags && skill.tags.length > 0 && (
@@ -562,6 +597,30 @@ export default async function SkillPage({ params }: Props) {
                 </div>
               )}
             </div>
+
+            {/* Author's other skills - 单独区域 */}
+            {authorData.skills.length > 0 && (
+              <div className="mt-4 rounded-xl border border-border/50 bg-card p-4">
+                <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t('moreFromAuthor')}
+                </h4>
+                <div className="space-y-2">
+                  {authorData.skills.map((s) => (
+                    <Link
+                      key={s.slug}
+                      href={`/skills/${s.slug}`}
+                      className="group/item flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2 transition-colors hover:bg-muted"
+                    >
+                      <span className="truncate text-sm group-hover/item:underline">{s.name}</span>
+                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Download className="h-3 w-3" />
+                        {s.installs.toLocaleString()}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </aside>
         </article>
       </main>

@@ -341,6 +341,16 @@
 .stagger > *:nth-child(5) { animation-delay: 0.25s; }
 .stagger > *:nth-child(6) { animation-delay: 0.3s; }
 
+/* Auto scroll animation for platform icons */
+@keyframes scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-scroll {
+  animation: scroll 20s linear infinite;
+}
+
 /* ===========================================
    SCROLLBAR - minimal
    =========================================== */

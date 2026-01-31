@@ -88,7 +88,8 @@
     "hasFiles": "This skill includes additional files that will be downloaded",
     "viewOnGitHub": "View on GitHub",
     "stars": "Stars",
-    "importToPlatform": "Import to Platform"
+    "importToPlatform": "Import to Platform",
+    "moreFromAuthor": "More from this author"
   },
   "common": {
     "by": "by",
